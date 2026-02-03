@@ -1,7 +1,13 @@
+import 'package:domain/model/user_preferences.dart';
+
 abstract interface class PreferenceRepository {
 
-    Future<void> saveDefaultServerId(int serverId);
+    Future<UserPreferences> getUserPreferences();
 
-    Future<int?> getDefaultServerId();
+    Stream<UserPreferences> getUserPreferencesStream();
+
+    Future<void> saveUserPreferences(UserPreferences preferences);
+
+    Future<void> updateBiometrics(bool biometrics);
 
 }

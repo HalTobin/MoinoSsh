@@ -1,6 +1,7 @@
 import 'package:domain/use_case/ssh_connect_use_case.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import '../model/ConnectWithProfilePasswordMethod.dart';
 import '../use_case/my_servers_use_cases.dart';
 import 'my_servers_event.dart';
 import 'my_servers_state.dart';

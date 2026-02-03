@@ -7,6 +7,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:ui/navigation/auto_modal.dart';
 
 import '../../../presentation/component/ssh_connect_button.dart';
+import '../model/ConnectWithProfilePasswordMethod.dart';
 import 'component/server_profile_item.dart';
 import 'my_servers_event.dart';
 import 'my_servers_state.dart';

@@ -1,3 +1,5 @@
+import '../model/ConnectWithProfilePasswordMethod.dart';
+
 sealed class MyServersEvent {}
 
 class SelectServer extends MyServersEvent {
@@ -14,24 +16,3 @@ class ConnectWithProfile extends MyServersEvent {
     final ConnectWithProfilePasswordMethod method;
     ConnectWithProfile({required this.method});
 }
-
-sealed class ConnectWithProfilePasswordMethod {
-    static ConnectWithProfilePasswordMethod none() {
-        return None();
-    }
-    static ConnectWithProfilePasswordMethod password(String password) {
-        return Password(password: password);
-    }
-    static ConnectWithProfilePasswordMethod biometrics() {
-        return Biometrics();
-    }
-}
-
-class None extends ConnectWithProfilePasswordMethod {}
-
-class Password extends ConnectWithProfilePasswordMethod {
-    final String password;
-    Password({required this.password});
-}
-
-class Biometrics extends ConnectWithProfilePasswordMethod {}
