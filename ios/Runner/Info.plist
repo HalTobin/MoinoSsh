@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+    <key>keychain-access-groups</key>
+    <array/>
 </dict>
 </plist>

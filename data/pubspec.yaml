@@ -9,6 +9,7 @@ dependencies:
     sdk: flutter
 
   shared_preferences:
+  flutter_secure_storage:
   path_provider:
   dartssh2:
   drift:

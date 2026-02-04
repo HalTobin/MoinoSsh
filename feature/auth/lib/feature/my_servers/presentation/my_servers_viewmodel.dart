@@ -78,7 +78,8 @@ class MyServersViewModel extends ChangeNotifier {
     }
 
     Future<void> _connectWithProfileAndMethod(ConnectWithProfilePasswordMethod method) async {
-        switch (method) {
+        _useCases.authFromProfileUseCase.execute(_state.selectedServerId!, method);
+        /*switch (method) {
             case None():
                 _connectWithProfile(null);
             case Password():
@@ -86,7 +87,7 @@ class MyServersViewModel extends ChangeNotifier {
             case Biometrics():
                 // TODO: Handle this case.
                 throw UnimplementedError();
-        }
+        }*/
     }
 
     Future<void> _connectWithProfile(String? password) async {
