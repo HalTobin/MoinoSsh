@@ -1,41 +1,67 @@
 import 'package:domain/model/ssh/connection_status.dart';
-import 'package:domain/repository/preference_repository.dart';
-import 'package:domain/repository/secured_preferences_repository.dart';
 import 'package:domain/repository/server_profile_repository.dart';
+import 'package:domain/service/biometrics_service.dart';
 import 'package:domain/service/ssh_service.dart';
-import 'package:flutter/foundation.dart';
 
 import '../model/ConnectWithProfilePasswordMethod.dart';
 
 class AuthFromProfileUseCase {
     AuthFromProfileUseCase({
         required SshService sshService,
-        required PreferenceRepository preferenceRepository,
         required ServerProfileRepository serverProfileRepository,
-        required SecuredPreferencesRepository securedPreferencesRepository
+        required BiometricsService biometricsService
     })
         : _sshService = sshService,
-          _preferenceRepository = preferenceRepository,
           _serverProfileRepository = serverProfileRepository,
-          _securedPreferencesRepository = securedPreferencesRepository;
+          _biometricsService = biometricsService;
 
     final SshService _sshService;
-    final PreferenceRepository _preferenceRepository;
     final ServerProfileRepository _serverProfileRepository;
-    final SecuredPreferencesRepository _securedPreferencesRepository;
+    final BiometricsService _biometricsService;
 
     Future<ConnectionStatus> execute(
         int serverProfileId,
         ConnectWithProfilePasswordMethod method
     ) async {
-        final biometricsAvailable = await _securedPreferencesRepository.isBiometricsSupported(); 
+        final biometricsAvailable = await _biometricsService.isBiometricsSupported();
         if (biometricsAvailable) {
-            final prefs = await _preferenceRepository.getUserPreferences();
-            if (!prefs.dontAskBiometrics) {
-                if (kDebugMode) {
-                    print("[AuthFromProfileUseCase] Biometrics should be available");
+            final profile = await _serverProfileRepository.getProfileById(serverProfileId);
+            if (profile == null) {
+                return ConnectionFailed(error: "Profile not found");
+            }
+            switch (method) {
+                case None():
+                    return _sshService.connect(
+                        user: profile.user,
+                        serverUrl: profile.url,
+                        serverPort: profile.port,
+                        sshFilePath: profile.keyPath,
+                        password: null
+                    );
+                case Password():
+                    return _sshService.connect(
+                        user: profile.user,
+                        serverUrl: profile.url,
+                        serverPort: profile.port,
+                        sshFilePath: profile.keyPath,
+                        password: method.password
+                    );
+                case Biometrics(): {
+                    final cryptedPassword = profile.securedSshKeyPassword;
+                    if (cryptedPassword != null) {
+                        final password = await _biometricsService.decryptPassword(cryptedPassword);
+                        return _sshService.connect(
+                            user: profile.user,
+                            serverUrl: profile.url,
+                            serverPort: profile.port,
+                            sshFilePath: profile.keyPath,
+                            password: password
+                        );
+                    }
+                    else {
+                        return ConnectionFailed(error: "No password found in database");
+                    }
                 }
-                final userKey = await _securedPreferencesRepository.getUserKey();
             }
         }
         return ConnectionFailed(error: "WIP");

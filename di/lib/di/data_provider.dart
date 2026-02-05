@@ -1,7 +1,6 @@
-import 'package:data/repository/secured_preferences_repository_impl.dart';
+import 'package:data/service/biometrics_service_impl.dart';
 import 'package:domain/repository/favorite_service_repository.dart';
 import 'package:domain/repository/preference_repository.dart';
-import 'package:domain/repository/secured_preferences_repository.dart';
 import 'package:domain/repository/server_profile_repository.dart';
 import 'package:domain/repository/file_repository.dart';
 import 'package:domain/repository/ssh_secrets_repository.dart';
@@ -10,6 +9,7 @@ import 'package:data/repository/favorite_service_repository_impl.dart';
 import 'package:data/repository/server_profile_repository_impl.dart';
 import 'package:data/repository/file_repository_impl.dart';
 import 'package:data/repository/ssh_secrets_repository_impl.dart';
+import 'package:domain/service/biometrics_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -30,7 +30,7 @@ class DataProvider extends StatelessWidget {
         Provider<FileRepository>(create: (_) => (FileRepositoryImpl())),
         Provider<SshSecretsRepository>(create: (context) => (SshSecretsRepositoryImpl())),
         Provider<PreferenceRepository>(create: (_) => (PreferenceRepositoryImpl())),
-        Provider<SecuredPreferencesRepository>(create: (_) => (SecuredPreferencesRepositoryImpl()))
+        Provider<BiometricsService>(create: (_) => (BiometricsServiceImpl()))
       ],
       child: child
     );

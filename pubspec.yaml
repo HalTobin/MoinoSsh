@@ -28,7 +28,9 @@ dependencies:
     sdk: flutter
 
   shared_preferences: ^2.5.4
-  flutter_secure_storage: ^10.0.0
+  biometric_signature: ^9.0.3
+  encrypt: ^5.0.3
+  pointycastle: ^3.9.1
   lucide_icons_flutter: ^3.1.5
   provider: ^6.1.5
   path_provider: ^2.1.5

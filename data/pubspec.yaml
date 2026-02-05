@@ -9,7 +9,9 @@ dependencies:
     sdk: flutter
 
   shared_preferences:
-  flutter_secure_storage:
+  biometric_signature:
+  encrypt:
+  pointycastle:
   path_provider:
   dartssh2:
   drift:

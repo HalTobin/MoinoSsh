@@ -3,7 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  flutter_secure_storage_windows
+  biometric_signature
   sqlite3_flutter_libs
 )
 
