@@ -20,26 +20,51 @@ class BiometricsServiceImpl implements BiometricsService {
 
     @override
     Future<String?> encryptPassword(String password) async {
+        if (kDebugMode) {
+            print("[BiometricsServiceImpl] Encrypting and saving password...");
+        }
+
         final bool keysExist = await _biometricSignature.biometricKeyExists();
+
+        String? publicKey = null;
+
+        if (kDebugMode) {
+            print("[BiometricsServiceImpl] Keys exist: $keysExist");
+        }
         if (!keysExist) {
             final created = await _createKeys();
-            if (!created) return null;
+            if (created == null) return null;
+
+            publicKey = created;
+        }
+        else {
+            final KeyInfo keyInfo;
+            try {
+                keyInfo = await _biometricSignature.getKeyInfo(
+                    keyFormat: KeyFormat.pem,
+                    checkValidity: false
+                );
+                publicKey = keyInfo.publicKey;
+            } catch (e) {
+                await clearKeys();
+                if (kDebugMode) {
+                    print("[BiometricsServiceImpl] ERROR Couldn't save password: ${e.toString()}");
+                }
+                return null;
+            }
         }
 
-        final KeyInfo keyInfo;
-        try {
-            keyInfo = await _biometricSignature.getKeyInfo(
-                keyFormat: KeyFormat.pem,
-                checkValidity: false
-            );
-        } catch (e) {
+
+        if (publicKey == null) {
+            if (kDebugMode) {
+                print("[BiometricsServiceImpl] ERROR Key is null");
+            }
             await clearKeys();
-            return encryptPassword(password);
+            return null;
         }
 
-        if (keyInfo.publicKey == null) return null;
-
-        return _encryptRsa(password, keyInfo.publicKey!);
+        final crypted = _encryptRsa(password, publicKey);
+        return crypted;
     }
 
     @override
@@ -73,7 +98,11 @@ class BiometricsServiceImpl implements BiometricsService {
         await _biometricSignature.deleteKeys();
     }
 
-    Future<bool> _createKeys() async {
+    Future<String?> _createKeys() async {
+        if (kDebugMode) {
+            print("[BiometricsServiceImpl] Creating keys");
+        }
+
         final result = await _biometricSignature.createKeys(
             keyFormat: KeyFormat.pem,
             promptMessage: 'Authenticate to enable Secure SSH',
@@ -85,7 +114,13 @@ class BiometricsServiceImpl implements BiometricsService {
                 enableDecryption: true
             ),
         );
-        return result.code == BiometricError.success;
+
+        if (kDebugMode) {
+            print("[BiometricsServiceImpl] Key creation, result: ${result.code?.toString()}");
+        }
+
+        final bool success = result.code == BiometricError.success;
+        return success ? result.publicKey : null;
     }
 
     String _encryptRsa(String plaintext, String publicKeyStr) {

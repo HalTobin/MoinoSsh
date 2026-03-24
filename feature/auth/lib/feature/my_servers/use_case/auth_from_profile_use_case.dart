@@ -1,4 +1,6 @@
+import 'package:domain/model/server_profile.dart';
 import 'package:domain/model/ssh/connection_status.dart';
+import 'package:domain/repository/preference_repository.dart';
 import 'package:domain/repository/server_profile_repository.dart';
 import 'package:domain/service/biometrics_service.dart';
 import 'package:domain/service/ssh_service.dart';
@@ -9,15 +11,18 @@ class AuthFromProfileUseCase {
     AuthFromProfileUseCase({
         required SshService sshService,
         required ServerProfileRepository serverProfileRepository,
-        required BiometricsService biometricsService
+        required BiometricsService biometricsService,
+        required PreferenceRepository preferenceRepository,
     })
         : _sshService = sshService,
           _serverProfileRepository = serverProfileRepository,
-          _biometricsService = biometricsService;
+          _biometricsService = biometricsService,
+          _preferenceRepository = preferenceRepository;
 
     final SshService _sshService;
     final ServerProfileRepository _serverProfileRepository;
     final BiometricsService _biometricsService;
+    final PreferenceRepository _preferenceRepository;
 
     Future<ConnectionStatus> execute(
         int serverProfileId,
@@ -38,14 +43,35 @@ class AuthFromProfileUseCase {
                         sshFilePath: profile.keyPath,
                         password: null
                     );
-                case Password():
-                    return _sshService.connect(
+                case Password(): {
+                    final prefs = await _preferenceRepository.getUserPreferences();
+                    final authResult = await _sshService.connect(
                         user: profile.user,
                         serverUrl: profile.url,
                         serverPort: profile.port,
                         sshFilePath: profile.keyPath,
                         password: method.password
                     );
+                    final passwordNotSaved = (profile.securedSshKeyPassword == null);
+                    if (authResult is ConnectionSucceed && !prefs.dontAskBiometrics) {
+                        final isBiometricsAvailable = await _biometricsService.isBiometricsSupported();
+                        if (isBiometricsAvailable && passwordNotSaved) {
+                            final secretSshPassword = await _biometricsService.encryptPassword(method.password);
+                            final updatedProfile = EditServerProfile(
+                                id: profile.id,
+                                name: profile.name,
+                                url: profile.url,
+                                port: profile.port,
+                                user: profile.user,
+                                keyPath: profile.keyPath,
+                                securedSshKeyPassword: secretSshPassword,
+                                securedSessionPassword: profile.securedSessionPassword
+                            );
+                            await _serverProfileRepository.updateProfile(updatedProfile);
+                        }
+                    }
+                    return authResult;
+                }
                 case Biometrics(): {
                     final cryptedPassword = profile.securedSshKeyPassword;
                     if (cryptedPassword != null) {

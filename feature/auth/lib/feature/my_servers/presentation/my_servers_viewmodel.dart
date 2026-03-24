@@ -1,5 +1,3 @@
-import 'package:domain/use_case/ssh_connect_use_case.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../model/ConnectWithProfilePasswordMethod.dart';
 import '../use_case/my_servers_use_cases.dart';
@@ -54,10 +52,15 @@ class MyServersViewModel extends ChangeNotifier {
             try {
                 final serverProfile = _state.servers.firstWhere((element) => element.id == serverProfileId);
                 final bool passwordRequired = await _useCases.checkPasswordRequirementByServerProfileIdUseCase.execute(serverProfileId);
+
+                final bool biometricsAvailable = (serverProfile.securedSshKeyPassword != null);
+                if (kDebugMode) {
+                    print("[MyServersViewModel] Biometrics availability: $biometricsAvailable");
+                }
                 _state = _state.copyWith(
                     sshPasswordRequired: passwordRequired,
                     selectedServerId: serverProfileId,
-                    biometricsAvailable: serverProfile.securedSshKeyPassword != null
+                    biometricsAvailable: biometricsAvailable
                 );
             } catch (e) {
                 if (kDebugMode) {
@@ -88,28 +91,6 @@ class MyServersViewModel extends ChangeNotifier {
                 // TODO: Handle this case.
                 throw UnimplementedError();
         }*/
-    }
-
-    Future<void> _connectWithProfile(String? password) async {
-        try {
-            _state = _state.copyWith(connecting: true);
-            notifyListeners();
-            final profile = _state.servers.firstWhere((element) => element.id == _state.selectedServerId);
-            final request = SshConnectRequest(
-                user: profile.user,
-                url: profile.url,
-                port: profile.port,
-                filePath: profile.keyPath,
-                password: password
-            );
-            _useCases.sshConnectUseCase.execute(request);
-            _state = _state.copyWith(connecting: true);
-            notifyListeners();
-        } catch (e) {
-            if (kDebugMode) {
-                print("[MyServersViewModel] Error: $e");
-            }
-        }
     }
 
 }

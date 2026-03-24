@@ -38,7 +38,8 @@ class MyServersProvider extends StatelessWidget {
             AuthFromProfileUseCase(
               sshService: context.read(),
               serverProfileRepository: context.read(),
-              biometricsService: context.read()
+              biometricsService: context.read(),
+              preferenceRepository: context.read()
             )
           )
         ),

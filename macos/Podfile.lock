@@ -1,10 +1,9 @@
 PODS:
+  - biometric_signature (9.0.3):
+    - FlutterMacOS
   - biometric_storage (0.0.1):
     - FlutterMacOS
   - file_picker (0.0.1):
-    - FlutterMacOS
-  - flutter_secure_storage_darwin (10.0.0):
-    - Flutter
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
   - shared_preferences_foundation (0.0.1):
@@ -37,9 +36,9 @@ PODS:
     - sqlite3/session
 
 DEPENDENCIES:
+  - biometric_signature (from `Flutter/ephemeral/.symlinks/plugins/biometric_signature/macos`)
   - biometric_storage (from `Flutter/ephemeral/.symlinks/plugins/biometric_storage/macos`)
   - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
-  - flutter_secure_storage_darwin (from `Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqlite3_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/darwin`)
@@ -49,12 +48,12 @@ SPEC REPOS:
     - sqlite3
 
 EXTERNAL SOURCES:
+  biometric_signature:
+    :path: Flutter/ephemeral/.symlinks/plugins/biometric_signature/macos
   biometric_storage:
     :path: Flutter/ephemeral/.symlinks/plugins/biometric_storage/macos
   file_picker:
     :path: Flutter/ephemeral/.symlinks/plugins/file_picker/macos
-  flutter_secure_storage_darwin:
-    :path: Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_darwin/darwin
   FlutterMacOS:
     :path: Flutter/ephemeral
   shared_preferences_foundation:
@@ -63,9 +62,9 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/darwin
 
 SPEC CHECKSUMS:
+  biometric_signature: 1a440753c9d8ed89381b94b7c6cb473760f833a6
   biometric_storage: 43caa6e7ef00e8e19c074216e7e1786dacda9e76
   file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
-  flutter_secure_storage_darwin: 557817588b80e60213cbecb573c45c76b788018d
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
   sqlite3: 8d708bc63e9f4ce48f0ad9d6269e478c5ced1d9b
