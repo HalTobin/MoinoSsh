@@ -1,3 +1,4 @@
+import 'package:domain/use_case/check_biometrics_availability_use_case.dart';
 import 'package:ls_server_app/use_case/fetch_ssh_password_use_case.dart';
 import 'package:ls_server_app/use_case/get_current_ssh_profile_use_case.dart';
 import 'package:ls_server_app/use_case/listen_is_current_ssh_profile_password_available_use_case.dart';
@@ -12,6 +13,7 @@ class MainUseCases {
     final SetOnPasswordRequestUseCase setOnPasswordRequestUseCase;
     final ListenIsCurrentSshProfilePasswordAvailableUseCase listenIsCurrentSshProfilePasswordAvailableUseCase;
     final FetchSshPasswordUseCase fetchSshPasswordUseCase;
+    final CheckBiometricsAvailabilityUseCase checkBiometricsAvailabilityUseCase;
 
     MainUseCases({
         required this.listenSshConnectUseCase,
@@ -19,6 +21,7 @@ class MainUseCases {
         required this.getCurrentSshProfileUseCase,
         required this.setOnPasswordRequestUseCase,
         required this.listenIsCurrentSshProfilePasswordAvailableUseCase,
-        required this.fetchSshPasswordUseCase
+        required this.fetchSshPasswordUseCase,
+        required this.checkBiometricsAvailabilityUseCase
     });
 }

@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MainProvider(
       child: MaterialApp(
-        title: 'Moino Service Manager',
+        title: 'Moino SSH',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
           brightness: Brightness.dark,

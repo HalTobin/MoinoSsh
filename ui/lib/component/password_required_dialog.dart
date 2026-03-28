@@ -8,6 +8,8 @@ class PasswordRequiredDialog extends StatefulWidget {
   final Function() onDismiss;
 
   final String confirmText;
+
+  final bool biometricsAvailable;
   final Function()? onBiometricsRequest;
 
   const PasswordRequiredDialog({
@@ -15,7 +17,8 @@ class PasswordRequiredDialog extends StatefulWidget {
     required this.onPasswordEntered,
     required this.onDismiss,
     this.confirmText = "AUTHENTICATE",
-    this.onBiometricsRequest = null,
+    this.biometricsAvailable = false,
+    this.onBiometricsRequest = null
   });
 
   @override
@@ -25,6 +28,8 @@ class PasswordRequiredDialog extends StatefulWidget {
 class _PasswordRequiredDialogState extends State<PasswordRequiredDialog> {
   bool obscurePassword = true;
   final TextEditingController passwordController = TextEditingController();
+
+  bool _savePassword = false;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +69,20 @@ class _PasswordRequiredDialogState extends State<PasswordRequiredDialog> {
               )
             ),
           ),
+          widget.biometricsAvailable && (widget.onBiometricsRequest == null)
+              ? CheckboxListTile(
+                  title: const Text('Enable biometrics'),
+                  value: _savePassword,
+                  onChanged: (bool? newValue) {
+                    setState(() {
+                      _savePassword = newValue ?? false;
+                    });
+                  },
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                )
+              : const SizedBox.shrink(),
           Center(
             child: AppButton(
               icon: LucideIcons.keyRound,

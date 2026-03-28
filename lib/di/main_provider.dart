@@ -50,7 +50,8 @@ class MainProvider extends StatelessWidget {
             getCurrentSshProfileUseCase: context.read(),
             setOnPasswordRequestUseCase: context.read(),
             listenIsCurrentSshProfilePasswordAvailableUseCase: context.read(),
-            fetchSshPasswordUseCase: context.read()
+            fetchSshPasswordUseCase: context.read(),
+            checkBiometricsAvailabilityUseCase: context.read()
           )
         )),
 

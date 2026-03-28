@@ -10,7 +10,7 @@ class MainViewModel extends ChangeNotifier {
     MainViewModel({required MainUseCases mainUseCases})
       : _useCases = mainUseCases
     {
-      _observeSshConnectionStatus();
+      _init();
     }
 
     final MainUseCases _useCases;
@@ -18,6 +18,12 @@ class MainViewModel extends ChangeNotifier {
     MainState get state => _state;
 
     StreamSubscription<bool>? _passwordAvailabilitySubscription;
+
+    Future<void> _init() async {
+        _checkIfBiometricsAvailable();
+        _observeSshConnectionStatus();
+        _observeSshSessionBiometricsAvailability();
+    }
 
     void onEvent(MainEvent event) {
         switch (event) {
@@ -32,6 +38,12 @@ class MainViewModel extends ChangeNotifier {
         return _useCases.fetchSshPasswordUseCase.execute();
     }
 
+    Future<void> _checkIfBiometricsAvailable() async {
+        final available = await _useCases.checkBiometricsAvailabilityUseCase.execute();
+        _state = _state.copyWith(biometricsAvailable: available);
+        notifyListeners();
+    }
+
     void _observeSshConnectionStatus() {
         _useCases.listenSshConnectUseCase.execute().addListener(() {
             bool isConnect = _useCases.listenSshConnectUseCase.execute().value;
@@ -40,11 +52,14 @@ class MainViewModel extends ChangeNotifier {
             _state = _state.copyWith(isConnected: isConnect, profile: currentProfile);
             notifyListeners();
         });
+    }
+
+    void _observeSshSessionBiometricsAvailability() {
         _passwordAvailabilitySubscription = _useCases.listenIsCurrentSshProfilePasswordAvailableUseCase.execute()
             .listen((isAvailable) {
-                _state = _state.copyWith(sessionBiometricsAvailable: isAvailable);
-                notifyListeners();
-            },
+            _state = _state.copyWith(sessionBiometricsAvailable: isAvailable);
+            notifyListeners();
+        },
             onError: (error) {
                 if (kDebugMode) {
                     print("Error listening to SSH status: $error");

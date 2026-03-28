@@ -45,8 +45,9 @@ class _MainScreenState extends State<MainScreen> {
       SetOnPasswordRequest(
         onPasswordRequest: () => _showPasswordDialog(
           context,
+          widget.state.biometricsAvailable,
           widget.onFetchPasswordBiometrics
-        ) // TODO - Update this callback /!\
+        )
       )
     );
   }
@@ -104,6 +105,7 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<String?> _showPasswordDialog(
     BuildContext context,
+    bool biometricsAvailable,
     Future<String?> Function()? onBiometricsRequest
   ) async {
     if (kDebugMode) {
@@ -117,6 +119,7 @@ class _MainScreenState extends State<MainScreen> {
         child: PasswordRequiredDialog(
           onPasswordEntered: (password) => Navigator.of(dialogContext).pop(password),
           onDismiss: () => Navigator.of(context).pop(null),
+          biometricsAvailable: biometricsAvailable,
           onBiometricsRequest: (onBiometricsRequest != null) ? () async {
             final password = await onBiometricsRequest();
             if (!dialogContext.mounted) return;
