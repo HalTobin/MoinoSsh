@@ -14,11 +14,13 @@ import 'package:ls_server_app/presentation/main_state.dart';
 class MainScreen extends StatefulWidget {
   final MainState state;
   final Function(MainEvent) onEvent;
+  final Future<String?> Function()? onFetchPasswordBiometrics;
 
   const MainScreen({
     super.key,
     required this.state,
     required this.onEvent,
+    required this.onFetchPasswordBiometrics
   });
 
   @override
@@ -41,7 +43,10 @@ class _MainScreenState extends State<MainScreen> {
 
     widget.onEvent(
       SetOnPasswordRequest(
-        onPasswordRequest: () => _showPasswordDialog(context)
+        onPasswordRequest: () => _showPasswordDialog(
+          context,
+          widget.onFetchPasswordBiometrics
+        ) // TODO - Update this callback /!\
       )
     );
   }
@@ -97,21 +102,30 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Future<String?> _showPasswordDialog(BuildContext context) async {
+  Future<String?> _showPasswordDialog(
+    BuildContext context,
+    Future<String?> Function()? onBiometricsRequest
+  ) async {
     if (kDebugMode) {
       print("_showAuthDialog()");
     }
     final password = await showDialog<String?>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AppDialogLayout(
+      builder: (dialogContext) => AppDialogLayout(
         padding: EdgeInsets.all(12),
         child: PasswordRequiredDialog(
-          onPasswordEntered: (password) => Navigator.of(context).pop(password),
+          onPasswordEntered: (password) => Navigator.of(dialogContext).pop(password),
           onDismiss: () => Navigator.of(context).pop(null),
+          onBiometricsRequest: (onBiometricsRequest != null) ? () async {
+            final password = await onBiometricsRequest();
+            if (!dialogContext.mounted) return;
+            Navigator.of(dialogContext).pop(password);
+          } : null,
         ),
       )
     );
     return password;
   }
+
 }

@@ -4,6 +4,9 @@ import 'package:domain/use_case/add_edit_server_use_case.dart';
 import 'package:domain/use_case/check_wrong_fields_use_case.dart';
 import 'package:domain/use_case/load_ssh_file_use_case.dart';
 import 'package:domain/use_case/ssh_connect_use_case.dart';
+import 'package:domain/use_case/check_biometrics_availability_use_case.dart';
+import 'package:domain/use_case/get_current_server_profile_use_case.dart';
+import 'package:data/use_case/check_biometrics_availability_use_case_impl.dart';
 
 class DomainProvider extends StatelessWidget {
   final Widget child;
@@ -33,6 +36,15 @@ class DomainProvider extends StatelessWidget {
           )
         ),
         Provider(create: (_) => (CheckWrongFieldsUseCase())),
+        Provider<CheckBiometricsAvailabilityUseCase>(create: (context) => (CheckBiometricsAvailabilityUseCaseImpl())),
+        Provider(
+          create: (context) => (
+            GetCurrentServerProfileUseCase(
+              sshService: context.read(),
+              serverProfileRepository: context.read(),
+            )
+          )
+        )
       ],
       child: child,
     );

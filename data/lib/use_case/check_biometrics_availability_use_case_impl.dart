@@ -1,7 +1,10 @@
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:flutter/foundation.dart';
+import 'package:domain/use_case/check_biometrics_availability_use_case.dart';
 
-class CheckQuickConnectAvailabilityUseCase {
+class CheckBiometricsAvailabilityUseCaseImpl implements CheckBiometricsAvailabilityUseCase {
+
+    @override
     Future<bool> execute() async {
         final response = await BiometricStorage().canAuthenticate();
         if (kDebugMode) {
@@ -9,4 +12,5 @@ class CheckQuickConnectAvailabilityUseCase {
         }
         return response == CanAuthenticateResponse.success;
     }
+
 }

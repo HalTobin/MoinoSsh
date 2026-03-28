@@ -33,6 +33,7 @@ class MyApp extends StatelessWidget {
               return MainScreen(
                 state: viewmodel.state,
                 onEvent: viewmodel.onEvent,
+                onFetchPasswordBiometrics: viewmodel.state.sessionBiometricsAvailable ? viewmodel.fetchSshPassword : null,
               );
             }
           ),

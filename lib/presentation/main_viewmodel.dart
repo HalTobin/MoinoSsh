@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:domain/model/ssh/ssh_profile.dart';
 import 'package:flutter/foundation.dart';
 import 'package:ls_server_app/presentation/main_event.dart';
@@ -15,6 +17,8 @@ class MainViewModel extends ChangeNotifier {
     MainState _state = MainState();
     MainState get state => _state;
 
+    StreamSubscription<bool>? _passwordAvailabilitySubscription;
+
     void onEvent(MainEvent event) {
         switch (event) {
             case SshLogOut():
@@ -22,6 +26,10 @@ class MainViewModel extends ChangeNotifier {
             case SetOnPasswordRequest():
                 _useCases.setOnPasswordRequestUseCase.execute(event.onPasswordRequest);
         }
+    }
+
+    Future<String?> fetchSshPassword() {
+        return _useCases.fetchSshPasswordUseCase.execute();
     }
 
     void _observeSshConnectionStatus() {
@@ -32,6 +40,17 @@ class MainViewModel extends ChangeNotifier {
             _state = _state.copyWith(isConnected: isConnect, profile: currentProfile);
             notifyListeners();
         });
+        _passwordAvailabilitySubscription = _useCases.listenIsCurrentSshProfilePasswordAvailableUseCase.execute()
+            .listen((isAvailable) {
+                _state = _state.copyWith(sessionBiometricsAvailable: isAvailable);
+                notifyListeners();
+            },
+            onError: (error) {
+                if (kDebugMode) {
+                    print("Error listening to SSH status: $error");
+                }
+            }
+        );
     }
 
 }
