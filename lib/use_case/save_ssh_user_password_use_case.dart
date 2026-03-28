@@ -32,6 +32,9 @@ class SaveSshUserPasswordUseCase {
         }
 
         final secretPassword = await _biometricsService.encryptPassword(password);
+        if (kDebugMode && secretPassword == null) {
+            print("secret password is null");
+        }
 
         final updatedProfile = EditServerProfile(
             id: profile.id,
