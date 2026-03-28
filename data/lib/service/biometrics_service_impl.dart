@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:biometric_signature/biometric_signature.dart';
+import 'package:domain/repository/server_profile_repository.dart';
 import 'package:domain/service/biometrics_service.dart';
 import 'package:encrypt/encrypt.dart' as enc;
 import 'package:flutter/foundation.dart';
@@ -8,6 +9,12 @@ import 'package:pointycastle/asymmetric/api.dart';
 
 class BiometricsServiceImpl implements BiometricsService {
     final BiometricSignature _biometricSignature = BiometricSignature();
+
+    final ServerProfileRepository _serverProfileRepository;
+
+    BiometricsServiceImpl({
+        required ServerProfileRepository serverProfileRepository
+    }): _serverProfileRepository = serverProfileRepository;
 
     @override
     Future<bool> isBiometricsSupported() async {
@@ -83,6 +90,7 @@ class BiometricsServiceImpl implements BiometricsService {
                 if (kDebugMode) {
                     print('Decryption failed: ${result.code}');
                 }
+                await clearKeys();
                 return null;
             }
         } catch (e) {
@@ -93,9 +101,40 @@ class BiometricsServiceImpl implements BiometricsService {
         }
     }
 
+    /*@override
+    Future<String?> decryptPassword(String ciphertext) async {
+        try {
+            final result = await _biometricSignature.decrypt(
+                payload: ciphertext,
+                payloadFormat: PayloadFormat.base64,
+                promptMessage: 'Unlock your SSH Session',
+                config: DecryptConfig(allowDeviceCredentials: false),
+            );
+
+            if (result.code == BiometricError.success && result.decryptedData != null) {
+                return result.decryptedData;
+            }
+            // Only clear keys if the OS says they are completely invalid
+            else if (result.code == BiometricError.keyInvalidated) {
+                if (kDebugMode) print('Keys invalidated by OS settings change. Wiping keys.');
+                await clearKeys();
+                return null;
+            }
+            // For cancellations or unknown errors, just return null. DO NOT wipe keys!
+            else {
+                if (kDebugMode) print('Decryption failed or cancelled: ${result.code}');
+                return null;
+            }
+        } catch (e) {
+            if (kDebugMode) print('Decryption error: $e');
+            return null;
+        }
+    }*/
+
     @override
     Future<void> clearKeys() async {
         await _biometricSignature.deleteKeys();
+        await _serverProfileRepository.deletePasswords();
     }
 
     Future<String?> _createKeys() async {

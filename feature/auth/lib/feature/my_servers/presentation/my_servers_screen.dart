@@ -81,14 +81,16 @@ class _MyServersScreenState extends State<MyServersScreen> {
                   onPressed: widget.state.selectedServerId != null
                     ? () {
                       if (widget.state.sshPasswordRequired) {
-                        if (widget.state.biometricsAvailable) {
+                        openPasswordRequest(context, constraints);
+
+                        /*if (widget.state.biometricsAvailable) {
                           final method = ConnectWithProfilePasswordMethod.biometrics();
                           final event = ConnectWithProfile(method: method);
                           widget.onEvent(event);
                         }
                         else {
                           openPasswordRequest(context, constraints);
-                        }
+                        }*/
                       }
                       else {
                         final method = ConnectWithProfilePasswordMethod.none();
@@ -120,7 +122,7 @@ class _MyServersScreenState extends State<MyServersScreen> {
       child: Padding(
         padding: EdgeInsetsGeometry.all(24),
         child: PasswordRequiredDialog(
-          onPasswordEntered: (password) {
+          onPasswordEntered: (password, save) {
             Navigator.pop(context);
             final method = ConnectWithProfilePasswordMethod.password(password);
             final event = ConnectWithProfile(method: method);

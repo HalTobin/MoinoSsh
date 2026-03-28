@@ -15,14 +15,14 @@ class GetCurrentServerProfileUseCase {
 
     Future<ServerProfile?> execute() async {
         final sshProfile = _sshService.getCurrentProfile();
-        if (sshProfile == null) { return null; }
+        if (sshProfile == null) return null;
 
         final localProfileId = await _serverProfileRepository.getProfileIdByFields(
-            url: sshProfile.user,
+            url: sshProfile.url,
             port: sshProfile.port,
             user: sshProfile.user
         );
-        if (localProfileId == null) { return null; }
+        if (localProfileId == null) return null;
 
         final localProfile = await _serverProfileRepository.getProfileById(localProfileId);
         return localProfile;

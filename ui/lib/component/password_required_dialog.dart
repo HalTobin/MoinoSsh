@@ -4,7 +4,7 @@ import 'package:ui/component/title_header.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class PasswordRequiredDialog extends StatefulWidget {
-  final Function(String) onPasswordEntered;
+  final Function(String, bool) onPasswordEntered;
   final Function() onDismiss;
 
   final String confirmText;
@@ -69,25 +69,28 @@ class _PasswordRequiredDialogState extends State<PasswordRequiredDialog> {
               )
             ),
           ),
-          widget.biometricsAvailable && (widget.onBiometricsRequest == null)
-              ? CheckboxListTile(
-                  title: const Text('Enable biometrics'),
-                  value: _savePassword,
-                  onChanged: (bool? newValue) {
-                    setState(() {
-                      _savePassword = newValue ?? false;
-                    });
-                  },
-                  controlAffinity: ListTileControlAffinity.leading,
-                  contentPadding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                )
-              : const SizedBox.shrink(),
+          widget.biometricsAvailable
+            ? CheckboxListTile(
+              title: const Text('Enable biometrics'),
+              value: _savePassword,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              onChanged: (bool? newValue) {
+                setState(() {
+                  _savePassword = newValue ?? false;
+                });
+              },
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+            )
+            : const SizedBox.shrink(),
           Center(
             child: AppButton(
               icon: LucideIcons.keyRound,
               text: widget.confirmText,
-              onClick: () => widget.onPasswordEntered(passwordController.text)
+              onClick: () => widget.onPasswordEntered(passwordController.text, _savePassword)
             )
           ),
         ],

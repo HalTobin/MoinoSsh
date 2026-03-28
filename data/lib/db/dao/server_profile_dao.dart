@@ -55,4 +55,16 @@ class ServerProfileDao extends DatabaseAccessor<ServerProfileDatabase> with _$Se
         final result = await query.getSingleOrNull();
         return result?.id;
     }
+
+    Future<void> deletePasswords() {
+        return (update(serverProfiles)
+            ..where((t) => t.id.isNotNull())
+        ).write(
+            const ServerProfilesCompanion(
+                securedSshKeyPassword: Value(null),
+                securedSessionPassword: Value(null),
+            ),
+        );
+    }
+
 }

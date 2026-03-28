@@ -1,6 +1,7 @@
 import 'package:domain/model/server_profile.dart';
 import 'package:domain/repository/server_profile_repository.dart';
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 
 import '../db/dao/server_profile_dao.dart';
 import '../db/server_profile_database.dart';
@@ -85,13 +86,22 @@ class ServerProfileRepositoryImpl implements ServerProfileRepository {
         required String port,
         required String user
     }) async {
-        return _dao.getProfileByFields(url: url, port: port, user: user);
+        final profileId = await _dao.getProfileByFields(url: url, port: port, user: user);
+        return profileId;
     }
 
     @override
     Future<ServerProfile?> getProfileById(int id) async {
        final ServerProfileEntity? entity = await _dao.getProfileById(id);
        return entity?.toDomain();
+    }
+
+    @override
+    Future<void> deletePasswords() async {
+        if (kDebugMode) {
+            print("clearing all passwords");
+        }
+        await _dao.deletePasswords();
     }
 
 }

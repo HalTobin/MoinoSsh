@@ -26,4 +26,6 @@ abstract interface class ServerProfileRepository {
 
     Future<ServerProfile?> getProfileById(int id);
 
+    Future<void> deletePasswords();
+
 }

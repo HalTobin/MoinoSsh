@@ -44,9 +44,12 @@ class _MainScreenState extends State<MainScreen> {
     widget.onEvent(
       SetOnPasswordRequest(
         onPasswordRequest: () => _showPasswordDialog(
-          context,
-          widget.state.biometricsAvailable,
-          widget.onFetchPasswordBiometrics
+          context: context,
+          biometricsAvailable: widget.state.biometricsAvailable,
+          savePassword: (password) async {
+            widget.onEvent(SaveSshUserPassword(password: password));
+          },
+          onBiometricsRequest: widget.onFetchPasswordBiometrics
         )
       )
     );
@@ -103,27 +106,47 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Future<String?> _showPasswordDialog(
-    BuildContext context,
-    bool biometricsAvailable,
+  Future<String?> _showPasswordDialog({
+    required BuildContext context,
+    required bool biometricsAvailable,
+
+    Future<void> Function(String)? savePassword,
     Future<String?> Function()? onBiometricsRequest
-  ) async {
+  }) async {
     if (kDebugMode) {
       print("_showAuthDialog()");
     }
+
+    final NavigatorState navigator = Navigator.of(context);
+
     final password = await showDialog<String?>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AppDialogLayout(
+      builder: (_) => AppDialogLayout(
         padding: EdgeInsets.all(12),
         child: PasswordRequiredDialog(
-          onPasswordEntered: (password) => Navigator.of(dialogContext).pop(password),
-          onDismiss: () => Navigator.of(context).pop(null),
+          onPasswordEntered: (password, save) async {
+            if (kDebugMode) {
+              print("password entered(secret, $save)");
+            }
+            if (save && savePassword != null) {
+              if (kDebugMode) {
+                print("saving password");
+              }
+              await savePassword(password);
+            }
+            //if (!context.mounted) return;
+            navigator.pop(password);
+          },
+          onDismiss: () => navigator.pop(null),
           biometricsAvailable: biometricsAvailable,
           onBiometricsRequest: (onBiometricsRequest != null) ? () async {
+            if (kDebugMode) {
+              print("onBiometricsRequest()");
+            }
             final password = await onBiometricsRequest();
-            if (!dialogContext.mounted) return;
-            Navigator.of(dialogContext).pop(password);
+            //if (!context.mounted) return;
+            navigator.pop(password);
           } : null,
         ),
       )

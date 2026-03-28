@@ -30,7 +30,13 @@ class DataProvider extends StatelessWidget {
         Provider<FileRepository>(create: (_) => (FileRepositoryImpl())),
         Provider<SshSecretsRepository>(create: (context) => (SshSecretsRepositoryImpl())),
         Provider<PreferenceRepository>(create: (_) => (PreferenceRepositoryImpl())),
-        Provider<BiometricsService>(create: (_) => (BiometricsServiceImpl()))
+        Provider<BiometricsService>(
+          create: (context) => (
+            BiometricsServiceImpl(
+              serverProfileRepository: context.read()
+            )
+          )
+        )
       ],
       child: child
     );

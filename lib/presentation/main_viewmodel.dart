@@ -31,6 +31,8 @@ class MainViewModel extends ChangeNotifier {
                 _useCases.sshLogOutUseCase.execute();
             case SetOnPasswordRequest():
                 _useCases.setOnPasswordRequestUseCase.execute(event.onPasswordRequest);
+            case SaveSshUserPassword():
+                _useCases.saveSshUserPasswordUseCase.execute(event.password);
         }
     }
 
