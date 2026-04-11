@@ -33,6 +33,7 @@ class SettingsScreen extends StatelessWidget {
         children: [
           SettingEntryAction(
             icon: LucideIcons.rotateCcwKey,
+            trailingIcon: LucideIcons.mousePointerClick,
             label: "Delete keys and secrets",
             hint: "Will delete all data related to biometrics and quick connect",
             onPressed: () => onEvent(DeleteKeys()),

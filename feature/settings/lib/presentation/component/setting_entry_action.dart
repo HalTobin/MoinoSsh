@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class SettingEntryAction extends StatelessWidget {
   final IconData icon;
+  final IconData trailingIcon;
   final String label;
   final String hint;
   final Function() onPressed;
@@ -9,6 +10,7 @@ class SettingEntryAction extends StatelessWidget {
   const SettingEntryAction({
     super.key,
     required this.icon,
+    required this.trailingIcon,
     required this.label,
     required this.hint,
     required this.onPressed
@@ -27,7 +29,7 @@ class SettingEntryAction extends StatelessWidget {
         hint,
         style: TextStyle(color: Theme.of(context).hintColor),
       ),
-      trailing: const Icon(Icons.chevron_right, size: 20),
+      trailing: Icon(trailingIcon, size: 20),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
     );
   }
