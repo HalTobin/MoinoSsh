@@ -24,7 +24,7 @@ class FetchSshPasswordUseCase {
         final profile = await _getCurrentServerProfileUseCase.execute();
         if (profile == null) { return null; }
 
-        final securedPassword = profile.securedSshKeyPassword;
+        final securedPassword = profile.securedSessionPassword;
         if (securedPassword == null) { return null; }
 
         final password = await _biometricsService.decryptPassword(securedPassword);

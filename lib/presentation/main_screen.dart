@@ -136,16 +136,12 @@ class _MainScreenState extends State<MainScreen> {
         padding: EdgeInsets.all(12),
         child: PasswordRequiredDialog(
           onPasswordEntered: (password, save) async {
-            if (kDebugMode) {
-              print("password entered(secret, $save)");
-            }
             if (save && savePassword != null) {
               if (kDebugMode) {
                 print("saving password");
               }
               await savePassword(password);
             }
-            //if (!context.mounted) return;
             navigator.pop(password);
           },
           onDismiss: () => navigator.pop(null),
@@ -155,7 +151,6 @@ class _MainScreenState extends State<MainScreen> {
               print("onBiometricsRequest()");
             }
             final password = await onBiometricsRequest();
-            //if (!context.mounted) return;
             navigator.pop(password);
           } : null,
         ),
