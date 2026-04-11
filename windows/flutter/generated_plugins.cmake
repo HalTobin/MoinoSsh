@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  biometric_signature
   sqlite3_flutter_libs
 )
 

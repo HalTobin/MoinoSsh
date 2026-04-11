@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:feature_settings/di/settings_provider.dart';
 import 'package:feature_auth/di/auth_provider.dart';
 import 'package:feature_systemd_services/feature/services_manager/di/service_manager_provider.dart';
 import 'package:flutter/foundation.dart';
@@ -82,6 +83,7 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       appBar: ConnectionStatusBar(
         state: widget.state,
+        openSettings: () => _navigateToSettings(),
         logOut: () => widget.onEvent(SshLogOut())
       ),
       body: Flex(
@@ -103,6 +105,14 @@ class _MainScreenState extends State<MainScreen> {
           )
         ]
       ),
+    );
+  }
+
+  void _navigateToSettings() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => SettingsProvider(
+        onExit: () => Navigator.of(context).pop(),
+      )),
     );
   }
 

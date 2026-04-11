@@ -8,6 +8,7 @@ class MyServersState {
 
     final bool sshPasswordRequired;
     final int? selectedServerId;
+    final bool selectedServerHasBiometrics;
     final bool biometricsAvailable;
 
     final int? editionServerId;
@@ -20,6 +21,7 @@ class MyServersState {
 
         this.sshPasswordRequired = false,
         this.selectedServerId = null,
+        this.selectedServerHasBiometrics = false,
         this.biometricsAvailable = false,
 
         this.editionServerId = null,
@@ -33,6 +35,7 @@ class MyServersState {
 
         Defaulted<bool>? sshPasswordRequired = const Omit(),
         Defaulted<int?>? selectedServerId = const Omit(),
+        Defaulted<bool>? selectedServerHasBiometrics = const Omit(),
         Defaulted<bool>? biometricsAvailable = const Omit(),
 
         Defaulted<int?>? editionServerId = const Omit(),
@@ -45,6 +48,7 @@ class MyServersState {
 
             sshPasswordRequired: sshPasswordRequired is Omit ? this.sshPasswordRequired : sshPasswordRequired as bool,
             selectedServerId: selectedServerId is Omit ? this.selectedServerId : selectedServerId as int?,
+            selectedServerHasBiometrics: selectedServerHasBiometrics is Omit ? this.selectedServerHasBiometrics : selectedServerHasBiometrics as bool,
             biometricsAvailable: biometricsAvailable is Omit ? this.biometricsAvailable : biometricsAvailable as bool,
 
             editionServerId: editionServerId is Omit ? this.editionServerId : editionServerId as int?,

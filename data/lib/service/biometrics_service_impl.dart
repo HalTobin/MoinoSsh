@@ -1,178 +1,123 @@
-import 'dart:io';
-
-import 'package:biometric_signature/biometric_signature.dart';
 import 'package:domain/repository/server_profile_repository.dart';
 import 'package:domain/service/biometrics_service.dart';
-import 'package:encrypt/encrypt.dart' as enc;
 import 'package:flutter/foundation.dart';
-import 'package:pointycastle/asymmetric/api.dart';
+import 'package:biometric_storage/biometric_storage.dart';
+import 'package:encrypt/encrypt.dart' as enc;
 
 class BiometricsServiceImpl implements BiometricsService {
-    final BiometricSignature _biometricSignature = BiometricSignature();
-
     final ServerProfileRepository _serverProfileRepository;
 
+    // The constant name for our master vault
+    static const String _masterKeyVaultId = 'ssh_app_master_encryption_key';
+
     BiometricsServiceImpl({
-        required ServerProfileRepository serverProfileRepository
-    }): _serverProfileRepository = serverProfileRepository;
+        required ServerProfileRepository serverProfileRepository,
+    }) : _serverProfileRepository = serverProfileRepository;
 
     @override
     Future<bool> isBiometricsSupported() async {
-        if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
-            final availability = await _biometricSignature.biometricAuthAvailable();
-            return availability.availableBiometrics?.isNotEmpty ?? false;
+        final response = await BiometricStorage().canAuthenticate();
+        return response == CanAuthenticateResponse.success;
+    }
+
+    /// Retrieves the Master Key from hardware. If it doesn't exist, generates
+    /// a secure 256-bit key and saves it behind biometrics.
+    Future<String?> _getOrCreateMasterKey(String promptMessage) async {
+        try {
+            final vault = await BiometricStorage().getStorage(
+                _masterKeyVaultId,
+                options: StorageFileInitOptions(authenticationRequired: true),
+                promptInfo: PromptInfo(
+                    iosPromptInfo: IosPromptInfo(accessTitle: promptMessage, saveTitle: promptMessage),
+                    androidPromptInfo: AndroidPromptInfo(title: promptMessage),
+                ),
+            );
+
+            String? masterKeyBase64 = await vault.read();
+
+            // If no key exists, we generate a cryptographically secure 256-bit (32 byte) key
+            if (masterKeyBase64 == null || masterKeyBase64.isEmpty) {
+                if (kDebugMode) print("[BiometricsServiceImpl] Generating new Master Key...");
+                final newKey = enc.Key.fromSecureRandom(32);
+                masterKeyBase64 = newKey.base64;
+                await vault.write(masterKeyBase64);
+            }
+
+            return masterKeyBase64;
+        } catch (e) {
+            if (kDebugMode) print('[BiometricsServiceImpl] Master Key error: $e');
+            return null;
         }
-        return false;
     }
 
     @override
     Future<String?> encryptPassword(String password) async {
-        if (kDebugMode) {
-            print("[BiometricsServiceImpl] Encrypting and saving password...");
-        }
+        if (kDebugMode) print("[BiometricsServiceImpl] Encrypting password...");
 
-        final bool keysExist = await _biometricSignature.biometricKeyExists();
+        final masterKeyBase64 = await _getOrCreateMasterKey('Authenticate to enable Secure SSH');
+        if (masterKeyBase64 == null) return null;
 
-        String? publicKey = null;
+        try {
+            final key = enc.Key.fromBase64(masterKeyBase64);
+            // CRITICAL: Always generate a new, random 16-byte IV for every encryption
+            final iv = enc.IV.fromSecureRandom(16);
 
-        if (kDebugMode) {
-            print("[BiometricsServiceImpl] Keys exist: $keysExist");
-        }
-        if (!keysExist) {
-            final created = await _createKeys();
-            if (created == null) return null;
+            // Use AES in GCM mode (Industry standard for authenticated encryption)
+            final encrypter = enc.Encrypter(enc.AES(key, mode: enc.AESMode.gcm));
 
-            publicKey = created;
-        }
-        else {
-            final KeyInfo keyInfo;
-            try {
-                keyInfo = await _biometricSignature.getKeyInfo(
-                    keyFormat: KeyFormat.pem,
-                    checkValidity: false
-                );
-                publicKey = keyInfo.publicKey;
-            } catch (e) {
-                await clearKeys();
-                if (kDebugMode) {
-                    print("[BiometricsServiceImpl] ERROR Couldn't save password: ${e.toString()}");
-                }
-                return null;
-            }
-        }
+            final encrypted = encrypter.encrypt(password, iv: iv);
 
+            // We must store BOTH the IV and the ciphertext to decrypt later.
+            // Standard practice is joining them with a delimiter like a colon.
+            final payload = '${iv.base64}:${encrypted.base64}';
+            return payload;
 
-        if (publicKey == null) {
-            if (kDebugMode) {
-                print("[BiometricsServiceImpl] ERROR Key is null");
-            }
-            await clearKeys();
+        } catch (e) {
+            if (kDebugMode) print("[BiometricsServiceImpl] Encryption failed: $e");
             return null;
         }
-
-        final crypted = _encryptRsa(password, publicKey);
-        return crypted;
     }
 
     @override
     Future<String?> decryptPassword(String ciphertext) async {
-        try {
-            final result = await _biometricSignature.decrypt(
-                payload: ciphertext,
-                payloadFormat: PayloadFormat.base64,
-                promptMessage: 'Unlock your SSH Session',
-                config: DecryptConfig(allowDeviceCredentials: false),
-            );
+        if (kDebugMode) print("[BiometricsServiceImpl] Decrypting password...");
 
-            if (result.code == BiometricError.success && result.decryptedData != null) {
-                return result.decryptedData;
-            } else {
-                if (kDebugMode) {
-                    print('Decryption failed: ${result.code}');
-                }
-                await clearKeys();
-                return null;
-            }
+        final masterKeyBase64 = await _getOrCreateMasterKey('Unlock your SSH Session');
+        if (masterKeyBase64 == null) return null;
+
+        try {
+            // Split the payload back into IV and actual ciphertext
+            final parts = ciphertext.split(':');
+            if (parts.length != 2) throw Exception('Invalid ciphertext format');
+
+            final iv = enc.IV.fromBase64(parts[0]);
+            final encryptedText = enc.Encrypted.fromBase64(parts[1]);
+            final key = enc.Key.fromBase64(masterKeyBase64);
+
+            final encrypter = enc.Encrypter(enc.AES(key, mode: enc.AESMode.gcm));
+
+            return encrypter.decrypt(encryptedText, iv: iv);
+
         } catch (e) {
-            if (kDebugMode) {
-                print('Decryption error: $e');
-            }
+            if (kDebugMode) print("[BiometricsServiceImpl] Decryption failed: $e");
             return null;
         }
     }
-
-    /*@override
-    Future<String?> decryptPassword(String ciphertext) async {
-        try {
-            final result = await _biometricSignature.decrypt(
-                payload: ciphertext,
-                payloadFormat: PayloadFormat.base64,
-                promptMessage: 'Unlock your SSH Session',
-                config: DecryptConfig(allowDeviceCredentials: false),
-            );
-
-            if (result.code == BiometricError.success && result.decryptedData != null) {
-                return result.decryptedData;
-            }
-            // Only clear keys if the OS says they are completely invalid
-            else if (result.code == BiometricError.keyInvalidated) {
-                if (kDebugMode) print('Keys invalidated by OS settings change. Wiping keys.');
-                await clearKeys();
-                return null;
-            }
-            // For cancellations or unknown errors, just return null. DO NOT wipe keys!
-            else {
-                if (kDebugMode) print('Decryption failed or cancelled: ${result.code}');
-                return null;
-            }
-        } catch (e) {
-            if (kDebugMode) print('Decryption error: $e');
-            return null;
-        }
-    }*/
 
     @override
     Future<void> clearKeys() async {
-        await _biometricSignature.deleteKeys();
+        if (kDebugMode) print("[BiometricsServiceImpl] Wiping Master Key and Database...");
+
+        try {
+            // 1. Delete the Master Key vault. This instantly renders all database ciphertexts useless.
+            final vault = await BiometricStorage().getStorage(_masterKeyVaultId);
+            await vault.delete();
+        } catch (e) {
+            if (kDebugMode) print('Failed to delete Master Key: $e');
+        }
+
+        // 2. Clear the database entries
         await _serverProfileRepository.deletePasswords();
-    }
-
-    Future<String?> _createKeys() async {
-        if (kDebugMode) {
-            print("[BiometricsServiceImpl] Creating keys");
-        }
-
-        final result = await _biometricSignature.createKeys(
-            keyFormat: KeyFormat.pem,
-            promptMessage: 'Authenticate to enable Secure SSH',
-            config: CreateKeysConfig(
-                useDeviceCredentials: false,
-                signatureType: SignatureType.rsa,
-                setInvalidatedByBiometricEnrollment: true,
-                enforceBiometric: true,
-                enableDecryption: true
-            ),
-        );
-
-        if (kDebugMode) {
-            print("[BiometricsServiceImpl] Key creation, result: ${result.code?.toString()}");
-        }
-
-        final bool success = result.code == BiometricError.success;
-        return success ? result.publicKey : null;
-    }
-
-    String _encryptRsa(String plaintext, String publicKeyStr) {
-        final publicKeyPem = publicKeyStr.contains('BEGIN PUBLIC KEY')
-            ? publicKeyStr
-            : '-----BEGIN PUBLIC KEY-----\n$publicKeyStr\n-----END PUBLIC KEY-----';
-
-        final parser = enc.RSAKeyParser();
-        final rsaPublicKey = parser.parse(publicKeyPem) as RSAPublicKey;
-        final encrypter = enc.Encrypter(enc.RSA(publicKey: rsaPublicKey));
-
-        final encrypted = encrypter.encrypt(plaintext);
-        return encrypted.base64;
     }
 
 }

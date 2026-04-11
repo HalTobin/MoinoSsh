@@ -1,3 +1,4 @@
+import 'package:domain/model/ssh/connection_status.dart';
 import 'package:flutter/foundation.dart';
 import '../model/ConnectWithProfilePasswordMethod.dart';
 import '../use_case/my_servers_use_cases.dart';
@@ -18,6 +19,7 @@ class MyServersViewModel extends ChangeNotifier {
 
     Future<void> _init() async {
         _loadServers();
+        _checkBiometricsAvailability();
     }
 
     Future<void> _loadServers() async {
@@ -31,6 +33,12 @@ class MyServersViewModel extends ChangeNotifier {
             _state = _state.copyWith(loading: false);
             notifyListeners();
         });
+    }
+
+    Future<void> _checkBiometricsAvailability() async {
+        final available = await _useCases.checkBiometricsAvailabilityUseCase.execute();
+        _state = _state.copyWith(biometricsAvailable: available);
+        notifyListeners();
     }
 
     Future<void> onEvent(MyServersEvent event) async {
@@ -60,7 +68,7 @@ class MyServersViewModel extends ChangeNotifier {
                 _state = _state.copyWith(
                     sshPasswordRequired: passwordRequired,
                     selectedServerId: serverProfileId,
-                    biometricsAvailable: biometricsAvailable
+                    selectedServerHasBiometrics: biometricsAvailable
                 );
             } catch (e) {
                 if (kDebugMode) {
@@ -81,16 +89,15 @@ class MyServersViewModel extends ChangeNotifier {
     }
 
     Future<void> _connectWithProfileAndMethod(ConnectWithProfilePasswordMethod method) async {
-        _useCases.authFromProfileUseCase.execute(_state.selectedServerId!, method);
-        /*switch (method) {
-            case None():
-                _connectWithProfile(null);
-            case Password():
-                _connectWithProfile(method.password);
-            case Biometrics():
-                // TODO: Handle this case.
-                throw UnimplementedError();
-        }*/
+        final succeed = await _useCases.authFromProfileUseCase.execute(_state.selectedServerId!, method) is ConnectionSucceed;
+        if (succeed) {
+            _state = _state.copyWith(
+                selectedServerId: null,
+                selectedServerHasBiometrics: false,
+                sshPasswordRequired: false,
+                editionServerId: null
+            );
+        }
     }
 
 }

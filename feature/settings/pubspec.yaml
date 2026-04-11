@@ -1,4 +1,4 @@
-name: feature_auth
+name: feature_settings
 
 environment:
   sdk: ^3.9.2
@@ -9,6 +9,7 @@ dependencies:
     sdk: flutter
 
   provider:
+  lucide_icons_flutter:
   domain:
     path: ../../domain
   ui:

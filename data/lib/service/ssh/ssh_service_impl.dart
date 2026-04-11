@@ -1,7 +1,7 @@
 import 'dart:io';
 
+import 'utils/byte_decoder.dart';
 import 'package:dartssh2/dartssh2.dart';
-import 'package:data/ssh/utils/byte_decoder.dart';
 import 'package:domain/model/response_result.dart';
 import 'package:flutter/foundation.dart';
 

@@ -52,10 +52,9 @@ class AuthFromProfileUseCase {
                         sshFilePath: profile.keyPath,
                         password: method.password
                     );
-                    final passwordNotSaved = (profile.securedSshKeyPassword == null);
-                    if (authResult is ConnectionSucceed && !prefs.dontAskBiometrics) {
+                    if (method.save && authResult is ConnectionSucceed) {
                         final isBiometricsAvailable = await _biometricsService.isBiometricsSupported();
-                        if (isBiometricsAvailable && passwordNotSaved) {
+                        if (isBiometricsAvailable) {
                             final secretSshPassword = await _biometricsService.encryptPassword(method.password);
                             final updatedProfile = EditServerProfile(
                                 id: profile.id,

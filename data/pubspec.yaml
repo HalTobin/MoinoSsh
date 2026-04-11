@@ -9,7 +9,6 @@ dependencies:
     sdk: flutter
 
   shared_preferences:
-  biometric_signature:
   encrypt:
   pointycastle:
   path_provider:
@@ -17,7 +16,6 @@ dependencies:
   drift:
   drift_flutter:
   biometric_storage:
-  json_serializable:
   collection:
 
   domain:

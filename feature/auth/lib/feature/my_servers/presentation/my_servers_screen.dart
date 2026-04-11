@@ -82,15 +82,6 @@ class _MyServersScreenState extends State<MyServersScreen> {
                     ? () {
                       if (widget.state.sshPasswordRequired) {
                         openPasswordRequest(context, constraints);
-
-                        /*if (widget.state.biometricsAvailable) {
-                          final method = ConnectWithProfilePasswordMethod.biometrics();
-                          final event = ConnectWithProfile(method: method);
-                          widget.onEvent(event);
-                        }
-                        else {
-                          openPasswordRequest(context, constraints);
-                        }*/
                       }
                       else {
                         final method = ConnectWithProfilePasswordMethod.none();
@@ -124,12 +115,13 @@ class _MyServersScreenState extends State<MyServersScreen> {
         child: PasswordRequiredDialog(
           onPasswordEntered: (password, save) {
             Navigator.pop(context);
-            final method = ConnectWithProfilePasswordMethod.password(password);
+            final method = ConnectWithProfilePasswordMethod.password(password, save);
             final event = ConnectWithProfile(method: method);
             widget.onEvent(event);
           },
           onDismiss: () => Navigator.pop(context),
-          onBiometricsRequest: widget.state.biometricsAvailable
+          biometricsAvailable: widget.state.biometricsAvailable,
+          onBiometricsRequest: widget.state.selectedServerHasBiometrics
             ? () {
               Navigator.pop(context);
               final method = ConnectWithProfilePasswordMethod.biometrics();
