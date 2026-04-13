@@ -20,24 +20,40 @@ class SettingsViewModel extends ChangeNotifier {
     SettingsState get state => _state;
 
     Future<void> _init() async {
+        _listenPreferences();
         _checkBiometricsAvailability();
-    }
-
-    Future<void> onEvent(SettingsEvent event) async {
-        switch (event) {
-            case DeleteKeys():
-                _deleteKeys();
-        }
-    }
-
-    Future<void> _deleteKeys() async {
-        await _useCases.deleteKeyUseCase.execute();
     }
 
     Future<void> _checkBiometricsAvailability() async {
         final bool available = await _useCases.checkBiometricsAvailabilityUseCase.execute();
         _state = _state.copyWith(biometricsAvailable: available);
         notifyListeners();
+    }
+
+    void _listenPreferences() {
+        _useCases.listenUserPreferencesUseCase.execute()
+            .listen((preferences) {
+                _state = _state.copyWith(preferences: preferences);
+                notifyListeners();
+            }
+        );
+    }
+
+    Future<void> onEvent(SettingsEvent event) async {
+        switch (event) {
+            case DeleteKeys():
+                _deleteKeys();
+            case UpdateTheme():
+                _updateTheme(event.theme);
+        }
+    }
+
+    Future<void> _updateTheme(String theme) async {
+        await _useCases.updateThemeUseCase.execute(theme);
+    }
+
+    Future<void> _deleteKeys() async {
+        await _useCases.deleteKeyUseCase.execute();
     }
 
 }

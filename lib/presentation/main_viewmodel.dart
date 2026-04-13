@@ -10,7 +10,7 @@ class MainViewModel extends ChangeNotifier {
     MainViewModel({required MainUseCases mainUseCases})
       : _useCases = mainUseCases
     {
-      _init();
+        _init();
     }
 
     final MainUseCases _useCases;
@@ -20,6 +20,7 @@ class MainViewModel extends ChangeNotifier {
     StreamSubscription<bool>? _passwordAvailabilitySubscription;
 
     Future<void> _init() async {
+        _listenUserPreferences();
         _checkIfBiometricsAvailable();
         _observeSshConnectionStatus();
         _observeSshSessionBiometricsAvailability();
@@ -34,6 +35,15 @@ class MainViewModel extends ChangeNotifier {
             case SaveSshUserPassword():
                 _useCases.saveSshUserPasswordUseCase.execute(event.password);
         }
+    }
+
+    void _listenUserPreferences() {
+        _useCases.listenUserPreferencesUseCase.execute()
+            .listen((preferences) {
+                _state = _state.copyWith(userPreferences: preferences);
+                notifyListeners();
+            }
+        );
     }
 
     Future<String?> fetchSshPassword() {

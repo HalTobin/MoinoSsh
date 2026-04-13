@@ -56,6 +56,7 @@ class MainProvider extends StatelessWidget {
         ),
         Provider(create: (context) => (
           MainUseCases(
+            listenUserPreferencesUseCase: context.read(),
             listenSshConnectUseCase: context.read(),
             sshLogOutUseCase: context.read(),
             getCurrentSshProfileUseCase: context.read(),

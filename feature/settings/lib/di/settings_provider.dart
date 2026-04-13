@@ -1,3 +1,4 @@
+import 'package:feature_settings/use_case/update_theme_use_case.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -26,9 +27,12 @@ class SettingsProvider extends StatelessWidget {
             )
           )
         ),
+        Provider(create: (context) => (UpdateThemeUseCase(preferenceRepository: context.read()))),
         Provider(
           create: (context) => (
             SettingsUseCases(
+              listenUserPreferencesUseCase: context.read(),
+              updateThemeUseCase: context.read(),
               deleteKeyUseCase: context.read(),
               checkBiometricsAvailabilityUseCase: context.read()
             )

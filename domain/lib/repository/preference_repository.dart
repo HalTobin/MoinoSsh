@@ -1,4 +1,5 @@
-import 'package:domain/model/user_preferences.dart';
+import '../model/preferences/user_preferences.dart';
+import '../model/preferences/app_theme.dart';
 
 abstract interface class PreferenceRepository {
 
@@ -8,6 +9,6 @@ abstract interface class PreferenceRepository {
 
     Future<void> saveUserPreferences(UserPreferences preferences);
 
-    Future<void> updateBiometrics(bool biometrics);
+    Future<void> updateTheme(AppTheme theme);
 
 }

@@ -1,6 +1,8 @@
 import 'dart:async';
 
-import 'package:domain/model/user_preferences.dart';
+import 'package:collection/collection.dart';
+import 'package:domain/model/preferences/app_theme.dart';
+import 'package:domain/model/preferences/user_preferences.dart';
 import 'package:domain/repository/preference_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,12 +19,11 @@ class PreferenceRepositoryImpl implements PreferenceRepository {
     @override
     Future<UserPreferences> getUserPreferences() async {
         final defaultPrefs = UserPreferences.defaultPreferences;
-        final bool biometrics = await _loadBool(_Keys.BIOMETRICS.key, defaultPrefs.biometrics);
-        final bool dontAskBiometrics = await _loadBool(_Keys.DONT_ASK_BIOMETRICS.key, defaultPrefs.dontAskBiometrics);
+        final String themeIdentifier = await _loadString(_Keys.APP_THEME.key, defaultPrefs.theme.identifier);
+        final AppTheme theme = AppTheme.fromIdentifier(themeIdentifier);
 
         final preferences = UserPreferences(
-            biometrics: biometrics,
-            dontAskBiometrics: dontAskBiometrics
+            theme: theme
         );
 
         return preferences;
@@ -38,18 +39,16 @@ class PreferenceRepositoryImpl implements PreferenceRepository {
     Future<void> saveUserPreferences(UserPreferences preferences) async {
         _Keys.values.forEach((key) async {
             switch (key) {
-                case _Keys.BIOMETRICS:
-                    await _updateBool(key: key.key, value: preferences.biometrics, notify: false);
-                case _Keys.DONT_ASK_BIOMETRICS:
-                    await _updateBool(key: key.key, value: preferences.dontAskBiometrics, notify: false);
+                case _Keys.APP_THEME:
+                    await _updateString(key: key.key, value: preferences.theme.identifier, notify: false);
             }
         });
         _notify();
     }
 
     @override
-    Future<void> updateBiometrics(bool biometrics) async {
-        _updateBool(key: _Keys.BIOMETRICS.key, value: biometrics);
+    Future<void> updateTheme(AppTheme appTheme) async {
+        _updateString(key: _Keys.APP_THEME.key, value: appTheme.identifier);
         final current = await getUserPreferences();
         _controller.add(current);
     }
@@ -101,8 +100,7 @@ class PreferenceRepositoryImpl implements PreferenceRepository {
 }
 
 enum _Keys {
-    BIOMETRICS("biometrics"),
-    DONT_ASK_BIOMETRICS("dont_ask_biometrics");
+    APP_THEME("app_theme");
 
     final String key;
 
