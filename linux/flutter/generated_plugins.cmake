@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   biometric_storage
+  dynamic_color
   sqlite3_flutter_libs
 )
 

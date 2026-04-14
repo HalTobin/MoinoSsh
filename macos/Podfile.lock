@@ -1,6 +1,8 @@
 PODS:
   - biometric_storage (0.0.1):
     - FlutterMacOS
+  - dynamic_color (0.0.2):
+    - FlutterMacOS
   - file_picker (0.0.1):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
@@ -35,6 +37,7 @@ PODS:
 
 DEPENDENCIES:
   - biometric_storage (from `Flutter/ephemeral/.symlinks/plugins/biometric_storage/macos`)
+  - dynamic_color (from `Flutter/ephemeral/.symlinks/plugins/dynamic_color/macos`)
   - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -47,6 +50,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   biometric_storage:
     :path: Flutter/ephemeral/.symlinks/plugins/biometric_storage/macos
+  dynamic_color:
+    :path: Flutter/ephemeral/.symlinks/plugins/dynamic_color/macos
   file_picker:
     :path: Flutter/ephemeral/.symlinks/plugins/file_picker/macos
   FlutterMacOS:
@@ -58,6 +63,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   biometric_storage: 43caa6e7ef00e8e19c074216e7e1786dacda9e76
+  dynamic_color: 5fdff3953fb3457311091863f72914fc76ea3209
   file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6

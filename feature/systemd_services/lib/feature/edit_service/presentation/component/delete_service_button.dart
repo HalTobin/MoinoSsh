@@ -18,16 +18,16 @@ class DeleteServiceButton extends StatelessWidget {
           height: 40,
           child: OutlinedButton.icon(
             onPressed: onPressed,
-            icon: const Icon(
+            icon: Icon(
               LucideIcons.trash,
-              color: Colors.red,
+              color: Theme.of(context).colorScheme.error,
             ),
-            label: const Text(
+            label: Text(
               'DELETE',
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
             style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Colors.red)
+              side: BorderSide(color: Theme.of(context).colorScheme.error)
             ),
           ),
         ),

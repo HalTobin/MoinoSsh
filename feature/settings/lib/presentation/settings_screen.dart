@@ -1,6 +1,10 @@
+import 'package:domain/model/preferences/app_contrast.dart';
 import 'package:domain/model/preferences/app_theme.dart';
-import 'package:feature_settings/presentation/component/setting_entry_action.dart';
-import 'package:feature_settings/presentation/component/setting_entry_list.dart';
+import 'package:feature_settings/presentation/component/settings/setting_entry_action.dart';
+import 'package:feature_settings/presentation/component/settings/setting_entry_info.dart';
+import 'package:feature_settings/presentation/component/settings/setting_entry_list.dart';
+import 'package:feature_settings/presentation/component/settings/setting_entry_toggle.dart';
+import 'package:feature_settings/presentation/util/app_contrast_text.dart';
 import 'package:feature_settings/presentation/util/app_theme_text.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -35,8 +39,8 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         children: [
           SettingEntryList(
-            icon: LucideIcons.contrast,
-            label: "App Theme",
+            icon: LucideIcons.sunMoon,
+            label: "App theme",
             hint: "Adjust if you prefer the app to use dark or light mode",
             selection: ListEntry(
               identifier: state.preferences.theme.identifier,
@@ -48,12 +52,38 @@ class SettingsScreen extends StatelessWidget {
             )).toList(),
             onChanged: (value) => onEvent(UpdateTheme(value.identifier)),
           ),
+          SettingEntryList(
+            icon: LucideIcons.contrast,
+            label: "Color contrast",
+            hint: "Adjust the app's contrast",
+            selection: ListEntry(
+                identifier: state.preferences.contrast.identifier,
+                text: state.preferences.contrast.getText()
+            ),
+            entries: AppContrast.values.map((contrast) => ListEntry(
+                identifier: contrast.identifier,
+                text: contrast.getText()
+            )).toList(),
+            onChanged: (value) => onEvent(UpdateContrast(value.identifier)),
+          ),
+          SettingEntryToggle(
+            icon: LucideIcons.palette,
+            label: "Dynamic colors",
+            hint: "Match the app's color scheme to your device's theme",
+            state: state.preferences.materialYou,
+            onToggle: () => onEvent(ToggleMaterialYou()),
+          ),
           SettingEntryAction(
             icon: LucideIcons.rotateCcwKey,
             trailingIcon: LucideIcons.mousePointerClick,
             label: "Delete keys and secrets",
             hint: "Will delete all data related to biometrics and quick connect",
             onPressed: () => onEvent(DeleteKeys()),
+          ),
+          SettingEntryInfo(
+            icon: LucideIcons.wrench,
+            info: "0.0.1",
+            label: "App version",
           )
         ],
       )

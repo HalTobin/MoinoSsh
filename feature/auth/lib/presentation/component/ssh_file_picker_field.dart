@@ -50,7 +50,7 @@ class SshFilePickerField extends StatelessWidget {
   ) async {
     if (enable) {
       if (noLocal) {
-        FilePickerResult? result = await FilePicker.platform.pickFiles();
+        FilePickerResult? result = await FilePicker.pickFiles();
         if (result != null && result.files.single.path != null) {
           final String sshFile = result.files.single.path!;
           _select(sshFile);

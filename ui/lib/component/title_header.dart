@@ -57,7 +57,7 @@ class TitleHeader extends StatelessWidget {
         Icon(
           icon,
           size: 28,
-          color: Colors.blueAccent,
+          color: Theme.of(context).colorScheme.primary
         ),
         Text(
           title,

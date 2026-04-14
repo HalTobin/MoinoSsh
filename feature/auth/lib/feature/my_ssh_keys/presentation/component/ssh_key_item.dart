@@ -183,7 +183,7 @@ class _SshKeyItemState extends State<SshKeyItem> {
           ),
           _SshKeyItemInteractionState.deleting => Row(
             children: [
-              const _SshKeyFile(color: Colors.red),
+              _SshKeyFile(color: Theme.of(context).colorScheme.error),
 
               Expanded(
                   child: TextField(
@@ -193,7 +193,7 @@ class _SshKeyItemState extends State<SshKeyItem> {
                       decoration: InputDecoration(
                           hintText: "Enter: \"${widget.sshKeyFile.name}\" to confirm",
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.red),
+                            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
                           ),
                           suffixIcon: IconButton(
                               onPressed: confirmDeletion,

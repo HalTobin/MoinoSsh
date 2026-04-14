@@ -61,7 +61,7 @@ class SettingEntryList extends StatelessWidget {
                     const SizedBox(width: 48),
                     Text(label, style: Theme.of(context).textTheme.titleLarge),
                     IconButton(
-                      icon: const Icon(LucideIcons.cross),
+                      icon: const Icon(LucideIcons.x),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],

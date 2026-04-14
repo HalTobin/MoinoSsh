@@ -16,7 +16,7 @@ class AskDeletionButton extends StatelessWidget {
     return AnimatedCrossFade(
       firstChild: IconButton(
           onPressed: () => onClick(),
-          color: Colors.red,
+          color: Theme.of(context).colorScheme.error,
           icon: const Icon(LucideIcons.trash)
       ),
       secondChild: IconButton(

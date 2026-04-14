@@ -147,7 +147,7 @@ class _ModalBottomActions extends StatelessWidget {
         wrapButton(
           AppButton(
             onClick: () async {
-              FilePickerResult? result = await FilePicker.platform.pickFiles();
+              FilePickerResult? result = await FilePicker.pickFiles();
               if (result != null && result.files.single.path != null) {
                 final String sshFile = result.files.single.path!;
                 final event = AddKey(keyPath: sshFile);

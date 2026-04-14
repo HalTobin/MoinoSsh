@@ -45,11 +45,23 @@ class SettingsViewModel extends ChangeNotifier {
                 _deleteKeys();
             case UpdateTheme():
                 _updateTheme(event.theme);
+            case UpdateContrast():
+                _updateContrast(event.contrast);
+            case ToggleMaterialYou():
+                _toggleMaterialYou();
         }
     }
 
     Future<void> _updateTheme(String theme) async {
         await _useCases.updateThemeUseCase.execute(theme);
+    }
+
+    Future<void> _updateContrast(String contrast) async {
+        await _useCases.updateContrastUseCase.execute(contrast);
+    }
+
+    Future<void> _toggleMaterialYou() async {
+        await _useCases.toggleMaterialYouUseCase.execute();
     }
 
     Future<void> _deleteKeys() async {

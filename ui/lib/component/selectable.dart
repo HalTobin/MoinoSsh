@@ -51,7 +51,7 @@ class _SelectableDecoration extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(
-          color: enable ? Colors.blue : Colors.transparent,
+          color: enable ? Theme.of(context).colorScheme.primary : Colors.transparent,
           width: 3
         ),
         borderRadius: BorderRadius.circular(16)

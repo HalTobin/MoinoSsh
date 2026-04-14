@@ -22,7 +22,7 @@ class StatusIndicator extends StatelessWidget {
         active
           ? const PlayRippleIndicator()
           : const Icon(LucideIcons.circlePause, color: Colors.grey),
-        Icon(service.icon, color: Colors.blue),
+        Icon(service.icon, color: Theme.of(context).colorScheme.primary),
         Expanded(
           child: Column(
             spacing: 2,

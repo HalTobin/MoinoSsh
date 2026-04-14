@@ -8,6 +8,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+  lucide_icons_flutter:
   domain:
     path: ../../domain
   ui:
