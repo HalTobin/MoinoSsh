@@ -478,7 +478,7 @@
 				DEVELOPMENT_TEAM = F4UP4UW7SU;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Moino Service Manager";
+				INFOPLIST_KEY_CFBundleDisplayName = "Moino SSH";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -664,7 +664,7 @@
 				DEVELOPMENT_TEAM = F4UP4UW7SU;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Moino Service Manager";
+				INFOPLIST_KEY_CFBundleDisplayName = "Moino SSH";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -690,7 +690,7 @@
 				DEVELOPMENT_TEAM = F4UP4UW7SU;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Moino Service Manager";
+				INFOPLIST_KEY_CFBundleDisplayName = "Moino SSH";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
