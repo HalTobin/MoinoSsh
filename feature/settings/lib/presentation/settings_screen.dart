@@ -1,5 +1,6 @@
 import 'package:domain/model/preferences/app_contrast.dart';
 import 'package:domain/model/preferences/app_theme.dart';
+import 'package:feature_settings/presentation/component/delete_keys_confirmation_modal.dart';
 import 'package:feature_settings/presentation/component/settings/setting_entry_action.dart';
 import 'package:feature_settings/presentation/component/settings/setting_entry_info.dart';
 import 'package:feature_settings/presentation/component/settings/setting_entry_list.dart';
@@ -8,6 +9,7 @@ import 'package:feature_settings/presentation/util/app_contrast_text.dart';
 import 'package:feature_settings/presentation/util/app_theme_text.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:ui/navigation/auto_modal.dart';
 import 'settings_state.dart';
 import 'settings_event.dart';
 
@@ -31,61 +33,85 @@ class SettingsScreen extends StatelessWidget {
           onPressed: onExit,
           icon: Icon(LucideIcons.arrowLeft)
         ),
-        title: const Text(
+        title: Text(
           "Settings",
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
       ),
-      body: ListView(
-        children: [
-          SettingEntryList(
-            icon: LucideIcons.sunMoon,
-            label: "App theme",
-            hint: "Adjust if you prefer the app to use dark or light mode",
-            selection: ListEntry(
-              identifier: state.preferences.theme.identifier,
-              text: state.preferences.theme.getText()
-            ),
-            entries: AppTheme.values.map((theme) => ListEntry(
-              identifier: theme.identifier,
-              text: theme.getText()
-            )).toList(),
-            onChanged: (value) => onEvent(UpdateTheme(value.identifier)),
-          ),
-          SettingEntryList(
-            icon: LucideIcons.contrast,
-            label: "Color contrast",
-            hint: "Adjust the app's contrast",
-            selection: ListEntry(
-                identifier: state.preferences.contrast.identifier,
-                text: state.preferences.contrast.getText()
-            ),
-            entries: AppContrast.values.map((contrast) => ListEntry(
-                identifier: contrast.identifier,
-                text: contrast.getText()
-            )).toList(),
-            onChanged: (value) => onEvent(UpdateContrast(value.identifier)),
-          ),
-          SettingEntryToggle(
-            icon: LucideIcons.palette,
-            label: "Dynamic colors",
-            hint: "Match the app's color scheme to your device's theme",
-            state: state.preferences.materialYou,
-            onToggle: () => onEvent(ToggleMaterialYou()),
-          ),
-          SettingEntryAction(
-            icon: LucideIcons.rotateCcwKey,
-            trailingIcon: LucideIcons.mousePointerClick,
-            label: "Delete keys and secrets",
-            hint: "Will delete all data related to biometrics and quick connect",
-            onPressed: () => onEvent(DeleteKeys()),
-          ),
-          SettingEntryInfo(
-            icon: LucideIcons.wrench,
-            info: "0.0.1",
-            label: "App version",
-          )
-        ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return ListView(
+            children: [
+              SettingEntryList(
+                icon: LucideIcons.sunMoon,
+                label: "App theme",
+                hint: "Adjust if you prefer the app to use dark or light mode",
+                selection: ListEntry(
+                  identifier: state.preferences.theme.identifier,
+                  text: state.preferences.theme.getText()
+                ),
+                entries: AppTheme.values.map((theme) => ListEntry(
+                  identifier: theme.identifier,
+                  text: theme.getText()
+                )).toList(),
+                onChanged: (value) => onEvent(UpdateTheme(value.identifier)),
+              ),
+              SettingEntryList(
+                icon: LucideIcons.contrast,
+                label: "Color contrast",
+                hint: "Adjust the app's contrast",
+                selection: ListEntry(
+                    identifier: state.preferences.contrast.identifier,
+                    text: state.preferences.contrast.getText()
+                ),
+                entries: AppContrast.values.map((contrast) => ListEntry(
+                    identifier: contrast.identifier,
+                    text: contrast.getText()
+                )).toList(),
+                onChanged: (value) => onEvent(UpdateContrast(value.identifier)),
+              ),
+              SettingEntryToggle(
+                icon: LucideIcons.palette,
+                label: "Dynamic colors",
+                hint: "Match the app's color scheme to your device's theme",
+                state: state.preferences.materialYou,
+                onToggle: () => onEvent(ToggleMaterialYou()),
+              ),
+              SettingEntryAction(
+                icon: LucideIcons.rotateCcwKey,
+                trailingIcon: LucideIcons.mousePointerClick,
+                label: "Delete keys and secrets",
+                hint: "Will delete all data related to biometrics and quick connect",
+                onPressed: () => confirmKeyDeletionModal(context, constraints),
+              ),
+              SettingEntryInfo(
+                icon: LucideIcons.wrench,
+                info: "0.0.1",
+                label: "App version",
+              )
+            ],
+          );
+        }
+      )
+    );
+  }
+
+  void confirmKeyDeletionModal(
+    BuildContext context,
+    BoxConstraints constraints
+  ) {
+    autoModal(
+      context: context,
+      constraints: constraints,
+      child: Padding(
+        padding: EdgeInsetsGeometry.all(12),
+        child: DeleteKeysConfirmationModal(
+          onClose: () => Navigator.pop(context),
+          onConfirm: () {
+            Navigator.pop(context);
+            onEvent(DeleteKeys()) ;
+          }
+        )
       )
     );
   }
