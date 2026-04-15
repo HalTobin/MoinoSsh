@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:ui/screen_format/screen_format_helper.dart';
 
 import '../presentation/service_manager_screen.dart';
 import '../presentation/service_manager_viewmodel.dart';
@@ -35,9 +36,14 @@ class ServiceManagerProvider extends StatelessWidget {
       ],
       child: Consumer<ServiceManagerViewmodel>(
         builder: (builder, viewmodel, child) {
-          return ServiceManagerScreen(
-            state: viewmodel.state,
-            onEvent: viewmodel.onEvent,
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              return ServiceManagerScreen(
+                state: viewmodel.state,
+                onEvent: viewmodel.onEvent,
+                isNarrow: ScreenFormatHelper.isNarrow(constraints),
+              );
+            }
           );
         }
       ),

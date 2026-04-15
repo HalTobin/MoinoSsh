@@ -18,7 +18,7 @@ class StatusBarBackground extends StatelessWidget {
           children: [
             SizedBox(
               width: fullWidth,
-              height: kToolbarHeight,
+              height: double.infinity,
               child: const ColoredBox(color: Colors.red),
             ),
             AnimatedContainer(
@@ -31,4 +31,5 @@ class StatusBarBackground extends StatelessWidget {
       }
     );
   }
+
 }

@@ -1,4 +1,4 @@
-package com.moineaufactory.moinoservice
+package com.moineaufactory.moinossh
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

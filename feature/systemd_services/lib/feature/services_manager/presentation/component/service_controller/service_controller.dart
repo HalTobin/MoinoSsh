@@ -11,6 +11,7 @@ class ServiceController extends StatelessWidget {
   final Function() onStop;
   final Function() onRestart;
   final Function() onEdit;
+  final bool isNarrow;
 
   const ServiceController({
     super.key,
@@ -18,7 +19,54 @@ class ServiceController extends StatelessWidget {
     required this.onStart,
     required this.onStop,
     required this.onRestart,
-    required this.onEdit
+    required this.onEdit,
+    required this.isNarrow
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isNarrow) {
+      return _ServiceControllerContent(
+        service: service,
+        onStart: onStart,
+        onStop: onStop,
+        onRestart: onRestart,
+        onEdit: onEdit,
+        isNarrow: isNarrow,
+      );
+    }
+    else {
+      return InkWell(
+        onTap: onEdit,
+        child: _ServiceControllerContent(
+          service: service,
+          onStart: onStart,
+          onStop: onStop,
+          onRestart: onRestart,
+          onEdit: onEdit,
+          isNarrow: isNarrow,
+        ),
+      );
+    }
+  }
+}
+
+class _ServiceControllerContent extends StatelessWidget {
+  final ServicePresentation service;
+  final Function() onStart;
+  final Function() onStop;
+  final Function() onRestart;
+  final Function() onEdit;
+  final bool isNarrow;
+
+  const _ServiceControllerContent({
+    super.key,
+    required this.service,
+    required this.onStart,
+    required this.onStop,
+    required this.onRestart,
+    required this.onEdit,
+    required this.isNarrow
   });
 
   @override
@@ -32,7 +80,8 @@ class ServiceController extends StatelessWidget {
           Flexible(
             child: StatusIndicator(
               service: service,
-              active: service.active
+              active: service.active,
+              isNarrow: isNarrow,
             ),
           ),
           if (service.active)
@@ -56,12 +105,14 @@ class ServiceController extends StatelessWidget {
               color: Colors.green,
               onPressed: service.active ? null : onStart,
             ),
-          IconButton(
-              onPressed: onEdit,
-              icon: Icon(LucideIcons.pencil)
-          ),
+          if (!isNarrow)
+            IconButton(
+                onPressed: onEdit,
+                icon: Icon(LucideIcons.pencil)
+            ),
         ],
       ),
     );
   }
+
 }

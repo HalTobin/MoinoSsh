@@ -26,7 +26,7 @@ class AuthScreen extends StatelessWidget {
                   icon: LucideIcons.server
                 ),
                 AuthScreenTab(
-                  title: "Direct Connection",
+                  title: "Direct",
                   icon: LucideIcons.monitorUp
                 )
               ],

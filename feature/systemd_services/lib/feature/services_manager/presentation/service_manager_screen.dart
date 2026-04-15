@@ -13,11 +13,13 @@ import 'component/service_manager_loading.dart';
 
 class ServiceManagerScreen extends StatelessWidget {
   final ServiceManagerState state;
+  final bool isNarrow;
   final Function(ServiceManagerEvent event) onEvent;
 
   const ServiceManagerScreen({
     super.key,
     required this.state,
+    required this.isNarrow,
     required this.onEvent
   });
 
@@ -37,7 +39,7 @@ class ServiceManagerScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(bottom: 128), // to avoid being hidden by error
+                    padding: const EdgeInsets.only(bottom: 128),
                     child: Column(
                       children: [
                         if (state.services.any((s) => s.favorite)) ...[
@@ -63,10 +65,10 @@ class ServiceManagerScreen extends StatelessWidget {
                                 onStop: () => onEvent(RunCtlCommand(command: SystemctlCommand.stop, service: service.title)),
                                 onRestart: () => onEvent(RunCtlCommand(command: SystemctlCommand.restart, service: service.title)),
                                 onEdit: () => _showEditServiceDialog(context: context, serviceName: service.title),
+                                isNarrow: isNarrow,
                               )),
                           ],
 
-                        // Others section
                         if (state.services.any((s) => !s.favorite)) ...[
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -90,6 +92,7 @@ class ServiceManagerScreen extends StatelessWidget {
                               onStop: () => onEvent(RunCtlCommand(command: SystemctlCommand.stop, service: service.title)),
                               onRestart: () => onEvent(RunCtlCommand(command: SystemctlCommand.restart, service: service.title)),
                               onEdit: () => _showEditServiceDialog(context: context, serviceName: service.title),
+                              isNarrow: isNarrow,
                             )),
                         ]
                       ]

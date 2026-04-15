@@ -7,11 +7,13 @@ import '../../../data/service_presentation.dart';
 class StatusIndicator extends StatelessWidget {
   final ServicePresentation service;
   final bool active;
+  final bool isNarrow;
 
   const StatusIndicator({
     super.key,
     required this.service,
-    required this.active
+    required this.active,
+    required this.isNarrow
   });
 
   @override
@@ -22,7 +24,8 @@ class StatusIndicator extends StatelessWidget {
         active
           ? const PlayRippleIndicator()
           : const Icon(LucideIcons.circlePause, color: Colors.grey),
-        Icon(service.icon, color: Theme.of(context).colorScheme.primary),
+        if (!isNarrow || service.icon != null)
+          Icon(service.icon, color: Theme.of(context).colorScheme.primary),
         Expanded(
           child: Column(
             spacing: 2,
@@ -31,10 +34,9 @@ class StatusIndicator extends StatelessWidget {
             children: [
               Text(
                 (service.alias ?? service.title).toUpperCase(),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                style: (service.alias != null || !isNarrow)
+                  ? const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                  : const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
                 overflow: TextOverflow.ellipsis,
               ),
               if (service.alias != null)
@@ -52,4 +54,5 @@ class StatusIndicator extends StatelessWidget {
       ],
     );
   }
+
 }

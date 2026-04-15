@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:domain/model/preferences/app_contrast.dart';
 import 'package:domain/model/preferences/app_theme.dart';
 import 'package:feature_settings/presentation/component/delete_keys_confirmation_modal.dart';
@@ -70,7 +72,7 @@ class SettingsScreen extends StatelessWidget {
                 )).toList(),
                 onChanged: (value) => onEvent(UpdateContrast(value.identifier)),
               ),
-              SettingEntryToggle(
+              if (!Platform.isIOS) SettingEntryToggle(
                 icon: LucideIcons.palette,
                 label: "Dynamic colors",
                 hint: "Match the app's color scheme to your device's theme",

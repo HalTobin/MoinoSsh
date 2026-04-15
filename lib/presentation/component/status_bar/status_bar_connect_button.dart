@@ -4,33 +4,33 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 class StatusBarConnectButton extends StatelessWidget {
   final bool connected;
   final Function() onPressed;
+  final bool isNarrow;
 
   const StatusBarConnectButton({
     super.key,
     required this.connected,
-    required this.onPressed
+    required this.onPressed,
+    required this.isNarrow
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 16.0),
-      child: Center(
-        child: Visibility(
-          visible: connected,
-          maintainAnimation: true,
-          maintainState: true,
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 1000),
-            curve: Curves.fastOutSlowIn,
-            opacity: connected ? 1 : 0,
-            child: ConnectionButton(
-              connected: true,
-              onPressed: onPressed
-            )
+    return Center(
+      child: Visibility(
+        visible: connected,
+        maintainAnimation: true,
+        maintainState: true,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 1000),
+          curve: Curves.fastOutSlowIn,
+          opacity: connected ? 1 : 0,
+          child: ConnectionButton(
+            connected: true,
+            onPressed: onPressed,
+            isNarrow: isNarrow,
           )
         )
-      ),
+      )
     );
   }
 }
@@ -38,11 +38,13 @@ class StatusBarConnectButton extends StatelessWidget {
 class ConnectionButton extends StatelessWidget {
   final bool connected;
   final Function() onPressed;
+  final bool isNarrow;
 
   const ConnectionButton({
     super.key,
     required this.connected,
-    required this.onPressed
+    required this.onPressed,
+    required this.isNarrow
   });
 
   @override
@@ -52,11 +54,13 @@ class ConnectionButton extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            connected ? 'DISCONNECT' : 'CONNECT',
-            style: const TextStyle(color: Colors.white),
-          ),
-          const SizedBox(width: 8), // Spacing between text and icon
+          if (!isNarrow) ...[
+            Text(
+              connected ? 'DISCONNECT' : 'CONNECT',
+              style: const TextStyle(color: Colors.white),
+            ),
+            const SizedBox(width: 8),
+          ],
           Icon(
             connected ? LucideIcons.logOut : LucideIcons.logIn,
             color: Colors.white,
