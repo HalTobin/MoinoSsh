@@ -49,24 +49,33 @@ class ConnectionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: () => onPressed(),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (!isNarrow) ...[
+    if (!isNarrow) {
+      return TextButton(
+        onPressed: onPressed,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
             Text(
               connected ? 'DISCONNECT' : 'CONNECT',
               style: const TextStyle(color: Colors.white),
             ),
             const SizedBox(width: 8),
+            Icon(
+              connected ? LucideIcons.logOut : LucideIcons.logIn,
+              color: Colors.white,
+            ),
           ],
-          Icon(
-            connected ? LucideIcons.logOut : LucideIcons.logIn,
-            color: Colors.white,
-          ),
-        ],
-      ),
-    );
+        ),
+      );
+    }
+    else {
+      return IconButton(
+        onPressed: onPressed,
+        icon: Icon(
+          connected ? LucideIcons.logOut : LucideIcons.logIn,
+          color: Colors.white,
+        )
+      );
+    }
   }
 }

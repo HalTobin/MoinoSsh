@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'utils/byte_decoder.dart';
@@ -144,7 +145,7 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
         }
     }
 
-    Future<ResponseResult<bool>> _runSudoCommand(String password, String command) async {
+    /*Future<ResponseResult<bool>> _runSudoCommand(String password, String command) async {
         if (kDebugMode) {
             final startIndexReplace = (password.length/4).toInt();
             final int replaced = password.length - startIndexReplace;
@@ -182,6 +183,60 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
           return ResponseSucceed(true);
         } else {
           return ResponseFailed(error: stderrStr);
+        }
+    }*/
+
+    Future<ResponseResult<bool>> _runSudoCommand(String password, String command) async {
+        // 1. Sanitize the password to strip trailing Android keyboard spaces/newlines
+        final cleanPassword = password.trim();
+
+        if (kDebugMode) {
+            final startIndexReplace = (cleanPassword.length / 4).toInt();
+            final int replaced = cleanPassword.length - startIndexReplace;
+            final String secret = cleanPassword.replaceRange(startIndexReplace, null, "*" * replaced);
+            print("Password received: $secret");
+        }
+
+        // 2. Remove "sudo " if it exists, to avoid "sudo sudo"
+        final sanitizedCommand = command.startsWith('sudo ')
+            ? command.substring(5)
+            : command;
+
+        // 3. Just call sudo -S (reads from stdin) without the echo pipe
+        final sudoCommand = "sudo -S $sanitizedCommand";
+
+        if (kDebugMode) {
+            print("Running over SSH: $sudoCommand");
+        }
+
+        // 4. Start the session
+        final SSHSession? session = await _client?.execute(sudoCommand);
+
+        if (session == null) {
+            return ResponseFailed(error: "SSH session is null");
+        }
+
+        // 5. Send the password securely via stdin, adding the newline \n so sudo executes
+        session.stdin.add(utf8.encode('$cleanPassword\n'));
+        await session.stdin.close(); // Close stdin to tell the server we are done typing
+
+        // 6. Wait for the command to finish
+        await session.done;
+
+        final exitCode = session.exitCode;
+        final stdoutStr = await session.stdout.decodeUtf8();
+        final stderrStr = await session.stderr.decodeUtf8();
+
+        if (kDebugMode) {
+            print("stdout: $stdoutStr");
+            print("stderr: $stderrStr");
+            print("Exit code: $exitCode");
+        }
+
+        if (exitCode == 0) {
+            return ResponseSucceed(true);
+        } else {
+            return ResponseFailed(error: stderrStr);
         }
     }
 

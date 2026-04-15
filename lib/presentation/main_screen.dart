@@ -11,6 +11,7 @@ import 'package:ui/component/password_required_dialog.dart';
 import 'package:ls_server_app/presentation/component/status_bar/connection_status_bar.dart';
 import 'package:ls_server_app/presentation/main_event.dart';
 import 'package:ls_server_app/presentation/main_state.dart';
+import 'package:ui/navigation/auto_modal.dart';
 
 class MainScreen extends StatefulWidget {
   final MainState state;
@@ -66,7 +67,6 @@ class _MainScreenState extends State<MainScreen> {
       print('App is closed');
     }
     return AppExitResponse.exit;
-    // you can call AppExitResponse.cancel to cancel the app exit
   }
 
   @override
@@ -127,9 +127,45 @@ class _MainScreenState extends State<MainScreen> {
       print("_showAuthDialog()");
     }
 
-    final NavigatorState navigator = Navigator.of(context);
+    final size = MediaQuery.of(context).size;
+    final constraints = BoxConstraints.tight(size);
 
-    final password = await showDialog<String?>(
+    final password = await autoModal<String?>(
+      context: context,
+      constraints: constraints,
+      child: Padding(
+        padding: EdgeInsetsGeometry.all(24),
+        child: PasswordRequiredDialog(
+          onPasswordEntered: (password, save) async {
+            if (kDebugMode) {
+              print("password entered");
+            }
+            if (save && savePassword != null) {
+              if (kDebugMode) {
+                print("saving password");
+              }
+              await savePassword(password);
+            }
+            Navigator.of(context).pop(password);
+          },
+          onDismiss: () => Navigator.of(context).pop(null),
+          biometricsAvailable: biometricsAvailable,
+          onBiometricsRequest: (onBiometricsRequest != null) ? () async {
+            if (kDebugMode) {
+              print("onBiometricsRequest()");
+            }
+            final password = await onBiometricsRequest();
+            if (kDebugMode) {
+              print("password fetched: $password");
+            }
+            Navigator.of(context).pop(password);
+          } : null,
+        )
+      )
+    );
+    return password;
+
+    /*final password = await showDialog<String?>(
       context: context,
       barrierDismissible: false,
       builder: (_) => AppDialogLayout(
@@ -156,7 +192,7 @@ class _MainScreenState extends State<MainScreen> {
         ),
       )
     );
-    return password;
+    return password;*/
   }
 
 }
