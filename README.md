@@ -25,7 +25,6 @@ This project works thanks to these libraries:
 - [dartssh2](https://pub.dev/packages/dartssh2)
 - [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage)
 - [drift](https://pub.dev/packages/drift)
-- [json_serializable](https://pub.dev/packages/json_serializable)
 - [collection](https://pub.dev/packages/collection)
 
 ## Getting Started
@@ -34,4 +33,3 @@ This project works thanks to these libraries:
 
 Run this command when opening the project for the first time or when updating database or JsonSerializable annotated class:
 ```dart run build_runner build```
-Then open the *data* folder and rerun: ```dart run build_runner build```

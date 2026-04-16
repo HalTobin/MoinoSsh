@@ -14,7 +14,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-@internal
 class DataProvider extends StatelessWidget {
   final Widget child;
 

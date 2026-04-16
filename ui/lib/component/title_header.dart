@@ -10,10 +10,9 @@ sealed class TitleHeaderTrailingContent {
       Dismissable(onDismiss: onDismiss);
 
   static TitleHeaderTrailingContent action({
-    String? title,
-    IconData? icon,
+    required IconData icon,
     required VoidCallback onPressed,
-  }) => Action(title: title, icon: icon, onPressed: onPressed);
+  }) => Action(icon: icon, onPressed: onPressed);
 }
 
 class None extends TitleHeaderTrailingContent {
@@ -26,13 +25,11 @@ class Dismissable extends TitleHeaderTrailingContent {
 }
 
 class Action extends TitleHeaderTrailingContent {
-  final String? title;
-  final IconData? icon;
+  final IconData icon;
   final VoidCallback onPressed;
 
   const Action({
-    this.title,
-    this.icon,
+    required this.icon,
     required this.onPressed,
   });
 }
@@ -61,8 +58,10 @@ class TitleHeader extends StatelessWidget {
         ),
         Text(
           title,
+          maxLines: 1,
           style: TextStyle(
             fontSize: 20,
+            overflow: TextOverflow.ellipsis,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -75,8 +74,7 @@ class TitleHeader extends StatelessWidget {
             onPressed: callback,
             icon: const Icon(LucideIcons.x),
           ),
-          Action(title: final text, icon: final icon, onPressed: final onPressed) => _TitleHeaderAction(
-            text: text,
+          Action(icon: final icon, onPressed: final onPressed) => _TitleHeaderAction(
             icon: icon,
             onPressed: onPressed,
           ),
@@ -87,29 +85,19 @@ class TitleHeader extends StatelessWidget {
 }
 
 class _TitleHeaderAction extends StatelessWidget {
-  final String? text;
-  final IconData? icon;
+  final IconData icon;
   final Function() onPressed;
 
   const _TitleHeaderAction({
-    this.text,
-    this.icon,
+    required this.icon,
     required this.onPressed
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
+    return IconButton(
       onPressed: onPressed,
-      child: Row(
-        spacing: 16,
-        children: [
-          if (text != null)
-            Text(text ?? ''),
-          if (icon != null)
-            Icon(icon),
-        ],
-      )
+      icon: Icon(icon),
     );
   }
 }

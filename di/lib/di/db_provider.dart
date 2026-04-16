@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-@internal
 class DbProvider extends StatelessWidget {
   final Widget child;
 
@@ -15,11 +14,7 @@ class DbProvider extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
         providers: [
-
-          Provider(
-            create: (context) => (ServerProfileDatabase()),
-            dispose: (context, db) => db.close(),
-          ),
+          Provider(create: (context) => (ServerProfileDatabase())),
           Provider(create: (context) => (ServerProfileDao(context.read()))),
           Provider(create: (context) => (FavoriteServiceDao(context.read())))
         ],

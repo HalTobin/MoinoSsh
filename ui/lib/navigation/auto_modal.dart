@@ -10,24 +10,28 @@ Future<T?> autoModal<T>({
   required Widget child,
   bool dismissable = true
 }) async {
-  return showDialog<T>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => dismissable
-          ? EscToClose(child: AppDialogLayout(padding: EdgeInsets.zero, child: child))
-          : AppDialogLayout(padding: EdgeInsets.zero, child: child)
-  );
+  final isNarrow = ScreenFormatHelper.isNarrow(constraints);
+  final EdgeInsets insets = EdgeInsets.all(isNarrow ? 12 : 24);
 
-  // TODO - Need to fix the keyboard hiding TextField before using BottomSheet again
   return ScreenFormatHelper.isNarrow(constraints) ?
     showModalBottomSheet<T>(
       context: context,
       isScrollControlled: true,
       builder: (_) => dismissable 
           ? EscToClose(
-            child: Wrap(children: [child])
+            child: Padding(
+              padding: insets,
+              child: Wrap(children: [child])
+            )
           )
-          : Wrap(children: [child]),
+          : Wrap(
+            children: [
+              Padding(
+                padding: insets,
+                child: child
+              )
+            ]
+          ),
     )
     : showDialog<T>(
       context: context,

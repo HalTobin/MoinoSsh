@@ -130,38 +130,39 @@ class _MainScreenState extends State<MainScreen> {
     final size = MediaQuery.of(context).size;
     final constraints = BoxConstraints.tight(size);
 
-    final password = await autoModal<String?>(
+    final password = await showDialog<String?>(
       context: context,
-      constraints: constraints,
-      child: Padding(
-        padding: EdgeInsetsGeometry.all(24),
-        child: PasswordRequiredDialog(
-          onPasswordEntered: (password, save) async {
-            if (kDebugMode) {
-              print("password entered");
-            }
-            if (save && savePassword != null) {
+      builder: (context) {
+        return AppDialogLayout(
+          padding: EdgeInsets.all(12),
+          child: PasswordRequiredDialog(
+            onPasswordEntered: (password, save) async {
               if (kDebugMode) {
-                print("saving password");
+                print("password entered");
               }
-              await savePassword(password);
-            }
-            Navigator.of(context).pop(password);
-          },
-          onDismiss: () => Navigator.of(context).pop(null),
-          biometricsAvailable: biometricsAvailable,
-          onBiometricsRequest: (onBiometricsRequest != null) ? () async {
-            if (kDebugMode) {
-              print("onBiometricsRequest()");
-            }
-            final password = await onBiometricsRequest();
-            if (kDebugMode) {
-              print("password fetched: $password");
-            }
-            Navigator.of(context).pop(password);
-          } : null,
-        )
-      )
+              if (save && savePassword != null) {
+                if (kDebugMode) {
+                  print("saving password");
+                }
+                await savePassword(password);
+              }
+              Navigator.of(context).pop(password);
+            },
+            onDismiss: () => Navigator.of(context).pop(null),
+            biometricsAvailable: biometricsAvailable,
+            onBiometricsRequest: (onBiometricsRequest != null) ? () async {
+              if (kDebugMode) {
+                print("onBiometricsRequest()");
+              }
+              final password = await onBiometricsRequest();
+              if (kDebugMode) {
+                print("password fetched: $password");
+              }
+              Navigator.of(context).pop(password);
+            } : null,
+          )
+        );
+      }
     );
     return password;
 

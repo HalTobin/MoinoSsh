@@ -1,10 +1,12 @@
 import 'package:feature_auth/feature/my_servers/presentation/component/password_required_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:ui/component/app_dialog_layout.dart';
 import 'package:ui/component/empty_list.dart';
 import 'package:ui/component/password_required_dialog.dart';
 import 'package:ui/component/title_header.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:ui/navigation/auto_modal.dart';
+import 'package:ui/screen_format/screen_format_helper.dart';
 
 import '../../../presentation/component/ssh_connect_button.dart';
 import '../model/ConnectWithProfilePasswordMethod.dart';
@@ -40,14 +42,19 @@ class _MyServersScreenState extends State<MyServersScreen> {
           spacing: 16,
           children: [
 
-            TitleHeader(
-              icon: LucideIcons.server,
-              title: "My Servers",
-              trailingContent: TitleHeaderTrailingContent.action(
-                title: "Add",
-                icon: LucideIcons.plus,
-                onPressed: () => widget.onAddEditServer(null)
-              )
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => widget.onAddEditServer(null),
+                  child: Row(
+                    children: [
+                      Text("Add"),
+                      Icon(LucideIcons.plus)
+                    ],
+                  )
+                )
+              ],
             ),
 
             Expanded(
@@ -107,30 +114,32 @@ class _MyServersScreenState extends State<MyServersScreen> {
     BuildContext context,
     BoxConstraints constraints
   ) {
-    autoModal(
+    final isNarrow = ScreenFormatHelper.isNarrow(constraints);
+    final paddingValue = isNarrow ? 12.0 : 24.0;
+
+    showDialog(
       context: context,
-      constraints: constraints,
-      child: Padding(
-        padding: EdgeInsetsGeometry.all(24),
-        child: PasswordRequiredDialog(
-          onPasswordEntered: (password, save) {
-            Navigator.pop(context);
-            final method = ConnectWithProfilePasswordMethod.password(password, save);
-            final event = ConnectWithProfile(method: method);
-            widget.onEvent(event);
-          },
-          onDismiss: () => Navigator.pop(context),
-          biometricsAvailable: widget.state.biometricsAvailable,
-          onBiometricsRequest: widget.state.selectedServerHasBiometrics
-            ? () {
+      builder: (context) {
+        return AppDialogLayout(
+          padding: EdgeInsets.all(paddingValue),
+          child: PasswordRequiredDialog(
+            onPasswordEntered: (password, save) {
+              Navigator.pop(context);
+              final method = ConnectWithProfilePasswordMethod.password(password, save);
+              final event = ConnectWithProfile(method: method);
+              widget.onEvent(event);
+            },
+            onDismiss: () => Navigator.pop(context),
+            biometricsAvailable: widget.state.biometricsAvailable,
+            onBiometricsRequest: widget.state.selectedServerHasBiometrics ? () {
               Navigator.pop(context);
               final method = ConnectWithProfilePasswordMethod.biometrics();
               final event = ConnectWithProfile(method: method);
               widget.onEvent(event);
-            }
-            : null
-        )
-      )
+            } : null
+          )
+        );
+      }
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:ui/component/app_dialog_layout.dart';
 
 class SettingEntryList extends StatelessWidget {
   final IconData icon;
@@ -42,30 +43,24 @@ class SettingEntryList extends StatelessWidget {
   }
 
   void _showSelectionDialog(BuildContext context) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+        return AppDialogLayout(
+          padding: const EdgeInsets.all(4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const SizedBox(width: 48),
-                    Text(label, style: Theme.of(context).textTheme.titleLarge),
-                    IconButton(
-                      icon: const Icon(LucideIcons.x),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(width: 48),
+                  Text(label, style: Theme.of(context).textTheme.titleLarge),
+                  IconButton(
+                    icon: const Icon(LucideIcons.x),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               RadioGroup<String>(
@@ -83,9 +78,9 @@ class SettingEntryList extends StatelessWidget {
                 ),
               )
             ],
-          ),
+          )
         );
-      },
+      }
     );
   }
 

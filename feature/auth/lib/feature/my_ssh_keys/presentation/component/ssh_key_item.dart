@@ -114,7 +114,6 @@ class _SshKeyItemState extends State<SshKeyItem> {
 
   @override
   Widget build(BuildContext context) {
-
     return Selectable(
       selectionEnable: true,
       selected: widget.selected,
@@ -161,18 +160,18 @@ class _SshKeyItemState extends State<SshKeyItem> {
               const _SshKeyFile(color: Colors.orange),
 
               Expanded(
-                  child: TextField(
-                      maxLines: 1,
-                      focusNode: _nameFieldFocusNode,
-                      controller: _nameController,
-                      decoration: InputDecoration(
-                          border: const OutlineInputBorder(),
-                          suffixIcon: IconButton(
-                              onPressed: confirmRename,
-                              icon: const Icon(LucideIcons.check)
-                          )
-                      )
+                child: TextField(
+                  maxLines: 1,
+                  focusNode: _nameFieldFocusNode,
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      onPressed: confirmRename,
+                      icon: const Icon(LucideIcons.check)
+                    )
                   )
+                )
               ),
 
               IconButton(
@@ -186,21 +185,21 @@ class _SshKeyItemState extends State<SshKeyItem> {
               _SshKeyFile(color: Theme.of(context).colorScheme.error),
 
               Expanded(
-                  child: TextField(
-                      maxLines: 1,
-                      focusNode: _deleteFieldFocusNode,
-                      controller: _deleteController,
-                      decoration: InputDecoration(
-                          hintText: "Enter: \"${widget.sshKeyFile.name}\" to confirm",
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-                          ),
-                          suffixIcon: IconButton(
-                              onPressed: confirmDeletion,
-                              icon: const Icon(LucideIcons.trash2)
-                          )
-                      )
+                child: TextField(
+                  maxLines: 1,
+                  focusNode: _deleteFieldFocusNode,
+                  controller: _deleteController,
+                  decoration: InputDecoration(
+                    hintText: "Enter: \"${widget.sshKeyFile.name}\" to confirm",
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+                    ),
+                    suffixIcon: IconButton(
+                      onPressed: confirmDeletion,
+                      icon: const Icon(LucideIcons.trash2)
+                    )
                   )
+                )
               ),
 
               IconButton(
@@ -228,41 +227,39 @@ class _BaseKeyItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SshKeyFile(),
-
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              sshKeyFile.name,
-              style: Theme.of(context).textTheme.titleSmall
-                ?.copyWith(
-                fontSize: 16,
-                fontWeight: FontWeight.w700
+        Text(
+          sshKeyFile.name,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+          style: Theme.of(context).textTheme.titleSmall
+            ?.copyWith(
+            fontSize: 16,
+            fontWeight: FontWeight.w700
+          ),
+        ),
+        if (sshKeyFile.secured)
+          Row(
+            spacing: 4,
+            children: [
+              const Icon(
+                LucideIcons.lock,
+                color: Colors.green,
+                size: 16
               ),
-            ),
-            if (sshKeyFile.secured)
-              Row(
-                spacing: 4,
-                children: [
-                  const Icon(
-                    LucideIcons.lock,
-                    color: Colors.green,
-                    size: 16
-                  ),
-                  const Text(
-                    "This file is protected by a password.",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.green
-                    )
-                  )
-                ],
+              const Text(
+                "Password required",
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.green
+                )
               )
-          ],
-        )
+            ],
+          )
       ],
     );
   }

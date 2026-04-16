@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:domain/service/ssh_service.dart';
 import 'package:data/service/ssh/ssh_service_impl.dart';
 
-@internal
 class ServiceProvider extends StatelessWidget {
   final Widget child;
 

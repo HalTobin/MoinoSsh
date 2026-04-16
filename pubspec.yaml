@@ -36,8 +36,8 @@ dependencies:
   dynamic_color: ^1.8.1
   file_picker: ^11.0.2
   dartssh2: ^2.14.0
-  drift: ^2.30.1
-  drift_flutter: ^0.2.8
+  drift: ^2.32.1
+  drift_flutter: ^0.3.0
   biometric_storage: ^5.0.1
   collection: ^1.19.1
 

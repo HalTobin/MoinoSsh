@@ -37,10 +37,6 @@ class _DirectAuthScreenState extends State<DirectAuthScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 16,
       children: [
-        const TitleHeader(
-          icon: LucideIcons.monitorUp,
-          title: "SSH Direct Connection"
-        ),
 
         SshAuthFields(
           enabled: !widget.state.loading,

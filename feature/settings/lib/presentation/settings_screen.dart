@@ -105,15 +105,12 @@ class SettingsScreen extends StatelessWidget {
     autoModal(
       context: context,
       constraints: constraints,
-      child: Padding(
-        padding: EdgeInsetsGeometry.all(12),
-        child: DeleteKeysConfirmationModal(
-          onClose: () => Navigator.pop(context),
-          onConfirm: () {
-            Navigator.pop(context);
-            onEvent(DeleteKeys()) ;
-          }
-        )
+      child: DeleteKeysConfirmationModal(
+        onClose: () => Navigator.pop(context),
+        onConfirm: () {
+          Navigator.pop(context);
+          onEvent(DeleteKeys()) ;
+        }
       )
     );
   }

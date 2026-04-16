@@ -44,15 +44,12 @@ class AddEditServerProvider extends StatelessWidget {
       ],
       child: Consumer<AddEditServerViewModel>(
         builder: (context, viewmodel, child) {
-          return Padding(
-            padding: EdgeInsets.all(24),
-            child: AddEditServerView(
-              serverProfileId: serverProfileId,
-              state: viewmodel.state,
-              onEvent: viewmodel.onEvent,
-              uiEvent: viewmodel.uiEvent,
-              onDismiss: onDismiss
-            )
+          return AddEditServerView(
+            serverProfileId: serverProfileId,
+            state: viewmodel.state,
+            onEvent: viewmodel.onEvent,
+            uiEvent: viewmodel.uiEvent,
+            onDismiss: onDismiss
           );
         }
       ),

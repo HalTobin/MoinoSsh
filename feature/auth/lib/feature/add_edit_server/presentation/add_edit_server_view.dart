@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:ui/component/app_button.dart';
-import 'package:ui/component/title_header.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../presentation/component/ssh_auth_fields.dart';
@@ -64,50 +63,62 @@ class AddEditServerViewState extends State<AddEditServerView> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      spacing: 16,
-      children: [
-
-        TitleHeader(
-          icon: isNewServer ? LucideIcons.grid2x2Plus : LucideIcons.pen,
-          title: isNewServer ? "New server" : "Edit a server",
-          trailingContent: TitleHeaderTrailingContent.dismissable(
-            onDismiss: widget.onDismiss
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        leading: Icon(
+          isNewServer ? LucideIcons.grid2x2Plus : LucideIcons.pen,
+          color: Theme.of(context).primaryColor,
         ),
+        title: Text(isNewServer ? "New server" : "Edit a server"),
+        actions: [
+          IconButton(
+            onPressed: widget.onDismiss,
+            icon: Icon(LucideIcons.x)
+          )
+        ],
+        surfaceTintColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 16,
+          children: [
+            SshAuthFields(
+              enabled: true,
+              nameField: true,
+              nameController: nameController,
+              userController: userController,
+              urlController: urlController,
+              portController: portController,
+              sshController: sshController,
+              disableLocalSshKey: false,
+              loadSshFile: (path) => {},
+              wrongFields: [],
+            ),
 
-        SshAuthFields(
-          enabled: true,
-          nameField: true,
-          nameController: nameController,
-          userController: userController,
-          urlController: urlController,
-          portController: portController,
-          sshController: sshController,
-          disableLocalSshKey: false,
-          loadSshFile: (path) => {},
-          wrongFields: [],
-        ),
+            const Spacer(),
 
-        const Spacer(),
-
-        AppButton(
-          onClick: () {
-            final AddEditServerEvent event = SaveEditServer(
-              serverProfileId: widget.serverProfileId,
-              name: nameController.text,
-              user: userController.text,
-              url: urlController.text,
-              port: portController.text,
-              sshFilePath: sshController.text,
-            );
-            widget.onEvent(event);
-          },
-          icon: LucideIcons.save,
-          text: "SAVE"
+            AppButton(
+                onClick: () {
+                  final AddEditServerEvent event = SaveEditServer(
+                    serverProfileId: widget.serverProfileId,
+                    name: nameController.text,
+                    user: userController.text,
+                    url: urlController.text,
+                    port: portController.text,
+                    sshFilePath: sshController.text,
+                  );
+                  widget.onEvent(event);
+                },
+                icon: LucideIcons.save,
+                text: "SAVE"
+            )
+          ],
         )
-      ],
+      )
     );
   }
 

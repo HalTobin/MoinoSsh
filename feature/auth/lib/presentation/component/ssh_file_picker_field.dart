@@ -72,19 +72,16 @@ class SshFilePickerField extends StatelessWidget {
       child: MySshKeysProvider(
         child: Consumer<MySshKeysViewModel>(
           builder: (context, viewmodel, child) {
-            return Padding(
-              padding: EdgeInsets.all(24),
-              child: MySshKeysView(
-                state: viewmodel.state,
-                onEvent: viewmodel.onEvent,
-                isShrink: isShrink,
-                selectionEnable: true,
-                onSelect: (String? keyPath) {
-                  _select(keyPath ?? "");
-                  Navigator.pop(context);
-                },
-                onDismiss: () => Navigator.pop(context),
-              )
+            return MySshKeysView(
+              state: viewmodel.state,
+              onEvent: viewmodel.onEvent,
+              isShrink: isShrink,
+              selectionEnable: true,
+              onSelect: (String? keyPath) {
+                _select(keyPath ?? "");
+                Navigator.pop(context);
+              },
+              onDismiss: () => Navigator.pop(context),
             );
           }
         )
