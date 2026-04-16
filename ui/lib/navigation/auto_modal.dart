@@ -37,7 +37,7 @@ Future<T?> autoModal<T>({
       context: context,
       barrierDismissible: false,
       builder: (_) => dismissable
-        ? EscToClose(child: AppDialogLayout(padding: EdgeInsets.zero, child: child))
-        : AppDialogLayout(padding: EdgeInsets.zero, child: child)
+        ? EscToClose(child: AppDialogLayout(padding: insets, child: child))
+        : AppDialogLayout(padding: insets, child: child)
     );
 }
