@@ -6,6 +6,7 @@ import 'package:ui/component/app_button.dart';
 import 'package:ui/component/empty_list.dart';
 import 'package:ui/component/title_header.dart';
 import 'package:ui/navigation/auto_expanded.dart';
+import 'package:ui/screen_format/screen_format_helper.dart';
 
 import 'my_ssh_keys_event.dart';
 import 'my_ssh_keys_state.dart';
@@ -31,43 +32,50 @@ class MySshKeysView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      spacing: 16,
-      children: [
-        TitleHeader(
-          icon: LucideIcons.folderKey,
-          title: "My SSH Keys",
-          trailingContent: TitleHeaderTrailingContent.dismissable(onDismiss: onDismiss),
-        ),
-
-        AutoExpanded(
-          isShrink: isShrink,
-          child: AnimatedCrossFade(
-            firstChild: CircularProgressIndicator(),
-            secondChild: AnimatedCrossFade(
-              crossFadeState: state.keys.isEmpty ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-              duration: const Duration(milliseconds: 300),
-              firstChild: _KeyList(
-                state: state,
-                onEvent: onEvent
-              ),
-              secondChild: EmptyList(
-                message: "No profile found",
-                onAction: null
-              ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = ScreenFormatHelper.isNarrow(constraints);
+        return Column(
+          spacing: 16,
+          children: [
+            TitleHeader(
+              icon: LucideIcons.folderKey,
+              title: "My SSH Keys",
+              trailingContent: TitleHeaderTrailingContent.dismissable(onDismiss: onDismiss),
             ),
-            crossFadeState: state.loading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-            duration: const Duration(milliseconds: 300)
-          )
-        ),
 
-        _ModalBottomActions(
-          state: state,
-          onEvent: onEvent,
-          isShrink: isShrink,
-          onKeySelect: onSelect
-        )
-      ],
+            AutoExpanded(
+              isShrink: isShrink,
+              child: AnimatedCrossFade(
+                firstChild: CircularProgressIndicator(),
+                secondChild: AnimatedCrossFade(
+                  crossFadeState: state.keys.isEmpty ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                  duration: const Duration(milliseconds: 300),
+                  firstChild: _KeyList(
+                    state: state,
+                    onEvent: onEvent,
+                    isShrink: isNarrow,
+                    isBottomSheet: isNarrow,
+                  ),
+                  secondChild: EmptyList(
+                    message: "No profile found",
+                    onAction: null
+                  ),
+                ),
+                crossFadeState: state.loading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                duration: const Duration(milliseconds: 300)
+              )
+            ),
+
+            _ModalBottomActions(
+              state: state,
+              onEvent: onEvent,
+              isShrink: isShrink,
+              onKeySelect: onSelect
+            )
+          ],
+        );
+      }
     );
   }
 }
@@ -75,12 +83,17 @@ class MySshKeysView extends StatelessWidget {
 class _KeyList extends StatelessWidget {
   final MySshKeysState state;
   final Function(MySshKeysEvent) onEvent;
+  final bool isShrink;
+  final bool isBottomSheet;
+  final bool shouldEditDeleteInDialog;
 
   const _KeyList({
     super.key,
     required this.state,
-    required this.onEvent
-  });
+    required this.onEvent,
+    required this.isShrink,
+    required this.isBottomSheet
+  }): shouldEditDeleteInDialog = isShrink && isBottomSheet;
 
   @override
   Widget build(BuildContext context) {
@@ -98,6 +111,7 @@ class _KeyList extends StatelessWidget {
             sshKeyFile: key,
             selected: state.selectedKeyPath == key.path,
             onClick: () => onEvent(selectEvent),
+            shouldEditDeleteInDialog: shouldEditDeleteInDialog,
             editionMode: state.editionModeKeyPath == key.path,
             onEditionMode: () => onEvent(editEvent),
             onEdit: (newName) {
