@@ -79,6 +79,13 @@ class SettingsScreen extends StatelessWidget {
                 state: state.preferences.materialYou,
                 onToggle: () => onEvent(ToggleMaterialYou()),
               ),
+              SettingEntryToggle(
+                icon: LucideIcons.squareAsterisk,
+                label: "Remember password for the session",
+                hint: "If enable, you'll be prompt only once for the session's password until you log out",
+                state: state.preferences.keepPasswordDuringSession,
+                onToggle: () => onEvent(ToggleKeepPasswordDuringSession()),
+              ),
               SettingEntryAction(
                 icon: LucideIcons.rotateCcwKey,
                 trailingIcon: LucideIcons.mousePointerClick,

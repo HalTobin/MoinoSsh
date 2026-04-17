@@ -5,7 +5,7 @@ class SetOnPasswordRequestUseCase {
 
     const SetOnPasswordRequestUseCase({required this.sshService});
 
-    void execute(Future<String?> Function() callback) {
+    void execute(Future<PasswordCallbackResponse?> Function() callback) {
         sshService.onPasswordRequest = callback;
     }
 }

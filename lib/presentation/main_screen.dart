@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:domain/service/ssh_service.dart';
 import 'package:feature_settings/di/settings_provider.dart';
 import 'package:feature_auth/di/auth_provider.dart';
 import 'package:feature_systemd_services/feature/services_manager/di/service_manager_provider.dart';
@@ -45,14 +46,23 @@ class _MainScreenState extends State<MainScreen> {
 
     widget.onEvent(
       SetOnPasswordRequest(
-        onPasswordRequest: () => _showPasswordDialog(
-          context: context,
-          biometricsAvailable: widget.state.biometricsAvailable,
-          savePassword: (password) async {
-            widget.onEvent(SaveSshUserPassword(password: password));
-          },
-          onBiometricsRequest: widget.onFetchPasswordBiometrics
-        )
+        onPasswordRequest: () async {
+          final password = await _showPasswordDialog(
+              context: context,
+              biometricsAvailable: widget.state.biometricsAvailable,
+              savePassword: (password) async {
+                widget.onEvent(SaveSshUserPassword(password: password));
+              },
+              onBiometricsRequest: widget.onFetchPasswordBiometrics
+          );
+          if (password == null) {
+            return null;
+          }
+          return PasswordCallbackResponse(
+            password: password,
+            remember: widget.state.userPreferences.keepPasswordDuringSession
+          );
+        }
       )
     );
   }

@@ -1,3 +1,4 @@
+import 'package:feature_settings/use_case/toggle_keep_password_during_session_use_case.dart';
 import 'package:feature_settings/use_case/toggle_material_you_use_case.dart';
 import 'package:feature_settings/use_case/update_contrast_use_case.dart';
 import 'package:feature_settings/use_case/update_theme_use_case.dart';
@@ -32,6 +33,7 @@ class SettingsProvider extends StatelessWidget {
         Provider(create: (context) => (UpdateThemeUseCase(preferenceRepository: context.read()))),
         Provider(create: (context) => (UpdateContrastUseCase(preferenceRepository: context.read()))),
         Provider(create: (context) => (ToggleMaterialYouUseCase(preferenceRepository: context.read()))),
+        Provider(create: (context) => (ToggleKeepPasswordDuringSessionUseCase(preferenceRepository: context.read()))),
         Provider(
           create: (context) => (
             SettingsUseCases(
@@ -39,6 +41,7 @@ class SettingsProvider extends StatelessWidget {
               updateThemeUseCase: context.read(),
               updateContrastUseCase: context.read(),
               toggleMaterialYouUseCase: context.read(),
+              toggleKeepPasswordDuringSessionUseCase: context.read(),
               deleteKeyUseCase: context.read(),
               checkBiometricsAvailabilityUseCase: context.read()
             )

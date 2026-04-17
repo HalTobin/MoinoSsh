@@ -14,4 +14,6 @@ class UpdateContrast extends SettingsEvent {
 
 class ToggleMaterialYou extends SettingsEvent {}
 
+class ToggleKeepPasswordDuringSession extends SettingsEvent {}
+
 class DeleteKeys extends SettingsEvent {}

@@ -7,9 +7,9 @@ import '../model/ssh/systemctl_command.dart';
 
 abstract interface class SshService extends ChangeNotifier implements ValueListenable<bool> {
 
-    Future<String?> Function()? onPasswordRequest;
+    Future<PasswordCallbackResponse?> Function()? onPasswordRequest;
 
-    void setOnPasswordRequestCallback(Future<String?> Function() callback) {
+    void setOnPasswordRequestCallback(Future<PasswordCallbackResponse?> Function() callback) {
         onPasswordRequest = callback;
     }
 
@@ -36,4 +36,14 @@ abstract interface class SshService extends ChangeNotifier implements ValueListe
 
     SshProfile? getCurrentProfile();
 
+}
+
+class PasswordCallbackResponse {
+    final String password;
+    final bool remember;
+
+    const PasswordCallbackResponse({
+        required this.password,
+        required this.remember
+    });
 }

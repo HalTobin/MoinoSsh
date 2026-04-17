@@ -16,4 +16,6 @@ abstract interface class PreferenceRepository {
 
     Future<void> toggleMaterialYou();
 
+    Future<void> toggleKeepPasswordDuringSession();
+
 }

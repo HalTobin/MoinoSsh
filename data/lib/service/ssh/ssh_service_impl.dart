@@ -22,14 +22,16 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
 
     bool _isConnected = false;
 
+    String? _password = null;
+
     @override
     bool get value => _isConnected;
 
     @override
-    Future<String?> Function()? onPasswordRequest;
+    Future<PasswordCallbackResponse?> Function()? onPasswordRequest;
 
     @override
-    void setOnPasswordRequestCallback(Future<String?> Function() callback) {
+    void setOnPasswordRequestCallback(Future<PasswordCallbackResponse?> Function() callback) {
         onPasswordRequest = callback;
     }
 
@@ -45,32 +47,16 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
             if (kDebugMode) {
                 print('SSH connecting to: $user@$serverUrl:$serverPort');
             }
-            // Step 1: Parse port
+
             final port = int.tryParse(serverPort) ?? 22;
-
-            // Step 2: Load private key file
             final key = File(sshFilePath).readAsStringSync();
-
-            // Step 3: Create socket and client
             final socket = await SSHSocket.connect(serverUrl, port);
             _client = SSHClient(
                 socket,
                 username: user,
                 identities: [
-                    // A single private key file may contain multiple keys.
                     ...SSHKeyPair.fromPem(key, password)
-                ],
-                onPasswordRequest: () async {
-                    if (kDebugMode) {
-                        print("Password request emitted");
-                    }
-                    if (onPasswordRequest != null) {
-                        final password = await onPasswordRequest!();
-                        return password;
-                    } else {
-                        throw Exception('No password request handler set.');
-                    }
-                }
+                ]
             );
 
             _profile = SshProfile(
@@ -127,11 +113,16 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
                             return ResponseFailed(error: "Password request callback not defined");
                         }
 
-                        final String? password = await onPasswordRequest!();
-                        if (password == null) {
-                            return ResponseFailed(error: "Password is null");
+                        if (_password == null) {
+                            final passwordRequestResponse = await onPasswordRequest!();
+                            if (passwordRequestResponse == null) {
+                                return ResponseFailed(error: "Password is null");
+                            }
+                            return await _runSudoCommand(passwordRequestResponse.password, fullCommand, passwordRequestResponse.remember);
                         }
-                        return await _runSudoCommand(password, fullCommand);
+                        else {
+                            return await _runSudoCommand(_password!, fullCommand, true);
+                        }
                     } catch (error) {
                         return ResponseFailed(error: error.toString());
                     }
@@ -145,82 +136,26 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
         }
     }
 
-    /*Future<ResponseResult<bool>> _runSudoCommand(String password, String command) async {
-        if (kDebugMode) {
-            final startIndexReplace = (password.length/4).toInt();
-            final int replaced = password.length - startIndexReplace;
-            final String secret = password.replaceRange(startIndexReplace, null, "*" * replaced);
-            print("Password received: $secret");
-        }
-
-        final sanitizedCommand = command.startsWith('sudo ')
-            ? command.substring(5)
-            : command;
-        final sudoCommand = "echo '$password' | sudo -S $sanitizedCommand";
-
-        if (kDebugMode) {
-          print("Running over SSH: $sudoCommand");
-        }
-
-        final SSHSession? session = await _client?.execute(sudoCommand);
-        await session?.done;
-
-        if (session == null) {
-          return ResponseFailed(error: "SSH session is null");
-        }
-
-        final exitCode = session.exitCode;
-        final stdoutStr = await session.stdout.decodeUtf8();
-        final stderrStr = await session.stderr.decodeUtf8();
-
-        if (kDebugMode) {
-          print("stdout: $stdoutStr");
-          print("stderr: $stderrStr");
-          print("Exit code: $exitCode");
-        }
-
-        if (exitCode == 0) {
-          return ResponseSucceed(true);
-        } else {
-          return ResponseFailed(error: stderrStr);
-        }
-    }*/
-
-    Future<ResponseResult<bool>> _runSudoCommand(String password, String command) async {
-        // 1. Sanitize the password to strip trailing Android keyboard spaces/newlines
+    Future<ResponseResult<bool>> _runSudoCommand(String password, String command, bool remember) async {
         final cleanPassword = password.trim();
 
-        if (kDebugMode) {
-            final startIndexReplace = (cleanPassword.length / 4).toInt();
-            final int replaced = cleanPassword.length - startIndexReplace;
-            final String secret = cleanPassword.replaceRange(startIndexReplace, null, "*" * replaced);
-            print("Password received: $secret");
-        }
-
-        // 2. Remove "sudo " if it exists, to avoid "sudo sudo"
         final sanitizedCommand = command.startsWith('sudo ')
             ? command.substring(5)
             : command;
 
-        // 3. Just call sudo -S (reads from stdin) without the echo pipe
         final sudoCommand = "sudo -S $sanitizedCommand";
-
         if (kDebugMode) {
             print("Running over SSH: $sudoCommand");
         }
 
-        // 4. Start the session
         final SSHSession? session = await _client?.execute(sudoCommand);
-
         if (session == null) {
             return ResponseFailed(error: "SSH session is null");
         }
 
-        // 5. Send the password securely via stdin, adding the newline \n so sudo executes
         session.stdin.add(utf8.encode('$cleanPassword\n'));
-        await session.stdin.close(); // Close stdin to tell the server we are done typing
+        await session.stdin.close();
 
-        // 6. Wait for the command to finish
         await session.done;
 
         final exitCode = session.exitCode;
@@ -234,6 +169,9 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
         }
 
         if (exitCode == 0) {
+            if (remember) {
+                _password = cleanPassword;
+            }
             return ResponseSucceed(true);
         } else {
             return ResponseFailed(error: stderrStr);
@@ -246,7 +184,6 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
         if (session != null) {
             final output = await session.stdout.decodeUtf8();
             final status = output.trim();
-            //if (kDebugMode) { print('Service: $service, status: $status'); }
             return status == 'active';
         }
         if (kDebugMode) { print("session is null"); }
@@ -298,6 +235,7 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
         _profile = null;
         _client?.close();
         _client = null;
+        _password = null;
         _updateConnectionState(false);
     }
 

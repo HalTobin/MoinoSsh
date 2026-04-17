@@ -21,19 +21,20 @@ class PreferenceRepositoryImpl implements PreferenceRepository {
     Future<UserPreferences> getUserPreferences() async {
         final defaultPrefs = UserPreferences.defaultPreferences;
 
-        final String themeIdentifier = await _loadString(_Keys.APP_THEME.key, defaultPrefs.theme.identifier);
+        final String themeIdentifier = await _loadString(_Keys.appTheme.key, defaultPrefs.theme.identifier);
         final AppTheme theme = AppTheme.fromIdentifier(themeIdentifier);
 
-        final String contrastIdentifier = await _loadString(_Keys.APP_CONTRAST.key, defaultPrefs.contrast.identifier);
+        final String contrastIdentifier = await _loadString(_Keys.appContrast.key, defaultPrefs.contrast.identifier);
         final AppContrast contrast = AppContrast.fromIdentifier(contrastIdentifier);
 
-        final bool materialYou = await _loadBool(_Keys.MATERIAL_YOU.key, defaultPrefs.materialYou);
-
+        final bool materialYou = await _loadBool(_Keys.materialYou.key, defaultPrefs.materialYou);
+        final bool keepPasswordDuringSession = await _loadBool(_Keys.keepPasswordDuringSession.key, defaultPrefs.keepPasswordDuringSession);
 
         final preferences = UserPreferences(
             theme: theme,
             contrast: contrast,
-            materialYou: materialYou
+            materialYou: materialYou,
+            keepPasswordDuringSession: keepPasswordDuringSession
         );
 
         return preferences;
@@ -49,12 +50,14 @@ class PreferenceRepositoryImpl implements PreferenceRepository {
     Future<void> saveUserPreferences(UserPreferences preferences) async {
         _Keys.values.forEach((key) async {
             switch (key) {
-                case _Keys.APP_THEME:
+                case _Keys.appTheme:
                     await _updateString(key: key.key, value: preferences.theme.identifier, notify: false);
-                case _Keys.APP_CONTRAST:
+                case _Keys.appContrast:
                     await _updateString(key: key.key, value: preferences.contrast.identifier, notify: false);
-                case _Keys.MATERIAL_YOU:
+                case _Keys.materialYou:
                     await _updateBool(key: key.key, value: preferences.materialYou, notify: false);
+                case _Keys.keepPasswordDuringSession:
+                    await _updateBool(key: key.key, value: preferences.keepPasswordDuringSession, notify: false);
             }
         });
         _notify();
@@ -62,22 +65,30 @@ class PreferenceRepositoryImpl implements PreferenceRepository {
 
     @override
     Future<void> updateTheme(AppTheme appTheme) async {
-        _updateString(key: _Keys.APP_THEME.key, value: appTheme.identifier);
+        _updateString(key: _Keys.appTheme.key, value: appTheme.identifier);
         final current = await getUserPreferences();
         _controller.add(current);
     }
 
     @override
     Future<void> updateContrast(AppContrast contrast) async {
-        _updateString(key: _Keys.APP_CONTRAST.key, value: contrast.identifier);
+        _updateString(key: _Keys.appContrast.key, value: contrast.identifier);
         final current = await getUserPreferences();
         _controller.add(current);
     }
 
     @override
     Future<void> toggleMaterialYou() async {
-        final state = await _loadBool(_Keys.MATERIAL_YOU.key, UserPreferences.defaultPreferences.materialYou);
-        _updateBool(key: _Keys.MATERIAL_YOU.key, value: !state);
+        final state = await _loadBool(_Keys.materialYou.key, UserPreferences.defaultPreferences.materialYou);
+        _updateBool(key: _Keys.materialYou.key, value: !state);
+        final current = await getUserPreferences();
+        _controller.add(current);
+    }
+
+    @override
+    Future<void> toggleKeepPasswordDuringSession() async {
+        final state = await _loadBool(_Keys.keepPasswordDuringSession.key, UserPreferences.defaultPreferences.keepPasswordDuringSession);
+        _updateBool(key: _Keys.keepPasswordDuringSession.key, value: !state);
         final current = await getUserPreferences();
         _controller.add(current);
     }
@@ -129,9 +140,10 @@ class PreferenceRepositoryImpl implements PreferenceRepository {
 }
 
 enum _Keys {
-    APP_THEME("app_theme"),
-    APP_CONTRAST("app_contrast"),
-    MATERIAL_YOU("material_you");
+    appTheme("app_theme"),
+    appContrast("app_contrast"),
+    materialYou("material_you"),
+    keepPasswordDuringSession("keep_password_during_session");
 
     final String key;
 

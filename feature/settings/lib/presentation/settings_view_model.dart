@@ -49,6 +49,8 @@ class SettingsViewModel extends ChangeNotifier {
                 _updateContrast(event.contrast);
             case ToggleMaterialYou():
                 _toggleMaterialYou();
+            case ToggleKeepPasswordDuringSession():
+                _toggleKeepPasswordDuringSession();
         }
     }
 
@@ -62,6 +64,10 @@ class SettingsViewModel extends ChangeNotifier {
 
     Future<void> _toggleMaterialYou() async {
         await _useCases.toggleMaterialYouUseCase.execute();
+    }
+
+    Future<void> _toggleKeepPasswordDuringSession() async {
+        await _useCases.toggleKeepPasswordDuringSessionUseCase.execute();
     }
 
     Future<void> _deleteKeys() async {
