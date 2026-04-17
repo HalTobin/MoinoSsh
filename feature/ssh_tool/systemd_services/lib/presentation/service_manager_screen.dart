@@ -1,13 +1,13 @@
 import 'package:domain/model/ssh/systemctl_command.dart';
-import 'package:feature_systemd_services/feature/services_manager/presentation/service_manager_event.dart';
-import 'package:feature_systemd_services/feature/services_manager/presentation/service_manager_state.dart';
+import 'package:feature_systemd_services/presentation/service_manager_event.dart';
+import 'package:feature_systemd_services/presentation/service_manager_state.dart';
+import 'package:feature_systemd_services/feature/edit_service/di/edit_service_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ui/component/app_dialog_layout.dart';
 import 'package:ui/component/global_error_warning.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../../edit_service/di/edit_service_provider.dart';
 import 'component/service_controller/service_controller.dart';
 import 'component/service_manager_loading.dart';
 

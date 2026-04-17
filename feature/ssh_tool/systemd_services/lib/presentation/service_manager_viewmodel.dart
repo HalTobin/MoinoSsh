@@ -1,16 +1,19 @@
 import 'package:domain/model/response_result.dart';
-import 'package:feature_systemd_services/feature/services_manager/presentation/service_manager_event.dart';
-import 'package:feature_systemd_services/feature/services_manager/presentation/service_manager_state.dart';
+import 'package:feature_systemd_services/presentation/service_manager_event.dart';
+import 'package:feature_systemd_services/presentation/service_manager_state.dart';
 import 'package:flutter/foundation.dart';
 
 import '../data/service_presentation.dart';
-import '../use_case/service_manager_usecases.dart';
+import '../use_case/service_manager_use_cases.dart';
 
 class ServiceManagerViewmodel extends ChangeNotifier {
 
     ServiceManagerViewmodel({required ServiceManagerUseCases serviceManagerUseCases})
       : _useCases = serviceManagerUseCases
     {
+        if (kDebugMode) {
+            print("[$tag] init()");
+        }
         _init();
     }
 
@@ -23,7 +26,7 @@ class ServiceManagerViewmodel extends ChangeNotifier {
 
     Future<void> _init() async {
         _updateLoadingStatus(true);
-        _observeSshConnectionStatus();
+        _observeServicesStatus();
     }
 
     Future<void> onEvent(ServiceManagerEvent event) async {
@@ -51,24 +54,6 @@ class ServiceManagerViewmodel extends ChangeNotifier {
         notifyListeners();
     }
 
-    void _observeSshConnectionStatus() {
-        _useCases.listenSshConnectUseCase.execute().addListener(() {
-            bool isConnect = _useCases.listenSshConnectUseCase.execute().value;
-            if (kDebugMode) {
-                print("SSH Connection status: $isConnect");
-            }
-            if (isConnect && _serviceStatusNotifier == null && _serviceStatusListener == null) {
-                _observeServicesStatus();
-            }
-            else {
-                _stopObservingServiceStatuses();
-                _state = _state.copyWith(services: []);
-            }
-            _state = _state.copyWith(isConnected: isConnect);
-            notifyListeners();
-        });
-    }
-
     Future<void> _observeServicesStatus() async {
         _serviceStatusNotifier?.removeListener(_serviceStatusListener!);
         _serviceStatusNotifier = await _useCases.serviceWatcherUseCase.execute();
@@ -81,7 +66,9 @@ class ServiceManagerViewmodel extends ChangeNotifier {
     }
 
     void _stopObservingServiceStatuses() {
-        if (kDebugMode) { print("stop listening services status"); }
+        if (kDebugMode) {
+            print("[$tag] Stop listening services status");
+        }
         if (_serviceStatusNotifier != null && _serviceStatusListener != null) {
             _serviceStatusNotifier!.removeListener(_serviceStatusListener!);
             _serviceStatusNotifier = null;
@@ -93,5 +80,16 @@ class ServiceManagerViewmodel extends ChangeNotifier {
         _state = _state.copyWith(loading: status);
         notifyListeners();
     }
+
+    @override
+    void dispose() {
+        if (kDebugMode) {
+            print("[$tag] dispose()");
+        }
+        _stopObservingServiceStatuses();
+        super.dispose();
+    }
+
+    static final String tag = "ServiceManagerViewModel";
 
 }

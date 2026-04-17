@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ui/component/shaking_widget.dart';
 
-import '../../../services_manager/data/icon_set.dart';
+import '../../../../data/icon_set.dart';
 
 class IconSelector extends StatelessWidget {
   final int currentIconId;

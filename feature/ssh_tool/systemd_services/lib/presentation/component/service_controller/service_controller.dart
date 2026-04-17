@@ -1,5 +1,5 @@
-import 'package:feature_systemd_services/feature/services_manager/presentation/component/service_controller/service_action_button.dart';
-import 'package:feature_systemd_services/feature/services_manager/presentation/component/service_controller/status_indicator.dart';
+import 'package:feature_systemd_services/presentation/component/service_controller/service_action_button.dart';
+import 'package:feature_systemd_services/presentation/component/service_controller/status_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 

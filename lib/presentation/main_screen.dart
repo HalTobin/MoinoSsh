@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:domain/service/ssh_service.dart';
 import 'package:feature_settings/di/settings_provider.dart';
 import 'package:feature_auth/di/auth_provider.dart';
-import 'package:feature_systemd_services/feature/services_manager/di/service_manager_provider.dart';
+import 'package:feature_toolbox/presentation/toolbox_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -12,7 +12,6 @@ import 'package:ui/component/password_required_dialog.dart';
 import 'package:ls_server_app/presentation/component/status_bar/connection_status_bar.dart';
 import 'package:ls_server_app/presentation/main_event.dart';
 import 'package:ls_server_app/presentation/main_state.dart';
-import 'package:ui/navigation/auto_modal.dart';
 
 class MainScreen extends StatefulWidget {
   final MainState state;
@@ -105,7 +104,7 @@ class _MainScreenState extends State<MainScreen> {
                 child: AuthProvider()
               ),
               secondChild: SizedBox.expand(
-                child: ServiceManagerProvider()
+                child: ToolboxScreen()
               ),
               crossFadeState: widget.state.isConnected
                   ? CrossFadeState.showSecond

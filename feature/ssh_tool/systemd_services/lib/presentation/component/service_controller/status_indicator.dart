@@ -1,4 +1,4 @@
-import 'package:feature_systemd_services/feature/services_manager/presentation/component/service_controller/play_ripple_indicator.dart';
+import 'package:feature_systemd_services/presentation/component/service_controller/play_ripple_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 

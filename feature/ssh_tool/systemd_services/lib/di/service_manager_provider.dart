@@ -4,9 +4,9 @@ import 'package:ui/screen_format/screen_format_helper.dart';
 
 import '../presentation/service_manager_screen.dart';
 import '../presentation/service_manager_viewmodel.dart';
-import '../use_case/run_systemctl_command_usecase.dart';
-import '../use_case/service_manager_usecases.dart';
-import '../use_case/service_watcher_usecase.dart';
+import '../use_case/run_systemctl_command_use_case.dart';
+import '../use_case/service_manager_use_cases.dart';
+import '../use_case/service_watcher_use_case.dart';
 
 class ServiceManagerProvider extends StatelessWidget {
   const ServiceManagerProvider({super.key});
@@ -25,7 +25,6 @@ class ServiceManagerProvider extends StatelessWidget {
         )),
         Provider(create: (context) => (
           ServiceManagerUseCases(
-            listenSshConnectUseCase: context.read(),
             runSystemctlCommandUseCase: context.read(),
             serviceWatcherUseCase: context.read()
           )

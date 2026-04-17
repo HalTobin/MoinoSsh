@@ -3,7 +3,7 @@ import 'package:ui/component/shaking_widget.dart';
 import 'package:ui/component/title_header.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../../services_manager/data/icon_set.dart';
+import '../../../data/icon_set.dart';
 import 'component/ask_deletion_button.dart';
 import 'component/delete_service_button.dart';
 import 'component/icon_selector.dart';

@@ -1,0 +1,29 @@
+name: feature_toolbox
+
+environment:
+  sdk: ^3.9.2
+  flutter:
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  provider:
+  lucide_icons_flutter:
+  ui:
+    path: ../../ui
+  util:
+    path: ../../util
+  feature_systemd_services:
+    path: ../ssh_tool/systemd_services
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints:
+
+resolution:
+  workspace
+
+flutter:

@@ -15,7 +15,8 @@ workspace:
   - ui
   - util
   - feature/auth
-  - feature/systemd_services
+  - feature/toolbox
+  - feature/ssh_tool/systemd_services
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -49,12 +50,12 @@ dependencies:
     path: util
   ui:
     path: ui
-  feature_settings:
-    path: feature/settings
   feature_auth:
     path: feature/auth
-  feature_systemd_services:
-    path: feature/systemd_services
+  feature_toolbox:
+    path: feature/toolbox
+  feature_settings:
+    path: feature/settings
 
 dev_dependencies:
   flutter_test:
