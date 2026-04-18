@@ -12,11 +12,17 @@ class FileExplorerViewModel extends ChangeNotifier {
         if (kDebugMode) {
             print("[$tag] init()");
         }
+        _init();
     }
 
     final FileExplorerUseCases _useCases;
     FileExplorerState _state = FileExplorerState();
     FileExplorerState get state => _state;
+
+    Future<void> _init() async {
+        final showHidden = await _useCases.checkDefaultShowHiddenUseCase.execute();
+        _state = _state.copyWith(showHidden: showHidden);
+    }
 
     Future<void> onEvent(FileExplorerEvent event) async {
         switch (event) {

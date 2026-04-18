@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:collection/collection.dart';
 import 'package:domain/model/preferences/app_contrast.dart';
 import 'package:domain/model/preferences/app_theme.dart';
 import 'package:domain/model/preferences/user_preferences.dart';
@@ -29,12 +28,14 @@ class PreferenceRepositoryImpl implements PreferenceRepository {
 
         final bool materialYou = await _loadBool(_Keys.materialYou.key, defaultPrefs.materialYou);
         final bool keepPasswordDuringSession = await _loadBool(_Keys.keepPasswordDuringSession.key, defaultPrefs.keepPasswordDuringSession);
+        final bool showHiddenFileByDefault = await _loadBool(_Keys.showHiddenFileByDefault.key, defaultPrefs.showHiddenFilesByDefault);
 
         final preferences = UserPreferences(
             theme: theme,
             contrast: contrast,
             materialYou: materialYou,
-            keepPasswordDuringSession: keepPasswordDuringSession
+            keepPasswordDuringSession: keepPasswordDuringSession,
+            showHiddenFilesByDefault: showHiddenFileByDefault
         );
 
         return preferences;
@@ -58,6 +59,8 @@ class PreferenceRepositoryImpl implements PreferenceRepository {
                     await _updateBool(key: key.key, value: preferences.materialYou, notify: false);
                 case _Keys.keepPasswordDuringSession:
                     await _updateBool(key: key.key, value: preferences.keepPasswordDuringSession, notify: false);
+                case _Keys.showHiddenFileByDefault:
+                    await _updateBool(key: key.key, value: preferences.showHiddenFilesByDefault, notify: false);
             }
         });
         _notify();
@@ -89,6 +92,14 @@ class PreferenceRepositoryImpl implements PreferenceRepository {
     Future<void> toggleKeepPasswordDuringSession() async {
         final state = await _loadBool(_Keys.keepPasswordDuringSession.key, UserPreferences.defaultPreferences.keepPasswordDuringSession);
         _updateBool(key: _Keys.keepPasswordDuringSession.key, value: !state);
+        final current = await getUserPreferences();
+        _controller.add(current);
+    }
+
+    @override
+    Future<void> toggleShowHiddenFileByDefault() async {
+        final state = await _loadBool(_Keys.showHiddenFileByDefault.key, UserPreferences.defaultPreferences.showHiddenFilesByDefault);
+        _updateBool(key: _Keys.showHiddenFileByDefault.key, value: !state);
         final current = await getUserPreferences();
         _controller.add(current);
     }
@@ -143,7 +154,8 @@ enum _Keys {
     appTheme("app_theme"),
     appContrast("app_contrast"),
     materialYou("material_you"),
-    keepPasswordDuringSession("keep_password_during_session");
+    keepPasswordDuringSession("keep_password_during_session"),
+    showHiddenFileByDefault("show_hidden_file_by_default");
 
     final String key;
 

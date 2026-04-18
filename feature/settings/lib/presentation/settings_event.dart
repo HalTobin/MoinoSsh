@@ -16,4 +16,6 @@ class ToggleMaterialYou extends SettingsEvent {}
 
 class ToggleKeepPasswordDuringSession extends SettingsEvent {}
 
+class ToggleShowHiddenFileByDefault extends SettingsEvent {}
+
 class DeleteKeys extends SettingsEvent {}

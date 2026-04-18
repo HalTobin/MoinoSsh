@@ -18,4 +18,6 @@ abstract interface class PreferenceRepository {
 
     Future<void> toggleKeepPasswordDuringSession();
 
+    Future<void> toggleShowHiddenFileByDefault();
+
 }

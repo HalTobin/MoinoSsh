@@ -86,6 +86,13 @@ class SettingsScreen extends StatelessWidget {
                 state: state.preferences.keepPasswordDuringSession,
                 onToggle: () => onEvent(ToggleKeepPasswordDuringSession()),
               ),
+              SettingEntryToggle(
+                icon: LucideIcons.eyeOff,
+                label: "Show hidden files by default",
+                hint: "By default hidden files and directories will be visible in the file explorer",
+                state: state.preferences.showHiddenFilesByDefault,
+                onToggle: () => onEvent(ToggleShowHiddenFileByDefault()),
+              ),
               SettingEntryAction(
                 icon: LucideIcons.rotateCcwKey,
                 trailingIcon: LucideIcons.mousePointerClick,
