@@ -16,6 +16,8 @@ dependencies:
     path: ../../util
   feature_systemd_services:
     path: ../ssh_tool/systemd_services
+  feature_file_explorer:
+    path: ../ssh_tool/file_explorer
 
 
 dev_dependencies:
