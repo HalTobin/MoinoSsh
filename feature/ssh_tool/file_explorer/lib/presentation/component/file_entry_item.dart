@@ -2,7 +2,7 @@ import 'package:feature_file_explorer/data/file_entry.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
 
-import '../../util/format_size.dart';
+import '../../util/size_helper.dart';
 
 class FileEntryItem extends StatelessWidget {
   final FileEntry file;
@@ -24,7 +24,7 @@ class FileEntryItem extends StatelessWidget {
 
     final String? subtitleText = switch (file) {
       Folder() => null,
-      File(size: var size) => FormatSize.formatSize(size),
+      File(size: var size) => SizeHelper.formatSize(size),
     };
 
     return ListTile(

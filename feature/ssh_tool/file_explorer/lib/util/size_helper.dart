@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-class FormatSize {
+class SizeHelper {
 
     static String formatSize(int size) {
         if (size <= 0) return "0 B";

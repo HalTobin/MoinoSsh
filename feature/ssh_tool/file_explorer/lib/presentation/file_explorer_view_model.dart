@@ -33,8 +33,6 @@ class FileExplorerViewModel extends ChangeNotifier {
                 _openFolder(event.folderPath);
             case SelectFile():
                 _selectFile(event.filePath);
-            case OpenFile():
-                _openFile(event.filePath);
             case NavigateRootEvent():
                 _navigateRoot();
             case NavigateUpEvent():
@@ -45,8 +43,12 @@ class FileExplorerViewModel extends ChangeNotifier {
     }
 
     Future<void> _openFolder(String path) async {
-        // TODO()
-        throw UnimplementedError();
+        final result = await _useCases.listFolderContentUseCase.execute(path);
+        _state = _state.copyWith(
+            currentPath: result.destinationPath,
+            files: result.content
+        );
+        notifyListeners();
     }
 
     Future<void> _selectFile(String path) async {
@@ -54,19 +56,22 @@ class FileExplorerViewModel extends ChangeNotifier {
         throw UnimplementedError();
     }
 
-    Future<void> _openFile(String path) async {
-        // TODO()
-        throw UnimplementedError();
-    }
-
     Future<void> _navigateRoot() async {
-        // TODO()
-        throw UnimplementedError();
+        final result = await _useCases.navigateToRootUseCase.execute();
+        _state = _state.copyWith(
+            currentPath: result.destinationPath,
+            files: result.content
+        );
+        notifyListeners();
     }
 
     Future<void> _navigateUp() async {
-        // TODO()
-        throw UnimplementedError();
+        final result = await _useCases.navigateUpUseCase.execute(_state.currentPath);
+        _state = _state.copyWith(
+            currentPath: result.destinationPath,
+            files: result.content
+        );
+        notifyListeners();
     }
 
     Future<void> _toggleHidden() async {

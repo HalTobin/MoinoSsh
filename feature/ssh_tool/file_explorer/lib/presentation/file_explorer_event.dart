@@ -12,12 +12,6 @@ class SelectFile extends FileExplorerEvent {
     SelectFile({required this.filePath});
 }
 
-class OpenFile extends FileExplorerEvent {
-    final String filePath;
-
-    OpenFile({required this.filePath});
-}
-
 class NavigateRootEvent extends FileExplorerEvent {}
 
 class NavigateUpEvent extends FileExplorerEvent {}

@@ -30,6 +30,7 @@ class FileExplorerScreen extends StatelessWidget {
           children: [
             FileExplorerTopBar(
               currentPath: state.currentPath,
+              showHidden: state.showHidden,
               navigateRoot: () => onEvent(NavigateRootEvent()),
               navigateUp: () => onEvent(NavigateUpEvent()),
               toggleHiddenFiles: () => onEvent(ToggleHiddenEvent()),

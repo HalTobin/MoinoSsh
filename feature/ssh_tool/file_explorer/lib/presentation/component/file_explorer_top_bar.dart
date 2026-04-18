@@ -1,9 +1,10 @@
-import 'package:feature_file_explorer/data/file_entry.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:feature_file_explorer/util/path_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class FileExplorerTopBar extends StatelessWidget {
   final String currentPath;
+  final bool showHidden;
   final Function() navigateRoot;
   final Function() navigateUp;
   final Function() toggleHiddenFiles;
@@ -11,6 +12,7 @@ class FileExplorerTopBar extends StatelessWidget {
   const FileExplorerTopBar({
     super.key,
     required this.currentPath,
+    required this.showHidden,
     required this.navigateRoot,
     required this.navigateUp,
     required this.toggleHiddenFiles,
@@ -29,21 +31,26 @@ class FileExplorerTopBar extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.home_outlined),
-            onPressed: navigateRoot,
+            icon: const Icon(LucideIcons.house),
+            onPressed: PathHelper.canNavigateUp(currentPath)
+                ? navigateRoot
+                : null,
             tooltip: 'Go to root',
           ),
           IconButton(
-            icon: const Icon(Icons.arrow_upward),
-            onPressed: navigateUp,
+            icon: const Icon(LucideIcons.arrowUp),
+            onPressed: PathHelper.canNavigateUp(currentPath)
+                ? navigateUp
+                : null,
             tooltip: 'Go up',
+            disabledColor: Colors.grey.withValues(alpha: 0.5),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -54,10 +61,16 @@ class FileExplorerTopBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.visibility_outlined),
-            onPressed: toggleHiddenFiles,
-            tooltip: 'Toggle hidden files',
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Show hidden files"),
+              Checkbox(
+                value: showHidden,
+                onChanged: (_) => toggleHiddenFiles(),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
           ),
         ],
       ),
