@@ -1,5 +1,7 @@
 import 'package:feature_file_explorer/use_case/check_default_show_hidden_use_case.dart';
 import 'package:feature_file_explorer/use_case/list_folder_content_use_case.dart';
+import 'package:feature_file_explorer/use_case/navigate_to_root_use_case.dart';
+import 'package:feature_file_explorer/use_case/navigate_up_use_case.dart';
 import 'package:feature_file_explorer/use_case/select_file_use_case.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -18,12 +20,16 @@ class ServiceManagerProvider extends StatelessWidget {
       providers: [
         Provider(create: (context) => (CheckDefaultShowHiddenUseCase(preferenceRepository: context.read()))),
         Provider(create: (context) => (ListFolderContentUseCase(sshService: context.read()))),
+        Provider(create: (context) => (NavigateToRootUseCase(sshService: context.read()))),
+        Provider(create: (context) => (NavigateUpUseCase(sshService: context.read()))),
         Provider(create: (context) => (SelectFileUseCase(sshService: context.read()))),
         Provider(
           create: (context) => (
             FileExplorerUseCases(
               checkDefaultShowHiddenUseCase: context.read(),
               listFolderContentUseCase: context.read(),
+              navigateToRootUseCase: context.read(),
+              navigateUpUseCase: context.read(),
               selectFileUseCase: context.read()
             )
           )

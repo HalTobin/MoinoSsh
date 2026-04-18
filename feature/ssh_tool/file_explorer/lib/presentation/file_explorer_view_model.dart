@@ -20,18 +20,27 @@ class FileExplorerViewModel extends ChangeNotifier {
     FileExplorerState get state => _state;
 
     Future<void> _init() async {
+        _state = _state.copyWith(loading: true);
+        notifyListeners();
         final showHidden = await _useCases.checkDefaultShowHiddenUseCase.execute();
         _state = _state.copyWith(showHidden: showHidden);
+        notifyListeners();
     }
 
     Future<void> onEvent(FileExplorerEvent event) async {
         switch (event) {
-          case OpenFolder():
-            _openFolder(event.folderPath);
-          case SelectFile():
-            _selectFile(event.filePath);
-          case OpenFile():
-            _openFile(event.filePath);
+            case OpenFolder():
+                _openFolder(event.folderPath);
+            case SelectFile():
+                _selectFile(event.filePath);
+            case OpenFile():
+                _openFile(event.filePath);
+            case NavigateRootEvent():
+                _navigateRoot();
+            case NavigateUpEvent():
+                _navigateUp();
+            case ToggleHiddenEvent():
+                _toggleHidden();
         }
     }
 
@@ -48,6 +57,21 @@ class FileExplorerViewModel extends ChangeNotifier {
     Future<void> _openFile(String path) async {
         // TODO()
         throw UnimplementedError();
+    }
+
+    Future<void> _navigateRoot() async {
+        // TODO()
+        throw UnimplementedError();
+    }
+
+    Future<void> _navigateUp() async {
+        // TODO()
+        throw UnimplementedError();
+    }
+
+    Future<void> _toggleHidden() async {
+        _state = _state.copyWith(showHidden: !_state.showHidden);
+        notifyListeners();
     }
 
     void _setError(String error) {

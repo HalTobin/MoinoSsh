@@ -17,3 +17,9 @@ class OpenFile extends FileExplorerEvent {
 
     OpenFile({required this.filePath});
 }
+
+class NavigateRootEvent extends FileExplorerEvent {}
+
+class NavigateUpEvent extends FileExplorerEvent {}
+
+class ToggleHiddenEvent extends FileExplorerEvent {}

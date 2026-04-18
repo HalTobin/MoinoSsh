@@ -1,14 +1,16 @@
 import 'package:domain/service/ssh_service.dart';
 import 'package:feature_file_explorer/data/navigation_result.dart';
 
-class ListFolderContentUseCase {
+import '../data/file_entry.dart';
+
+class NavigateUpUseCase {
     final SshService sshService;
 
-    const ListFolderContentUseCase({
+    const NavigateUpUseCase({
         required this.sshService
     });
 
-    Future<NavigationResult> execute(String? path) async {
+    Future<NavigationResult> execute(String path) async {
         //TODO()
         throw UnimplementedError();
     }
