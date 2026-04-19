@@ -1,5 +1,6 @@
 import 'package:feature_file_explorer/presentation/file_explorer_event.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../data/file_entry.dart';
 import 'component/file_entry_item.dart';
@@ -30,13 +31,15 @@ class FileExplorerScreen extends StatelessWidget {
           children: [
             FileExplorerTopBar(
               currentPath: state.currentPath,
+              isPinned: state.isPinned,
               showHidden: state.showHidden,
+              onPin: () => onEvent(PinUnpinEvent()),
               navigateRoot: () => onEvent(NavigateRootEvent()),
               navigateUp: () => onEvent(NavigateUpEvent()),
               toggleHiddenFiles: () => onEvent(ToggleHiddenEvent()),
             ),
             Expanded(
-              child: _buildBody(visibleFiles),
+              child: _buildBody(context, visibleFiles),
             ),
           ],
         ),
@@ -44,7 +47,7 @@ class FileExplorerScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBody(List<FileEntry> visibleFiles) {
+  Widget _buildBody(BuildContext context, List<FileEntry> visibleFiles) {
     if (state.loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -54,11 +57,15 @@ class FileExplorerScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 48),
+            Icon(
+              LucideIcons.circleAlert,
+              color: Theme.of(context).colorScheme.error,
+              size: 48
+            ),
             const SizedBox(height: 16),
             Text(
               state.error,
-              style: const TextStyle(color: Colors.red),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
               textAlign: TextAlign.center,
             ),
           ],

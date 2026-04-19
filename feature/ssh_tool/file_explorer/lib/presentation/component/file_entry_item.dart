@@ -34,7 +34,7 @@ class FileEntryItem extends StatelessWidget {
         iconData,
         color: file.isHidden
             ? Colors.grey
-            : (isFolder ? Colors.blueAccent : Theme.of(context).iconTheme.color),
+            : (isFolder ? Colors.yellow : null),
         size: 32,
       ),
       title: Text(

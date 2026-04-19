@@ -3,6 +3,7 @@ import '../data/file_entry.dart';
 
 class FileExplorerState {
     final String currentPath;
+    final bool isPinned;
     final List<FileEntry> files;
     final bool loading;
     final String error;
@@ -10,6 +11,7 @@ class FileExplorerState {
 
     FileExplorerState({
         this.currentPath = "/",
+        this.isPinned = false,
         this.files = const [],
         this.loading = false,
         this.error = "",
@@ -18,6 +20,7 @@ class FileExplorerState {
 
     FileExplorerState copyWith({
         String? currentPath,
+        bool? isPinned,
         List<FileEntry>? files,
         bool? loading,
         String? error,
@@ -25,6 +28,7 @@ class FileExplorerState {
     }) {
         return FileExplorerState(
             currentPath: currentPath ?? this.currentPath,
+            isPinned: isPinned ?? this.isPinned,
             files: files ?? this.files,
             loading: loading ?? this.loading,
             error: error ?? this.error,

@@ -4,7 +4,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class FileExplorerTopBar extends StatelessWidget {
   final String currentPath;
+  final bool isPinned;
   final bool showHidden;
+  final Function() onPin;
   final Function() navigateRoot;
   final Function() navigateUp;
   final Function() toggleHiddenFiles;
@@ -12,7 +14,9 @@ class FileExplorerTopBar extends StatelessWidget {
   const FileExplorerTopBar({
     super.key,
     required this.currentPath,
+    required this.isPinned,
     required this.showHidden,
+    required this.onPin,
     required this.navigateRoot,
     required this.navigateUp,
     required this.toggleHiddenFiles,
@@ -30,6 +34,11 @@ class FileExplorerTopBar extends StatelessWidget {
       ),
       child: Row(
         children: [
+          IconButton(
+            icon: const Icon(LucideIcons.pin),
+            onPressed: onPin,
+            tooltip: 'Pin directory',
+          ),
           IconButton(
             icon: const Icon(LucideIcons.house),
             onPressed: PathHelper.canNavigateUp(currentPath)

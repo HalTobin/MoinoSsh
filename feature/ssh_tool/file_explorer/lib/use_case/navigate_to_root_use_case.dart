@@ -1,13 +1,14 @@
+import 'package:domain/repository/pinned_folder_repository.dart';
 import 'package:domain/service/ssh_service.dart';
 import 'package:feature_file_explorer/data/navigation_result.dart';
 
-import '../data/file_entry.dart';
-
 class NavigateToRootUseCase {
     final SshService sshService;
+    final PinnedFolderRepository pinnedFolderRepository;
 
     const NavigateToRootUseCase({
-        required this.sshService
+        required this.sshService,
+        required this.pinnedFolderRepository
     });
 
     Future<NavigationResult> execute() async {
