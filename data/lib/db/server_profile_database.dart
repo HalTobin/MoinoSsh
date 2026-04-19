@@ -18,16 +18,32 @@ class ServerProfileDatabase extends _$ServerProfileDatabase {
     ServerProfileDatabase() : super(_openConnection());
 
     @override
-    int get schemaVersion => 1;
+    int get schemaVersion => 2;
 
-    static const String DB_FILE = "server_profile_db.db";
+    @override
+    MigrationStrategy get migration {
+        return MigrationStrategy(
+            onCreate: (m) async {
+                await m.createAll();
+            },
+            onUpgrade: (m, from, to) async {
+                if (from < 2) {
+                    await m.createTable(pinnedFolder);
+                }
+            },
+            beforeOpen: (details) async {
+                await customStatement('PRAGMA foreign_keys = ON');
+            },
+        );
+    }
+
+    static const String dbFile = "server_profile_db.db";
 }
 
-// SQLite file location
 LazyDatabase _openConnection() {
     return LazyDatabase(() async {
         final dbFolder = await getApplicationDocumentsDirectory();
-        final file = File(p.join(dbFolder.path, ServerProfileDatabase.DB_FILE));
+        final file = File(p.join(dbFolder.path, ServerProfileDatabase.dbFile));
         return NativeDatabase.createInBackground(file);
     });
 }

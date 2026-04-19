@@ -26,7 +26,7 @@ class ConfirmDeletionModal extends StatelessWidget {
           backgroundColor: colorScheme.errorContainer,
           foregroundColor: colorScheme.onErrorContainer,
         ),
-        onPressed: onDismiss,
+        onPressed: onConfirm,
         icon: const Icon(LucideIcons.trash2),
         label: const Text("DELETE"),
       )

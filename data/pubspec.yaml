@@ -17,6 +17,7 @@ dependencies:
   drift_flutter:
   biometric_storage:
   collection:
+  path:
 
   domain:
     path: ../domain

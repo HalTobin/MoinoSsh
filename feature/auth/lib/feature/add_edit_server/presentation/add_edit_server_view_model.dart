@@ -83,6 +83,9 @@ class AddEditServerViewModel extends ChangeNotifier {
     }
 
     Future<void> _deleteServerProfile() async {
+        if (kDebugMode) {
+            print("[$tag] Deleting server profile");
+        }
         final serverProfileId = _state.serverProfile?.id;
         if (serverProfileId != null) {
             await _useCases.deleteServerUseCase.execute(serverProfileId);
@@ -99,9 +102,13 @@ class AddEditServerViewModel extends ChangeNotifier {
             );
             notifyListeners();
         } catch (e) {
-            if (kDebugMode) { print("Couldn't load ssh file: $e"); }
+            if (kDebugMode) {
+                print("[$tag] Couldn't load ssh file: $e");
+            }
         }
     }
+
+    static final String tag = "AddEditServerViewModel";
 
 }
 
