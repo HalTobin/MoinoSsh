@@ -11,6 +11,7 @@ dependencies:
   provider:
   lucide_icons_flutter:
   collection:
+  path:
   domain:
     path: ../../../domain
   ui:

@@ -1,5 +1,5 @@
 import 'package:feature_file_explorer/use_case/check_default_show_hidden_use_case.dart';
-import 'package:feature_file_explorer/use_case/list_folder_content_use_case.dart';
+import 'package:feature_file_explorer/use_case/navigate_to_folder_use_case.dart';
 import 'package:feature_file_explorer/use_case/navigate_to_root_use_case.dart';
 import 'package:feature_file_explorer/use_case/navigate_up_use_case.dart';
 import 'package:feature_file_explorer/use_case/pin_unpin_directory_use_case.dart';
@@ -32,8 +32,9 @@ class FileExplorerProvider extends StatelessWidget {
         ),
         Provider(
           create: (context) => (
-            ListFolderContentUseCase(
+            NavigateToFolderUseCase(
               sshService: context.read(),
+              getCurrentServerProfileUseCase: context.read(),
               pinnedFolderRepository: context.read()
             )
           )
@@ -41,7 +42,7 @@ class FileExplorerProvider extends StatelessWidget {
         Provider(
           create: (context) => (
             NavigateToRootUseCase(
-              sshService: context.read(),
+              navigateToFolderUseCase: context.read(),
               pinnedFolderRepository: context.read()
             )
           )
@@ -49,7 +50,7 @@ class FileExplorerProvider extends StatelessWidget {
         Provider(
           create: (context) => (
             NavigateUpUseCase(
-              sshService: context.read(),
+              navigateToFolderUseCase: context.read(),
               pinnedFolderRepository: context.read()
             )
           )
@@ -76,7 +77,7 @@ class FileExplorerProvider extends StatelessWidget {
             FileExplorerUseCases(
               checkDefaultShowHiddenUseCase: context.read(),
               watchFolderUseCase: context.read(),
-              listFolderContentUseCase: context.read(),
+              navigateToFolderUseCase: context.read(),
               navigateToRootUseCase: context.read(),
               navigateUpUseCase: context.read(),
               selectFileUseCase: context.read(),
@@ -84,7 +85,10 @@ class FileExplorerProvider extends StatelessWidget {
               renamePinnedFolderUseCase: context.read()
             )
           )
-        )
+        ),
+        ChangeNotifierProvider(create: (context) => (
+          FileExplorerViewModel(fileExplorerUseCases: context.read())
+        ))
       ],
       child: Consumer<FileExplorerViewModel>(
         builder: (builder, viewmodel, child) {

@@ -235,6 +235,8 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
         _profile = null;
         _client?.close();
         _client = null;
+        _sftpClient?.close();
+        _sftpClient = null;
         _password = null;
         _updateConnectionState(false);
     }

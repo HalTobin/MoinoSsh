@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:path/path.dart' as p;
 import 'package:feature_file_explorer/presentation/file_explorer_event.dart';
 import 'package:flutter/foundation.dart';
 
+import '../data/navigation_result.dart';
 import '../use_case/file_explorer_use_cases.dart';
 import 'file_explorer_state.dart';
 
@@ -29,6 +31,7 @@ class FileExplorerViewModel extends ChangeNotifier {
         final showHidden = await _useCases.checkDefaultShowHiddenUseCase.execute();
         _state = _state.copyWith(showHidden: showHidden);
         notifyListeners();
+        await _navigateRoot();
     }
 
     Future<void> onEvent(FileExplorerEvent event) async {
@@ -61,13 +64,8 @@ class FileExplorerViewModel extends ChangeNotifier {
     }
 
     Future<void> _openFolder(String path) async {
-        final result = await _useCases.listFolderContentUseCase.execute(path);
-        _state = _state.copyWith(
-            currentPath: result.destinationPath,
-            files: result.content
-        );
-        notifyListeners();
-        await _watchFolder(result.destinationPath);
+        final result = await _useCases.navigateToFolderUseCase.execute(path);
+        _handleNavigateResult(result, path);
     }
 
     Future<void> _selectFile(String path) async {
@@ -77,22 +75,27 @@ class FileExplorerViewModel extends ChangeNotifier {
 
     Future<void> _navigateRoot() async {
         final result = await _useCases.navigateToRootUseCase.execute();
-        _state = _state.copyWith(
-            currentPath: result.destinationPath,
-            files: result.content
-        );
-        notifyListeners();
-        await _watchFolder(result.destinationPath);
+        _handleNavigateResult(result, "/");
     }
 
     Future<void> _navigateUp() async {
         final result = await _useCases.navigateUpUseCase.execute(_state.currentPath);
-        _state = _state.copyWith(
-            currentPath: result.destinationPath,
-            files: result.content
-        );
+        _handleNavigateResult(result, p.dirname(_state.currentPath));
+    }
+
+    Future<void> _handleNavigateResult(NavigationResult? result, String requestedPath) async {
+        if (result != null) {
+            _state = _state.copyWith(
+                currentPath: result.destinationPath,
+                files: result.content,
+                isPinned: result.isPinned
+            );
+            await _watchFolder(result.destinationPath);
+        }
+        else {
+            _setError("Couldn't navigate to $requestedPath");
+        }
         notifyListeners();
-        await _watchFolder(result.destinationPath);
     }
 
     Future<void> _toggleHidden() async {

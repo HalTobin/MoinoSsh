@@ -36,6 +36,8 @@ abstract interface class SshService extends ChangeNotifier implements ValueListe
 
     SshProfile? getCurrentProfile();
 
+    void closeSftp();
+
 }
 
 class PasswordCallbackResponse {

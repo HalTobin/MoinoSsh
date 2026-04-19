@@ -1,4 +1,5 @@
 import 'package:feature_file_explorer/data/file_entry.dart';
+import 'package:path/path.dart' as p;
 
 class NavigationResult {
     final String destinationPath;
@@ -11,4 +12,5 @@ class NavigationResult {
         required this.isPinned
     });
 
+    bool get alreadyAtRoot => p.dirname(destinationPath) == destinationPath;
 }
