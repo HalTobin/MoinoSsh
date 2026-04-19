@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
 
 @DataClassName('ServerProfileEntity')
 class ServerProfiles extends Table {

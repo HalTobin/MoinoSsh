@@ -5,7 +5,7 @@ import 'package:domain/use_case/add_edit_server_use_case.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
-import '../use_case/add_edit_server_usecases.dart';
+import '../use_case/add_edit_server_use_cases.dart';
 import 'add_edit_server_event.dart';
 import 'add_edit_server_state.dart';
 
@@ -39,6 +39,8 @@ class AddEditServerViewModel extends ChangeNotifier {
                 );
             case LoadSshFile():
                 _loadSshFile(event.sshFilePath);
+            case DeleteProfile():
+                _deleteServerProfile();
         }
     }
 
@@ -77,6 +79,14 @@ class AddEditServerViewModel extends ChangeNotifier {
             securedSessionPassword: _state.serverProfile?.securedSessionPassword
         );
         _useCases.addEditServerUseCase.execute(server);
+        _uiEvent.add(ExitView());
+    }
+
+    Future<void> _deleteServerProfile() async {
+        final serverProfileId = _state.serverProfile?.id;
+        if (serverProfileId != null) {
+            await _useCases.deleteServerUseCase.execute(serverProfileId);
+        }
         _uiEvent.add(ExitView());
     }
 

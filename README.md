@@ -31,5 +31,5 @@ This project works thanks to these libraries:
 
 ### Configuration
 
-Run this command when opening the project for the first time or when updating database or JsonSerializable annotated class:
+Run this command when opening the project for the first time or when updating database:
 ```dart run build_runner build```

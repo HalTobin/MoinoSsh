@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
 
 import '../entity/server_profile_entity.dart';
 import '../server_profile_database.dart';

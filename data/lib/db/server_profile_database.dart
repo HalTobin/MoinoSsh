@@ -7,10 +7,13 @@ import 'package:path/path.dart' as p;
 
 import 'entity/favorite_service_entity.dart';
 import 'entity/server_profile_entity.dart';
+import 'entity/pinned_folder_entity.dart';
 
 part "server_profile_database.g.dart";
 
-@DriftDatabase(tables: [ServerProfiles, FavoriteServices])
+@DriftDatabase(
+    tables: [ServerProfiles, FavoriteServices, PinnedFolder]
+)
 class ServerProfileDatabase extends _$ServerProfileDatabase {
     ServerProfileDatabase() : super(_openConnection());
 

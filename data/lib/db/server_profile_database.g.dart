@@ -903,6 +903,364 @@ class FavoriteServicesCompanion extends UpdateCompanion<FavoriteServiceEntity> {
   }
 }
 
+class $PinnedFolderTable extends PinnedFolder
+    with TableInfo<$PinnedFolderTable, PinnedFolderEntity> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PinnedFolderTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _profileIdMeta = const VerificationMeta(
+    'profileId',
+  );
+  @override
+  late final GeneratedColumn<int> profileId = GeneratedColumn<int>(
+    'profile_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES server_profiles (id)',
+    ),
+  );
+  static const VerificationMeta _pathMeta = const VerificationMeta('path');
+  @override
+  late final GeneratedColumn<String> path = GeneratedColumn<String>(
+    'path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _aliasMeta = const VerificationMeta('alias');
+  @override
+  late final GeneratedColumn<String> alias = GeneratedColumn<String>(
+    'alias',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _customIndexMeta = const VerificationMeta(
+    'customIndex',
+  );
+  @override
+  late final GeneratedColumn<int> customIndex = GeneratedColumn<int>(
+    'custom_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    profileId,
+    path,
+    alias,
+    customIndex,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'pinned_folder';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PinnedFolderEntity> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('profile_id')) {
+      context.handle(
+        _profileIdMeta,
+        profileId.isAcceptableOrUnknown(data['profile_id']!, _profileIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_profileIdMeta);
+    }
+    if (data.containsKey('path')) {
+      context.handle(
+        _pathMeta,
+        path.isAcceptableOrUnknown(data['path']!, _pathMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pathMeta);
+    }
+    if (data.containsKey('alias')) {
+      context.handle(
+        _aliasMeta,
+        alias.isAcceptableOrUnknown(data['alias']!, _aliasMeta),
+      );
+    }
+    if (data.containsKey('custom_index')) {
+      context.handle(
+        _customIndexMeta,
+        customIndex.isAcceptableOrUnknown(
+          data['custom_index']!,
+          _customIndexMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_customIndexMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PinnedFolderEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PinnedFolderEntity(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      profileId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}profile_id'],
+      )!,
+      path: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}path'],
+      )!,
+      alias: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}alias'],
+      ),
+      customIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}custom_index'],
+      )!,
+    );
+  }
+
+  @override
+  $PinnedFolderTable createAlias(String alias) {
+    return $PinnedFolderTable(attachedDatabase, alias);
+  }
+}
+
+class PinnedFolderEntity extends DataClass
+    implements Insertable<PinnedFolderEntity> {
+  final int id;
+  final int profileId;
+  final String path;
+  final String? alias;
+  final int customIndex;
+  const PinnedFolderEntity({
+    required this.id,
+    required this.profileId,
+    required this.path,
+    this.alias,
+    required this.customIndex,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['profile_id'] = Variable<int>(profileId);
+    map['path'] = Variable<String>(path);
+    if (!nullToAbsent || alias != null) {
+      map['alias'] = Variable<String>(alias);
+    }
+    map['custom_index'] = Variable<int>(customIndex);
+    return map;
+  }
+
+  PinnedFolderCompanion toCompanion(bool nullToAbsent) {
+    return PinnedFolderCompanion(
+      id: Value(id),
+      profileId: Value(profileId),
+      path: Value(path),
+      alias: alias == null && nullToAbsent
+          ? const Value.absent()
+          : Value(alias),
+      customIndex: Value(customIndex),
+    );
+  }
+
+  factory PinnedFolderEntity.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PinnedFolderEntity(
+      id: serializer.fromJson<int>(json['id']),
+      profileId: serializer.fromJson<int>(json['profileId']),
+      path: serializer.fromJson<String>(json['path']),
+      alias: serializer.fromJson<String?>(json['alias']),
+      customIndex: serializer.fromJson<int>(json['customIndex']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'profileId': serializer.toJson<int>(profileId),
+      'path': serializer.toJson<String>(path),
+      'alias': serializer.toJson<String?>(alias),
+      'customIndex': serializer.toJson<int>(customIndex),
+    };
+  }
+
+  PinnedFolderEntity copyWith({
+    int? id,
+    int? profileId,
+    String? path,
+    Value<String?> alias = const Value.absent(),
+    int? customIndex,
+  }) => PinnedFolderEntity(
+    id: id ?? this.id,
+    profileId: profileId ?? this.profileId,
+    path: path ?? this.path,
+    alias: alias.present ? alias.value : this.alias,
+    customIndex: customIndex ?? this.customIndex,
+  );
+  PinnedFolderEntity copyWithCompanion(PinnedFolderCompanion data) {
+    return PinnedFolderEntity(
+      id: data.id.present ? data.id.value : this.id,
+      profileId: data.profileId.present ? data.profileId.value : this.profileId,
+      path: data.path.present ? data.path.value : this.path,
+      alias: data.alias.present ? data.alias.value : this.alias,
+      customIndex: data.customIndex.present
+          ? data.customIndex.value
+          : this.customIndex,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PinnedFolderEntity(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('path: $path, ')
+          ..write('alias: $alias, ')
+          ..write('customIndex: $customIndex')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, profileId, path, alias, customIndex);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PinnedFolderEntity &&
+          other.id == this.id &&
+          other.profileId == this.profileId &&
+          other.path == this.path &&
+          other.alias == this.alias &&
+          other.customIndex == this.customIndex);
+}
+
+class PinnedFolderCompanion extends UpdateCompanion<PinnedFolderEntity> {
+  final Value<int> id;
+  final Value<int> profileId;
+  final Value<String> path;
+  final Value<String?> alias;
+  final Value<int> customIndex;
+  const PinnedFolderCompanion({
+    this.id = const Value.absent(),
+    this.profileId = const Value.absent(),
+    this.path = const Value.absent(),
+    this.alias = const Value.absent(),
+    this.customIndex = const Value.absent(),
+  });
+  PinnedFolderCompanion.insert({
+    this.id = const Value.absent(),
+    required int profileId,
+    required String path,
+    this.alias = const Value.absent(),
+    required int customIndex,
+  }) : profileId = Value(profileId),
+       path = Value(path),
+       customIndex = Value(customIndex);
+  static Insertable<PinnedFolderEntity> custom({
+    Expression<int>? id,
+    Expression<int>? profileId,
+    Expression<String>? path,
+    Expression<String>? alias,
+    Expression<int>? customIndex,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (profileId != null) 'profile_id': profileId,
+      if (path != null) 'path': path,
+      if (alias != null) 'alias': alias,
+      if (customIndex != null) 'custom_index': customIndex,
+    });
+  }
+
+  PinnedFolderCompanion copyWith({
+    Value<int>? id,
+    Value<int>? profileId,
+    Value<String>? path,
+    Value<String?>? alias,
+    Value<int>? customIndex,
+  }) {
+    return PinnedFolderCompanion(
+      id: id ?? this.id,
+      profileId: profileId ?? this.profileId,
+      path: path ?? this.path,
+      alias: alias ?? this.alias,
+      customIndex: customIndex ?? this.customIndex,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (profileId.present) {
+      map['profile_id'] = Variable<int>(profileId.value);
+    }
+    if (path.present) {
+      map['path'] = Variable<String>(path.value);
+    }
+    if (alias.present) {
+      map['alias'] = Variable<String>(alias.value);
+    }
+    if (customIndex.present) {
+      map['custom_index'] = Variable<int>(customIndex.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PinnedFolderCompanion(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('path: $path, ')
+          ..write('alias: $alias, ')
+          ..write('customIndex: $customIndex')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$ServerProfileDatabase extends GeneratedDatabase {
   _$ServerProfileDatabase(QueryExecutor e) : super(e);
   $ServerProfileDatabaseManager get managers =>
@@ -911,6 +1269,7 @@ abstract class _$ServerProfileDatabase extends GeneratedDatabase {
   late final $FavoriteServicesTable favoriteServices = $FavoriteServicesTable(
     this,
   );
+  late final $PinnedFolderTable pinnedFolder = $PinnedFolderTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -918,6 +1277,7 @@ abstract class _$ServerProfileDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     serverProfiles,
     favoriteServices,
+    pinnedFolder,
   ];
 }
 
@@ -979,6 +1339,28 @@ final class $$ServerProfilesTableReferences
     final cache = $_typedResult.readTableOrNull(
       _favoriteServicesRefsTable($_db),
     );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$PinnedFolderTable, List<PinnedFolderEntity>>
+  _pinnedFolderRefsTable(_$ServerProfileDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.pinnedFolder,
+        aliasName: $_aliasNameGenerator(
+          db.serverProfiles.id,
+          db.pinnedFolder.profileId,
+        ),
+      );
+
+  $$PinnedFolderTableProcessedTableManager get pinnedFolderRefs {
+    final manager = $$PinnedFolderTableTableManager(
+      $_db,
+      $_db.pinnedFolder,
+    ).filter((f) => f.profileId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_pinnedFolderRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -1050,6 +1432,31 @@ class $$ServerProfilesTableFilterComposer
           }) => $$FavoriteServicesTableFilterComposer(
             $db: $db,
             $table: $db.favoriteServices,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> pinnedFolderRefs(
+    Expression<bool> Function($$PinnedFolderTableFilterComposer f) f,
+  ) {
+    final $$PinnedFolderTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pinnedFolder,
+      getReferencedColumn: (t) => t.profileId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PinnedFolderTableFilterComposer(
+            $db: $db,
+            $table: $db.pinnedFolder,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -1175,6 +1582,31 @@ class $$ServerProfilesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> pinnedFolderRefs<T extends Object>(
+    Expression<T> Function($$PinnedFolderTableAnnotationComposer a) f,
+  ) {
+    final $$PinnedFolderTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pinnedFolder,
+      getReferencedColumn: (t) => t.profileId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PinnedFolderTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pinnedFolder,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ServerProfilesTableTableManager
@@ -1190,7 +1622,10 @@ class $$ServerProfilesTableTableManager
           $$ServerProfilesTableUpdateCompanionBuilder,
           (ServerProfileEntity, $$ServerProfilesTableReferences),
           ServerProfileEntity,
-          PrefetchHooks Function({bool favoriteServicesRefs})
+          PrefetchHooks Function({
+            bool favoriteServicesRefs,
+            bool pinnedFolderRefs,
+          })
         > {
   $$ServerProfilesTableTableManager(
     _$ServerProfileDatabase db,
@@ -1253,38 +1688,63 @@ class $$ServerProfilesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({favoriteServicesRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (favoriteServicesRefs) db.favoriteServices,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (favoriteServicesRefs)
-                    await $_getPrefetchedData<
-                      ServerProfileEntity,
-                      $ServerProfilesTable,
-                      FavoriteServiceEntity
-                    >(
-                      currentTable: table,
-                      referencedTable: $$ServerProfilesTableReferences
-                          ._favoriteServicesRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$ServerProfilesTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).favoriteServicesRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.profileId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({favoriteServicesRefs = false, pinnedFolderRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (favoriteServicesRefs) db.favoriteServices,
+                    if (pinnedFolderRefs) db.pinnedFolder,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (favoriteServicesRefs)
+                        await $_getPrefetchedData<
+                          ServerProfileEntity,
+                          $ServerProfilesTable,
+                          FavoriteServiceEntity
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ServerProfilesTableReferences
+                              ._favoriteServicesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ServerProfilesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).favoriteServicesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.profileId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (pinnedFolderRefs)
+                        await $_getPrefetchedData<
+                          ServerProfileEntity,
+                          $ServerProfilesTable,
+                          PinnedFolderEntity
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ServerProfilesTableReferences
+                              ._pinnedFolderRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ServerProfilesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).pinnedFolderRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.profileId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -1301,7 +1761,7 @@ typedef $$ServerProfilesTableProcessedTableManager =
       $$ServerProfilesTableUpdateCompanionBuilder,
       (ServerProfileEntity, $$ServerProfilesTableReferences),
       ServerProfileEntity,
-      PrefetchHooks Function({bool favoriteServicesRefs})
+      PrefetchHooks Function({bool favoriteServicesRefs, bool pinnedFolderRefs})
     >;
 typedef $$FavoriteServicesTableCreateCompanionBuilder =
     FavoriteServicesCompanion Function({
@@ -1634,6 +2094,328 @@ typedef $$FavoriteServicesTableProcessedTableManager =
       FavoriteServiceEntity,
       PrefetchHooks Function({bool profileId})
     >;
+typedef $$PinnedFolderTableCreateCompanionBuilder =
+    PinnedFolderCompanion Function({
+      Value<int> id,
+      required int profileId,
+      required String path,
+      Value<String?> alias,
+      required int customIndex,
+    });
+typedef $$PinnedFolderTableUpdateCompanionBuilder =
+    PinnedFolderCompanion Function({
+      Value<int> id,
+      Value<int> profileId,
+      Value<String> path,
+      Value<String?> alias,
+      Value<int> customIndex,
+    });
+
+final class $$PinnedFolderTableReferences
+    extends
+        BaseReferences<
+          _$ServerProfileDatabase,
+          $PinnedFolderTable,
+          PinnedFolderEntity
+        > {
+  $$PinnedFolderTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ServerProfilesTable _profileIdTable(_$ServerProfileDatabase db) =>
+      db.serverProfiles.createAlias(
+        $_aliasNameGenerator(db.pinnedFolder.profileId, db.serverProfiles.id),
+      );
+
+  $$ServerProfilesTableProcessedTableManager get profileId {
+    final $_column = $_itemColumn<int>('profile_id')!;
+
+    final manager = $$ServerProfilesTableTableManager(
+      $_db,
+      $_db.serverProfiles,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_profileIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$PinnedFolderTableFilterComposer
+    extends Composer<_$ServerProfileDatabase, $PinnedFolderTable> {
+  $$PinnedFolderTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get path => $composableBuilder(
+    column: $table.path,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get alias => $composableBuilder(
+    column: $table.alias,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get customIndex => $composableBuilder(
+    column: $table.customIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ServerProfilesTableFilterComposer get profileId {
+    final $$ServerProfilesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.serverProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ServerProfilesTableFilterComposer(
+            $db: $db,
+            $table: $db.serverProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PinnedFolderTableOrderingComposer
+    extends Composer<_$ServerProfileDatabase, $PinnedFolderTable> {
+  $$PinnedFolderTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get path => $composableBuilder(
+    column: $table.path,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get alias => $composableBuilder(
+    column: $table.alias,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get customIndex => $composableBuilder(
+    column: $table.customIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ServerProfilesTableOrderingComposer get profileId {
+    final $$ServerProfilesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.serverProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ServerProfilesTableOrderingComposer(
+            $db: $db,
+            $table: $db.serverProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PinnedFolderTableAnnotationComposer
+    extends Composer<_$ServerProfileDatabase, $PinnedFolderTable> {
+  $$PinnedFolderTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get path =>
+      $composableBuilder(column: $table.path, builder: (column) => column);
+
+  GeneratedColumn<String> get alias =>
+      $composableBuilder(column: $table.alias, builder: (column) => column);
+
+  GeneratedColumn<int> get customIndex => $composableBuilder(
+    column: $table.customIndex,
+    builder: (column) => column,
+  );
+
+  $$ServerProfilesTableAnnotationComposer get profileId {
+    final $$ServerProfilesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.serverProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ServerProfilesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.serverProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PinnedFolderTableTableManager
+    extends
+        RootTableManager<
+          _$ServerProfileDatabase,
+          $PinnedFolderTable,
+          PinnedFolderEntity,
+          $$PinnedFolderTableFilterComposer,
+          $$PinnedFolderTableOrderingComposer,
+          $$PinnedFolderTableAnnotationComposer,
+          $$PinnedFolderTableCreateCompanionBuilder,
+          $$PinnedFolderTableUpdateCompanionBuilder,
+          (PinnedFolderEntity, $$PinnedFolderTableReferences),
+          PinnedFolderEntity,
+          PrefetchHooks Function({bool profileId})
+        > {
+  $$PinnedFolderTableTableManager(
+    _$ServerProfileDatabase db,
+    $PinnedFolderTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PinnedFolderTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PinnedFolderTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PinnedFolderTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> profileId = const Value.absent(),
+                Value<String> path = const Value.absent(),
+                Value<String?> alias = const Value.absent(),
+                Value<int> customIndex = const Value.absent(),
+              }) => PinnedFolderCompanion(
+                id: id,
+                profileId: profileId,
+                path: path,
+                alias: alias,
+                customIndex: customIndex,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int profileId,
+                required String path,
+                Value<String?> alias = const Value.absent(),
+                required int customIndex,
+              }) => PinnedFolderCompanion.insert(
+                id: id,
+                profileId: profileId,
+                path: path,
+                alias: alias,
+                customIndex: customIndex,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$PinnedFolderTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({profileId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (profileId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.profileId,
+                                referencedTable: $$PinnedFolderTableReferences
+                                    ._profileIdTable(db),
+                                referencedColumn: $$PinnedFolderTableReferences
+                                    ._profileIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$PinnedFolderTableProcessedTableManager =
+    ProcessedTableManager<
+      _$ServerProfileDatabase,
+      $PinnedFolderTable,
+      PinnedFolderEntity,
+      $$PinnedFolderTableFilterComposer,
+      $$PinnedFolderTableOrderingComposer,
+      $$PinnedFolderTableAnnotationComposer,
+      $$PinnedFolderTableCreateCompanionBuilder,
+      $$PinnedFolderTableUpdateCompanionBuilder,
+      (PinnedFolderEntity, $$PinnedFolderTableReferences),
+      PinnedFolderEntity,
+      PrefetchHooks Function({bool profileId})
+    >;
 
 class $ServerProfileDatabaseManager {
   final _$ServerProfileDatabase _db;
@@ -1642,4 +2424,6 @@ class $ServerProfileDatabaseManager {
       $$ServerProfilesTableTableManager(_db, _db.serverProfiles);
   $$FavoriteServicesTableTableManager get favoriteServices =>
       $$FavoriteServicesTableTableManager(_db, _db.favoriteServices);
+  $$PinnedFolderTableTableManager get pinnedFolder =>
+      $$PinnedFolderTableTableManager(_db, _db.pinnedFolder);
 }

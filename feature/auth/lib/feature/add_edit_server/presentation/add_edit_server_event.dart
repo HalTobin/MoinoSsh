@@ -1,8 +1,8 @@
 sealed class AddEditServerEvent {}
 
 class LoadServerProfile extends AddEditServerEvent {
-  final int serverProfileId;
-  LoadServerProfile({required this.serverProfileId});
+    final int serverProfileId;
+    LoadServerProfile({required this.serverProfileId});
 }
 
 class SaveEditServer extends AddEditServerEvent {
@@ -27,3 +27,5 @@ class LoadSshFile extends AddEditServerEvent {
     final String sshFilePath;
     LoadSshFile({required this.sshFilePath});
 }
+
+class DeleteProfile extends AddEditServerEvent {}
