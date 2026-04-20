@@ -3,6 +3,13 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:collection/collection.dart';
 
 enum FileType {
+    file(
+        identifier: "file",
+        name: "File",
+        extensions: [""],
+        icon: null,
+        openable: true
+    ),
     text(
         identifier: "text",
         name: "Text",
@@ -80,19 +87,19 @@ enum FileType {
     final IconData? icon;
     final bool openable;
 
-    static FileType? fromIdentifier(String fileTypeIdentifier) {
+    static FileType fromIdentifier(String fileTypeIdentifier) {
         return FileType.values.firstWhereOrNull(
                 (element) => element.identifier == fileTypeIdentifier
-        );
+        ) ?? FileType.file;
     }
 
-    static FileType? fromExtension(String extension) {
+    static FileType fromExtension(String extension) {
         return FileType.values.firstWhereOrNull(
             (element) => element.extensions.contains(extension)
-       );
+        ) ?? FileType.file;;
     }
 
-    static FileType? fromPath(String path) {
+    static FileType fromPath(String path) {
         final extension = path.split(".").last;
         return FileType.fromExtension(extension);
     }

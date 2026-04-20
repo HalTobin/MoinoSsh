@@ -24,6 +24,8 @@ class FileExplorerTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
@@ -72,19 +74,42 @@ class FileExplorerTopBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text("Show hidden files"),
-              Checkbox(
-                value: showHidden,
-                onChanged: (_) => toggleHiddenFiles(),
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 150),
+            firstChild: _HideShowButton(showHidden: true, toggle: toggleHiddenFiles),
+            secondChild: _HideShowButton(showHidden: false, toggle: toggleHiddenFiles),
+            crossFadeState: showHidden ? CrossFadeState.showFirst : CrossFadeState.showSecond,
           ),
         ],
       ),
     );
   }
+}
+
+class _HideShowButton extends StatelessWidget {
+  final bool showHidden;
+  final Function() toggle;
+
+  const _HideShowButton({
+    super.key,
+    required this.showHidden,
+    required this.toggle
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return IconButton(
+      onPressed: toggle,
+      style: IconButton.styleFrom(
+        backgroundColor: showHidden ? colorScheme.primary : Colors.transparent,
+        shape: const CircleBorder(),
+      ),
+      icon: Icon(
+        showHidden ? LucideIcons.eyeOff : LucideIcons.eye,
+        color: showHidden ? colorScheme.onPrimary : null,
+      ),
+    );
+  }
+
 }

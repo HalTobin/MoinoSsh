@@ -34,9 +34,44 @@ class SftpServiceImpl implements SftpService {
     }
 
     @override
-    Future<List<RemoteFileItem>> listDirectory(String path) {
-        // TODO: implement listDirectory
-        throw UnimplementedError();
+    Future<List<RemoteFileItem>> listDirectory(String path) async {
+        final sftp = await getSftpClient();
+        if (kDebugMode) {
+            print("Listing: $path");
+        }
+        if (sftp == null) {
+            if (kDebugMode) print("Cannot list directory: SFTP client is null");
+            return [];
+        }
+
+        try {
+            final entries = await sftp.listdir(path);
+            final items = <RemoteFileItem>[];
+
+            for (final entry in entries) {
+                // It's usually best to filter out current and parent directory pointers
+                if (entry.filename == '.' || entry.filename == '..') continue;
+
+                final attrs = entry.attr;
+
+                items.add(
+                    RemoteFileItem(
+                        name: entry.filename,
+                        isDirectory: attrs.isDirectory,
+                        size: attrs.size ?? 0,
+                        lastModified: attrs.modifyTime != null
+                            ? DateTime.fromMillisecondsSinceEpoch(attrs.modifyTime! * 1000)
+                            : null,
+                        permissions: attrs.mode?.toString(),
+                    )
+                );
+            }
+
+            return items;
+        } catch (e) {
+            if (kDebugMode) print("Error listing directory $path: $e");
+            rethrow;
+        }
     }
 
     @override
@@ -46,9 +81,19 @@ class SftpServiceImpl implements SftpService {
     }
 
     @override
-    Future<bool> exists(String path) {
-        // TODO: implement exists
-       throw UnimplementedError();
+    Future<bool> exists(String path) async {
+        final sftp = await getSftpClient();
+        if (sftp == null) {
+            if (kDebugMode) print("Cannot check existence: SFTP client is null");
+            return false;
+        }
+
+        try {
+            await sftp.stat(path);
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 
     @override

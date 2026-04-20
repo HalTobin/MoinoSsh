@@ -33,7 +33,7 @@ class FileExplorerProvider extends StatelessWidget {
         Provider(
           create: (context) => (
             NavigateToFolderUseCase(
-              sshService: context.read(),
+              sftpService: context.read(),
               getCurrentServerProfileUseCase: context.read(),
               pinnedFolderRepository: context.read()
             )

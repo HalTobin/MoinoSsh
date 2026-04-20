@@ -64,6 +64,7 @@ class FileExplorerViewModel extends ChangeNotifier {
     }
 
     Future<void> _openFolder(String path) async {
+        setLoading(true);
         final result = await _useCases.navigateToFolderUseCase.execute(path);
         _handleNavigateResult(result, path);
     }
@@ -74,11 +75,13 @@ class FileExplorerViewModel extends ChangeNotifier {
     }
 
     Future<void> _navigateRoot() async {
+        setLoading(true);
         final result = await _useCases.navigateToRootUseCase.execute();
         _handleNavigateResult(result, "/");
     }
 
     Future<void> _navigateUp() async {
+        setLoading(true);
         final result = await _useCases.navigateUpUseCase.execute(_state.currentPath);
         _handleNavigateResult(result, p.dirname(_state.currentPath));
     }
@@ -86,6 +89,7 @@ class FileExplorerViewModel extends ChangeNotifier {
     Future<void> _handleNavigateResult(NavigationResult? result, String requestedPath) async {
         if (result != null) {
             _state = _state.copyWith(
+                loading: false,
                 currentPath: result.destinationPath,
                 files: result.content,
                 isPinned: result.isPinned
@@ -110,6 +114,11 @@ class FileExplorerViewModel extends ChangeNotifier {
 
     Future<void> _renamePinnedFolder(String newAlias) async {
         await _useCases.renamePinnedFolderUseCase.execute(_state.currentPath, newAlias);
+    }
+
+    void setLoading(bool loading) {
+        _state = _state.copyWith(loading: loading);
+        notifyListeners();
     }
 
     void _setError(String error) {
