@@ -3,23 +3,23 @@ import 'package:domain/model/ssh/connection_status.dart';
 import 'package:domain/repository/preference_repository.dart';
 import 'package:domain/repository/server_profile_repository.dart';
 import 'package:domain/service/biometrics_service.dart';
-import 'package:domain/service/ssh_service.dart';
+import 'package:domain/service/ssh_client_service.dart';
 
 import '../model/ConnectWithProfilePasswordMethod.dart';
 
 class AuthFromProfileUseCase {
     AuthFromProfileUseCase({
-        required SshService sshService,
+        required SshClientService sshClientService,
         required ServerProfileRepository serverProfileRepository,
         required BiometricsService biometricsService,
         required PreferenceRepository preferenceRepository,
     })
-        : _sshService = sshService,
+        : _sshClientService = sshClientService,
           _serverProfileRepository = serverProfileRepository,
           _biometricsService = biometricsService,
           _preferenceRepository = preferenceRepository;
 
-    final SshService _sshService;
+    final SshClientService _sshClientService;
     final ServerProfileRepository _serverProfileRepository;
     final BiometricsService _biometricsService;
     final PreferenceRepository _preferenceRepository;
@@ -36,7 +36,7 @@ class AuthFromProfileUseCase {
             }
             switch (method) {
                 case None():
-                    return _sshService.connect(
+                    return _sshClientService.connect(
                         user: profile.user,
                         serverUrl: profile.url,
                         serverPort: profile.port,
@@ -45,7 +45,7 @@ class AuthFromProfileUseCase {
                     );
                 case Password(): {
                     final prefs = await _preferenceRepository.getUserPreferences();
-                    final authResult = await _sshService.connect(
+                    final authResult = await _sshClientService.connect(
                         user: profile.user,
                         serverUrl: profile.url,
                         serverPort: profile.port,
@@ -75,7 +75,7 @@ class AuthFromProfileUseCase {
                     final cryptedPassword = profile.securedSshKeyPassword;
                     if (cryptedPassword != null) {
                         final password = await _biometricsService.decryptPassword(cryptedPassword);
-                        return _sshService.connect(
+                        return _sshClientService.connect(
                             user: profile.user,
                             serverUrl: profile.url,
                             serverPort: profile.port,

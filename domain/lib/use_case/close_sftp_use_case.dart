@@ -1,13 +1,13 @@
-import 'package:domain/service/ssh_service.dart';
+import 'package:domain/service/sftp_service.dart';
 
 class CloseSftpUseCase {
-    final SshService sshService;
+    final SftpService sftpService;
 
     const CloseSftpUseCase({
-        required this.sshService
+        required this.sftpService
     });
 
     void execute() {
-        sshService.closeSftp();
+        sftpService.closeSession();
     }
 }

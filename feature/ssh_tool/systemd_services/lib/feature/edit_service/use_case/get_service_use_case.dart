@@ -2,24 +2,28 @@ import 'package:domain/model/ssh/favorite_service.dart';
 import 'package:domain/model/ssh/ssh_profile.dart';
 import 'package:domain/repository/favorite_service_repository.dart';
 import 'package:domain/repository/server_profile_repository.dart';
+import 'package:domain/service/ssh_client_service.dart';
 import 'package:domain/service/ssh_service.dart';
 
 class GetServiceUseCase {
     GetServiceUseCase({
+        required SshClientService sshClientService,
         required FavoriteServiceRepository favoriteServiceRepository,
         required ServerProfileRepository serverProfileRepository,
         required SshService sshService
     })
-      : _favoriteServiceRepository = favoriteServiceRepository,
+      : _sshClientService = sshClientService,
+        _favoriteServiceRepository = favoriteServiceRepository,
         _serverProfileRepository = serverProfileRepository,
         _sshService = sshService;
 
+    final SshClientService _sshClientService;
+    final SshService _sshService;
     final FavoriteServiceRepository _favoriteServiceRepository;
     final ServerProfileRepository _serverProfileRepository;
-    final SshService _sshService;
 
     Future<FavoriteService?> execute({required String serviceName}) async {
-        final SshProfile? sshProfile = _sshService.getCurrentProfile();
+        final SshProfile? sshProfile = _sshClientService.getProfile();
         if (sshProfile != null) {
             final int? profileId = await _serverProfileRepository.getProfileIdByFields(
                 url: sshProfile.url,

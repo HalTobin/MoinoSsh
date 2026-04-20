@@ -35,7 +35,7 @@ class FileExplorerTopBar extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(LucideIcons.pin),
+            icon: Icon(isPinned ? LucideIcons.pinOff : LucideIcons.pin),
             onPressed: PathHelper.canNavigateUp(currentPath)
                 ? onPin
                 : null,

@@ -1,3 +1,4 @@
+import 'package:domain/use_case/close_sftp_use_case.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:domain/use_case/add_edit_server_use_case.dart';
@@ -22,27 +23,15 @@ class DomainProvider extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider(create: (_) => (LoadSshFileUseCase())),
-        Provider(
-          create: (context) => (
-            AddEditServerUseCase(
-              serverProfileRepository: context.read()
-            )
-          )
-        ),
-        Provider(
-          create: (_) => (
-            SshConnectUseCase(
-              sshService: context.read()
-            )
-          )
-        ),
-        Provider(create: (context) => (CloseSftpUseCase(sshService: context.read())),
+        Provider(create: (context) => (AddEditServerUseCase(serverProfileRepository: context.read()))),
+        Provider(create: (context) => (SshConnectUseCase(sshClientService: context.read()))),
+        Provider(create: (context) => (CloseSftpUseCase(sftpService: context.read()))),
         Provider(create: (_) => (CheckWrongFieldsUseCase())),
         Provider<CheckBiometricsAvailabilityUseCase>(create: (context) => (CheckBiometricsAvailabilityUseCaseImpl())),
         Provider(
           create: (context) => (
             GetCurrentServerProfileUseCase(
-              sshService: context.read(),
+              sshClientService: context.read(),
               serverProfileRepository: context.read(),
             )
           )

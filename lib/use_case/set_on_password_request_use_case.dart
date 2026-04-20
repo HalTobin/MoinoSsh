@@ -1,11 +1,11 @@
-import 'package:domain/service/ssh_service.dart';
+import 'package:domain/service/ssh_client_service.dart';
 
 class SetOnPasswordRequestUseCase {
-    final SshService sshService;
+    final SshClientService sshClientService;
 
-    const SetOnPasswordRequestUseCase({required this.sshService});
+    const SetOnPasswordRequestUseCase({required this.sshClientService});
 
     void execute(Future<PasswordCallbackResponse?> Function() callback) {
-        sshService.onPasswordRequest = callback;
+        sshClientService.onPasswordRequest = callback;
     }
 }

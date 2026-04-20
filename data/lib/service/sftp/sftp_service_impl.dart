@@ -1,13 +1,20 @@
 import 'package:dartssh2/dartssh2.dart';
-import 'package:data/service/ssh/ssh_service_impl.dart';
+import 'package:data/service/ssh_client_service_impl.dart';
 import 'package:domain/model/sftp/remote_file_item.dart';
 import 'package:domain/service/sftp_service.dart';
-import 'package:domain/service/ssh_service.dart';
+import 'package:flutter/foundation.dart';
 
-class SftpServiceImpl extends SftpService {
-    SshServiceImpl _sshService;
+class SftpServiceImpl implements SftpService {
+    late final SshClientServiceImpl _sshClientService;
 
-    SftpServiceImpl(this._sshService);
+    static SftpServiceImpl? _instance;
+
+    SftpServiceImpl._internal(this._sshClientService);
+
+    factory SftpServiceImpl(SshClientServiceImpl service) {
+        _instance ??= SftpServiceImpl._internal(service);
+        return _instance!;
+    }
 
     SftpClient? _sftpClient;
 
@@ -15,11 +22,15 @@ class SftpServiceImpl extends SftpService {
         if (_sftpClient != null) {
             return _sftpClient;
         }
-        if (_sshService.getCurrentProfile() == null) {
+        final sshClient = _sshClientService.getClient();
+        if (sshClient != null) {
+            _sftpClient = await sshClient.sftp();
+            return _sftpClient;
+        }
+        else {
             if (kDebugMode) print("Cannot get SFTP client: SSHClient is null");
             return null;
         }
-        return await _client!.sftp();
     }
 
     @override
@@ -29,7 +40,7 @@ class SftpServiceImpl extends SftpService {
     }
 
     @override
-    Future<void> closeSession() {
+    Future<void> closeSession() async {
         _sftpClient?.close();
         _sftpClient = null;
     }

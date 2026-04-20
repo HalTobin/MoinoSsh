@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:data/service/ssh_client_service_impl.dart';
+import 'package:domain/service/ssh_client_service.dart';
+
 import 'utils/byte_decoder.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:domain/model/response_result.dart';
@@ -11,82 +14,32 @@ import 'package:domain/model/ssh/connection_status.dart';
 import 'package:domain/model/ssh/ssh_profile.dart';
 import 'package:domain/model/ssh/systemctl_command.dart';
 
-class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, SshService {
-    SSHClient? _client;
-    SshProfile? _profile;
+class SshServiceImpl implements SshService {
+    late final SshClientServiceImpl _sshClientService;
 
-    static final SshServiceImpl _instance = SshServiceImpl._internal();
-    factory SshServiceImpl() => _instance;
+    static SshServiceImpl? _instance;
 
-    SshServiceImpl._internal();
+    SshServiceImpl._internal(this._sshClientService);
 
-    bool _isConnected = false;
+    factory SshServiceImpl(SshClientServiceImpl service) {
+        _instance ??= SshServiceImpl._internal(service);
+        return _instance!;
+    }
 
     String? _password = null;
-
-    @override
-    bool get value => _isConnected;
-
-    @override
-    Future<PasswordCallbackResponse?> Function()? onPasswordRequest;
-
-    @override
-    void setOnPasswordRequestCallback(Future<PasswordCallbackResponse?> Function() callback) {
-        onPasswordRequest = callback;
-    }
-
-    @override
-    Future<ConnectionStatus> connect({
-        required String user,
-        required String serverUrl,
-        required String serverPort,
-        required String sshFilePath,
-        required String? password
-    }) async {
-        try {
-            if (kDebugMode) {
-                print('SSH connecting to: $user@$serverUrl:$serverPort');
-            }
-
-            final port = int.tryParse(serverPort) ?? 22;
-            final key = File(sshFilePath).readAsStringSync();
-            final socket = await SSHSocket.connect(serverUrl, port);
-            _client = SSHClient(
-                socket,
-                username: user,
-                identities: [
-                    ...SSHKeyPair.fromPem(key, password)
-                ]
-            );
-
-            _profile = SshProfile(
-                url: serverUrl,
-                port: serverPort,
-                user: user
-            );
-
-            _updateConnectionState(true);
-            return ConnectionSucceed();
-        } catch (e) {
-            if (kDebugMode) {
-                print('SSH connection failed: $e');
-            }
-            _updateConnectionState(false);
-            return ConnectionFailed(error: e.toString());
-        }
-    }
 
     @override
     Future<ResponseResult<bool>> systemCtlCommand({
         required SystemctlCommand command,
         required String service
     }) async {
+        final client = _sshClientService.getClient();
         final String fullCommand = "sudo systemctl ${command.command} $service";
         if (kDebugMode) {
-            if (_client == null) { print("_client is null"); }
+            if (client == null) { print("client is null"); }
             print("Run: $fullCommand");
         }
-        final SSHSession? session = await _client?.execute(fullCommand);
+        final SSHSession? session = await client?.execute(fullCommand);
         await session?.done;
         if (session != null) {
             final int? exitCode = session.exitCode;
@@ -106,7 +59,7 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
                     return ResponseSucceed(true);
                 case 1: {
                     try {
-                        if (onPasswordRequest == null) {
+                        if (_sshClientService.onPasswordRequest == null) {
                             if (kDebugMode) {
                                 print("Password request callback not defined");
                             }
@@ -114,7 +67,7 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
                         }
 
                         if (_password == null) {
-                            final passwordRequestResponse = await onPasswordRequest!();
+                            final passwordRequestResponse = await _sshClientService.onPasswordRequest!();
                             if (passwordRequestResponse == null) {
                                 return ResponseFailed(error: "Password is null");
                             }
@@ -137,6 +90,7 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
     }
 
     Future<ResponseResult<bool>> _runSudoCommand(String password, String command, bool remember) async {
+        final client = _sshClientService.getClient();
         final cleanPassword = password.trim();
 
         final sanitizedCommand = command.startsWith('sudo ')
@@ -148,7 +102,7 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
             print("Running over SSH: $sudoCommand");
         }
 
-        final SSHSession? session = await _client?.execute(sudoCommand);
+        final SSHSession? session = await client?.execute(sudoCommand);
         if (session == null) {
             return ResponseFailed(error: "SSH session is null");
         }
@@ -180,7 +134,8 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
 
     @override
     Future<bool> isServiceRunning(String service) async {
-        final session = await _client?.execute('systemctl is-active $service');
+        final client = _sshClientService.getClient();
+        final session = await client?.execute('systemctl is-active $service');
         if (session != null) {
             final output = await session.stdout.decodeUtf8();
             final status = output.trim();
@@ -192,8 +147,9 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
 
     @override
     Future<ResponseResult<List<String>>> getServiceList() async {
+        final client = _sshClientService.getClient();
         try {
-            final session = await _client?.execute('ls /etc/systemd/system');
+            final session = await client?.execute('ls /etc/systemd/system');
             if (session != null) {
                 final output = <int>[];
 
@@ -229,34 +185,5 @@ class SshServiceImpl extends ChangeNotifier implements ValueListenable<bool>, Ss
             return ResponseFailed(error: 'SSH command failed: $e');
         }
     }
-
-    @override
-    Future<void> logout() async {
-        _profile = null;
-        _client?.close();
-        _client = null;
-        _sftpClient?.close();
-        _sftpClient = null;
-        _password = null;
-        _updateConnectionState(false);
-    }
-
-    void _updateConnectionState(bool state) {
-        if (state != _isConnected) {
-            if (kDebugMode) {
-                print("Connection state: $state");
-            }
-            _isConnected = state;
-            notifyListeners();
-        }
-    }
-
-    @override
-    void fakeConnect() async {
-        _updateConnectionState(true);
-    }
-
-    @override
-    SshProfile? getCurrentProfile() { return _profile; }
 
 }

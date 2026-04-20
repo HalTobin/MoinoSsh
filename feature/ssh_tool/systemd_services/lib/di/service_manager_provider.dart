@@ -18,6 +18,7 @@ class ServiceManagerProvider extends StatelessWidget {
         Provider(create: (context) => (RunSystemctlCommandUseCase(sshService: context.read()))),
         Provider(create: (context) => (
           ServiceWatcherUseCase(
+            sshClientService: context.read(),
             sshService: context.read(),
             serverProfileRepository: context.read(),
             favoriteServiceRepository: context.read()

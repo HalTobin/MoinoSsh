@@ -57,13 +57,14 @@ class MainViewModel extends ChangeNotifier {
     }
 
     void _observeSshConnectionStatus() {
-        _useCases.listenSshConnectUseCase.execute().addListener(() {
-            bool isConnect = _useCases.listenSshConnectUseCase.execute().value;
-            if (kDebugMode) { print("SSH Connection status: $isConnect"); }
-            SshProfile currentProfile = _useCases.getCurrentSshProfileUseCase.execute();
-            _state = _state.copyWith(isConnected: isConnect, profile: currentProfile);
-            notifyListeners();
-        });
+        _useCases.listenSshConnectUseCase.execute()
+            .listen((isConnected) {
+                if (kDebugMode) { print("SSH Connection status: $isConnected"); }
+                SshProfile currentProfile = _useCases.getCurrentSshProfileUseCase.execute();
+                _state = _state.copyWith(isConnected: isConnected, profile: currentProfile);
+                notifyListeners();
+            }
+        );
     }
 
     void _observeSshSessionBiometricsAvailability() {

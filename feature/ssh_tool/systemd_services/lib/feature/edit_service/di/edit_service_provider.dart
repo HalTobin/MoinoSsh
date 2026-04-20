@@ -22,6 +22,7 @@ class EditServiceProvider extends StatelessWidget {
       providers: [
         Provider(create: (context) => (
           UpsertServiceToFavoriteUseCase(
+            sshClientService: context.read(),
             favoriteServiceRepository: context.read(),
             serverProfileRepository: context.read(),
             sshService: context.read()
@@ -29,6 +30,7 @@ class EditServiceProvider extends StatelessWidget {
         )),
         Provider(create: (context) => (
           GetServiceUseCase(
+            sshClientService: context.read(),
             favoriteServiceRepository: context.read(),
             serverProfileRepository: context.read(),
             sshService: context.read()

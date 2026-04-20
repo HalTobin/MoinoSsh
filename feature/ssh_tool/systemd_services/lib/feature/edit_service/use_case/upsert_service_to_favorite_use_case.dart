@@ -3,19 +3,23 @@ import 'package:domain/model/response_result.dart';
 import 'package:domain/model/ssh/ssh_profile.dart';
 import 'package:domain/repository/favorite_service_repository.dart';
 import 'package:domain/repository/server_profile_repository.dart';
+import 'package:domain/service/ssh_client_service.dart';
 import 'package:domain/service/ssh_service.dart';
 import 'package:flutter/foundation.dart';
 
 class UpsertServiceToFavoriteUseCase {
     UpsertServiceToFavoriteUseCase({
+        required SshClientService sshClientService,
         required ServerProfileRepository serverProfileRepository,
         required FavoriteServiceRepository favoriteServiceRepository,
         required SshService sshService
     })
-        : _serverProfileRepository = serverProfileRepository,
+        : _sshClientService = sshClientService,
+          _serverProfileRepository = serverProfileRepository,
           _favoriteServiceRepository = favoriteServiceRepository,
           _sshService = sshService;
 
+    final SshClientService _sshClientService;
     final SshService _sshService;
     final FavoriteServiceRepository _favoriteServiceRepository;
     final ServerProfileRepository _serverProfileRepository;
@@ -30,7 +34,7 @@ class UpsertServiceToFavoriteUseCase {
             print("Save service: $serviceName, with alias: $alias");
         }
 
-        final SshProfile? profile = _sshService.getCurrentProfile();
+        final SshProfile? profile = _sshClientService.getProfile();
         if (profile != null) {
             final int? profileId = await _serverProfileRepository.getProfileIdByFields(
                 url: profile.url,

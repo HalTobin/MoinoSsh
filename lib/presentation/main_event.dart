@@ -1,4 +1,4 @@
-import 'package:domain/service/ssh_service.dart';
+import 'package:domain/service/ssh_client_service.dart';
 
 sealed class MainEvent {}
 

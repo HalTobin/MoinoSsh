@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:domain/service/ssh_service.dart';
+import 'package:domain/service/ssh_client_service.dart';
 import 'package:feature_settings/di/settings_provider.dart';
 import 'package:feature_auth/di/auth_provider.dart';
 import 'package:feature_toolbox/presentation/toolbox_screen.dart';

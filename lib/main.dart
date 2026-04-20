@@ -2,7 +2,7 @@ import 'package:di/entry_point_provider.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:ls_server_app/presentation/main_screen.dart';
-import 'package:ls_server_app/presentation/main_viewmodel.dart';
+import 'package:ls_server_app/presentation/main_view_model.dart';
 import 'package:ls_server_app/presentation/util/get_brightness_from_theme.dart';
 import 'package:provider/provider.dart';
 

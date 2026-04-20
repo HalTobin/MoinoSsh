@@ -1,13 +1,13 @@
 import 'package:domain/model/ssh/ssh_profile.dart';
-import 'package:domain/service/ssh_service.dart';
+import 'package:domain/service/ssh_client_service.dart';
 
 class GetCurrentSshProfileUseCase {
-  GetCurrentSshProfileUseCase({required SshService sshService})
-      : _sshService = sshService;
+    GetCurrentSshProfileUseCase({required SshClientService sshClientService})
+        : _sshClientService = sshClientService;
 
-  final SshService _sshService;
+    final SshClientService _sshClientService;
 
-  SshProfile execute() {
-    return _sshService.getCurrentProfile() ?? SshProfile.blank;
-  }
+    SshProfile execute() {
+        return _sshClientService.getProfile() ?? SshProfile.blank;
+    }
 }

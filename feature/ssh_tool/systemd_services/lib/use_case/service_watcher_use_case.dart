@@ -4,6 +4,7 @@ import 'package:domain/model/ssh/favorite_service.dart';
 import 'package:domain/model/response_result.dart';
 import 'package:domain/repository/favorite_service_repository.dart';
 import 'package:domain/repository/server_profile_repository.dart';
+import 'package:domain/service/ssh_client_service.dart';
 import 'package:domain/service/ssh_service.dart';
 import 'package:flutter/foundation.dart';
 
@@ -13,12 +14,14 @@ import 'notifier/service_status_notifier.dart';
 
 class ServiceWatcherUseCase {
     ServiceWatcherUseCase({
+        required SshClientService sshClientService,
         required SshService sshService,
         required ServerProfileRepository serverProfileRepository,
         required FavoriteServiceRepository favoriteServiceRepository,
         Duration interval = const Duration(seconds: 5),
     })
-        :   _sshService = sshService,
+        :   _sshClientService = sshClientService,
+            _sshService = sshService,
             _serverProfileRepository = serverProfileRepository,
             _favoriteServiceRepository = favoriteServiceRepository,
             _interval = interval
@@ -27,9 +30,10 @@ class ServiceWatcherUseCase {
         _servicesStatus.onLastListenerRemoved = _stopWatching;
     }
 
+    final SshClientService _sshClientService;
+    final SshService _sshService;
     final ServerProfileRepository _serverProfileRepository;
     final FavoriteServiceRepository _favoriteServiceRepository;
-    final SshService _sshService;
     final Duration _interval;
 
     final ServiceStatusNotifier _servicesStatus = ServiceStatusNotifier();
@@ -58,7 +62,7 @@ class ServiceWatcherUseCase {
         _timer = Timer.periodic(_interval, (_) => _runCheck());
 
         // Start listening to favorite changes
-        final sshProfile = _sshService.getCurrentProfile();
+        final sshProfile = _sshClientService.getProfile();
         if (sshProfile != null) {
             _serverProfileRepository.getProfileIdByFields(
                 url: sshProfile.url,
@@ -88,8 +92,7 @@ class ServiceWatcherUseCase {
     Future<void> _runCheck() async {
         if (_services.isEmpty) return;
 
-        final sshProfile = _sshService.getCurrentProfile();
-
+        final sshProfile = _sshClientService.getProfile();
         if (sshProfile != null) {
             final profileId = await _serverProfileRepository.getProfileIdByFields(
                 url: sshProfile.url,
