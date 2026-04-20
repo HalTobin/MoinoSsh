@@ -1,3 +1,5 @@
+import 'package:domain/model/preferences/file_view_mode.dart';
+
 import '../model/preferences/app_contrast.dart';
 import '../model/preferences/user_preferences.dart';
 import '../model/preferences/app_theme.dart';
@@ -19,5 +21,7 @@ abstract interface class PreferenceRepository {
     Future<void> toggleKeepPasswordDuringSession();
 
     Future<void> toggleShowHiddenFileByDefault();
+
+    Future<void> updateFileViewMode(FileViewMode fileViewMode);
 
 }

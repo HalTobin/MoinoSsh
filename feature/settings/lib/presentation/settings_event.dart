@@ -18,4 +18,10 @@ class ToggleKeepPasswordDuringSession extends SettingsEvent {}
 
 class ToggleShowHiddenFileByDefault extends SettingsEvent {}
 
+class UpdateFileViewMode extends SettingsEvent {
+    final String fileViewMode;
+
+    UpdateFileViewMode(this.fileViewMode);
+}
+
 class DeleteKeys extends SettingsEvent {}

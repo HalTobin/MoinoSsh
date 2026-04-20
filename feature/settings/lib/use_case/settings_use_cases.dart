@@ -4,6 +4,7 @@ import 'package:feature_settings/use_case/toggle_keep_password_during_session_us
 import 'package:feature_settings/use_case/toggle_material_you_use_case.dart';
 import 'package:feature_settings/use_case/toggle_show_hidden_file_use_case.dart';
 import 'package:feature_settings/use_case/update_contrast_use_case.dart';
+import 'package:feature_settings/use_case/update_file_view_mode_use_case.dart';
 import 'package:feature_settings/use_case/update_theme_use_case.dart';
 
 import 'delete_key_use_case.dart';
@@ -15,6 +16,7 @@ class SettingsUseCases {
     final ToggleMaterialYouUseCase toggleMaterialYouUseCase;
     final ToggleKeepPasswordDuringSessionUseCase toggleKeepPasswordDuringSessionUseCase;
     final ToggleShowHiddenFileUseCase toggleShowHiddenFileUseCase;
+    final UpdateFileViewModeUseCase updateFileViewModeUseCase;
     final DeleteKeyUseCase deleteKeyUseCase;
     final CheckBiometricsAvailabilityUseCase checkBiometricsAvailabilityUseCase;
 
@@ -25,6 +27,7 @@ class SettingsUseCases {
         required this.toggleMaterialYouUseCase,
         required this.toggleKeepPasswordDuringSessionUseCase,
         required this.toggleShowHiddenFileUseCase,
+        required this.updateFileViewModeUseCase,
         required this.deleteKeyUseCase,
         required this.checkBiometricsAvailabilityUseCase
     });

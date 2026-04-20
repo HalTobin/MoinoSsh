@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:domain/model/preferences/app_contrast.dart';
 import 'package:domain/model/preferences/app_theme.dart';
+import 'package:domain/model/preferences/file_view_mode.dart';
 import 'package:domain/model/preferences/user_preferences.dart';
 import 'package:domain/repository/preference_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,12 +31,16 @@ class PreferenceRepositoryImpl implements PreferenceRepository {
         final bool keepPasswordDuringSession = await _loadBool(_Keys.keepPasswordDuringSession.key, defaultPrefs.keepPasswordDuringSession);
         final bool showHiddenFileByDefault = await _loadBool(_Keys.showHiddenFileByDefault.key, defaultPrefs.showHiddenFilesByDefault);
 
+        final String fileViewModeIdentifier = await _loadString(_Keys.fileViewMode.key, defaultPrefs.fileViewMode.identifier);
+        final FileViewMode fileViewMode = FileViewMode.fromIdentifier(fileViewModeIdentifier);
+
         final preferences = UserPreferences(
             theme: theme,
             contrast: contrast,
             materialYou: materialYou,
             keepPasswordDuringSession: keepPasswordDuringSession,
-            showHiddenFilesByDefault: showHiddenFileByDefault
+            showHiddenFilesByDefault: showHiddenFileByDefault,
+            fileViewMode: fileViewMode
         );
 
         return preferences;
@@ -61,6 +66,8 @@ class PreferenceRepositoryImpl implements PreferenceRepository {
                     await _updateBool(key: key.key, value: preferences.keepPasswordDuringSession, notify: false);
                 case _Keys.showHiddenFileByDefault:
                     await _updateBool(key: key.key, value: preferences.showHiddenFilesByDefault, notify: false);
+                case _Keys.fileViewMode:
+                    await _updateString(key: key.key, value: preferences.fileViewMode.identifier, notify: false);
             }
         });
         _notify();
@@ -100,6 +107,13 @@ class PreferenceRepositoryImpl implements PreferenceRepository {
     Future<void> toggleShowHiddenFileByDefault() async {
         final state = await _loadBool(_Keys.showHiddenFileByDefault.key, UserPreferences.defaultPreferences.showHiddenFilesByDefault);
         _updateBool(key: _Keys.showHiddenFileByDefault.key, value: !state);
+        final current = await getUserPreferences();
+        _controller.add(current);
+    }
+
+    @override
+    Future<void> updateFileViewMode(FileViewMode fileViewMode) async {
+        _updateString(key: _Keys.fileViewMode.key, value: fileViewMode.identifier);
         final current = await getUserPreferences();
         _controller.add(current);
     }
@@ -155,7 +169,8 @@ enum _Keys {
     appContrast("app_contrast"),
     materialYou("material_you"),
     keepPasswordDuringSession("keep_password_during_session"),
-    showHiddenFileByDefault("show_hidden_file_by_default");
+    showHiddenFileByDefault("show_hidden_file_by_default"),
+    fileViewMode("file_view_mode");
 
     final String key;
 

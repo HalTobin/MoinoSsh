@@ -47,6 +47,12 @@ class NavigateToFolderUseCase {
             }
         }).toList();
 
+        entries.sort((a, b) {
+            if (a is Folder && b is File) return -1;
+            if (a is File && b is Folder) return 1;
+            return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        });
+
         return NavigationResult(
             destinationPath: path,
             content: entries,

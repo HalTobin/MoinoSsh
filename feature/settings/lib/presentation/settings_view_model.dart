@@ -53,6 +53,8 @@ class SettingsViewModel extends ChangeNotifier {
                 _toggleKeepPasswordDuringSession();
             case ToggleShowHiddenFileByDefault():
                 _toggleShowHiddenFileByDefault();
+            case UpdateFileViewMode():
+                _updateFileViewMode(event.fileViewMode);
         }
     }
 
@@ -74,6 +76,10 @@ class SettingsViewModel extends ChangeNotifier {
 
     Future<void> _toggleShowHiddenFileByDefault() async {
         await _useCases.toggleShowHiddenFileUseCase.execute();
+    }
+
+    Future<void> _updateFileViewMode(String fileViewMode) async {
+        await _useCases.updateFileViewModeUseCase.execute(fileViewMode);
     }
 
     Future<void> _deleteKeys() async {

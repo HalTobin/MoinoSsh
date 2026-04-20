@@ -115,7 +115,7 @@ class FileExplorerScreen extends StatelessWidget {
         final file = visibleFiles[index];
         return FileEntryItem(
           file: file,
-          onClick: () => throw UnimplementedError(),
+          onClick: () => onEvent(OpenFolder(folderPath: file.path)),
         );
       },
     );

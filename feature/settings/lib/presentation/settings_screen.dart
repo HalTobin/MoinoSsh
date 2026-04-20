@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:domain/model/preferences/app_contrast.dart';
 import 'package:domain/model/preferences/app_theme.dart';
+import 'package:domain/model/preferences/file_view_mode.dart';
 import 'package:feature_settings/presentation/component/delete_keys_confirmation_modal.dart';
 import 'package:feature_settings/presentation/component/settings/setting_entry_action.dart';
 import 'package:feature_settings/presentation/component/settings/setting_entry_info.dart';
@@ -9,6 +10,7 @@ import 'package:feature_settings/presentation/component/settings/setting_entry_l
 import 'package:feature_settings/presentation/component/settings/setting_entry_toggle.dart';
 import 'package:feature_settings/presentation/util/app_contrast_text.dart';
 import 'package:feature_settings/presentation/util/app_theme_text.dart';
+import 'package:feature_settings/presentation/util/file_view_mode_text.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:ui/navigation/auto_modal.dart';
@@ -85,6 +87,20 @@ class SettingsScreen extends StatelessWidget {
                 hint: "If enable, you'll be prompt only once for the session's password until you log out",
                 state: state.preferences.keepPasswordDuringSession,
                 onToggle: () => onEvent(ToggleKeepPasswordDuringSession()),
+              ),
+              SettingEntryList(
+                icon: LucideIcons.columns2,
+                label: "File view mode",
+                hint: "Set the default view for the file explorer",
+                selection: ListEntry(
+                    identifier: state.preferences.fileViewMode.identifier,
+                    text: state.preferences.fileViewMode.getText()
+                ),
+                entries: FileViewMode.values.map((contrast) => ListEntry(
+                    identifier: contrast.identifier,
+                    text: contrast.getText()
+                )).toList(),
+                onChanged: (value) => onEvent(UpdateFileViewMode(value.identifier)),
               ),
               SettingEntryToggle(
                 icon: LucideIcons.eyeOff,
