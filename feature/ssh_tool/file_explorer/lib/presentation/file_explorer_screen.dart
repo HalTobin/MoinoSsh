@@ -1,3 +1,4 @@
+import 'package:feature_file_explorer/presentation/component/pinned_folders_menu.dart';
 import 'package:feature_file_explorer/presentation/file_explorer_event.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -27,63 +28,55 @@ class FileExplorerScreen extends StatelessWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            FileExplorerTopBar(
-              currentPath: state.currentPath,
-              isPinned: state.isPinned,
-              showHidden: state.showHidden,
-              onPin: () => onEvent(PinUnpinEvent()),
-              navigateRoot: () => onEvent(NavigateRootEvent()),
-              navigateUp: () => onEvent(NavigateUpEvent()),
-              toggleHiddenFiles: () => onEvent(ToggleHiddenEvent()),
-            ),
-            Expanded(
-              child: _buildBody(context, visibleFiles),
-            ),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Column(
+              children: [
+                FileExplorerTopBar(
+                  currentPath: state.currentPath,
+                  pinnedFolders: state.pinnedFolders,
+                  isPinned: state.isPinned,
+                  showHidden: state.showHidden,
+                  onPin: () => onEvent(PinUnpinEvent()),
+                  navigateRoot: () => onEvent(NavigateRootEvent()),
+                  navigateUp: () => onEvent(NavigateUpEvent()),
+                  navigateTo: (path) => onEvent(OpenFolder(folderPath: path)),
+                  toggleHiddenFiles: () => onEvent(ToggleHiddenEvent()),
+                ),
+                Expanded(
+                  child: _buildBody(context, visibleFiles),
+                ),
+              ],
+            );
+          }
         ),
       ),
     );
   }
 
   Widget _buildBody(BuildContext context, List<FileEntry> visibleFiles) {
-    if (state.loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    Widget content;
 
-    if (state.error.isNotEmpty) {
-      return Center(
+    if (state.loading) {
+      content = const Center(child: CircularProgressIndicator());
+    } else if (state.error.isNotEmpty) {
+      content = Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              LucideIcons.circleAlert,
-              color: Theme.of(context).colorScheme.error,
-              size: 48
-            ),
+            Icon(LucideIcons.circleAlert, color: Theme.of(context).colorScheme.error, size: 48),
             const SizedBox(height: 16),
-            Text(
-              state.error,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-              textAlign: TextAlign.center,
-            ),
+            Text(state.error, style: TextStyle(color: Theme.of(context).colorScheme.error), textAlign: TextAlign.center),
           ],
         ),
       );
-    }
-
-    if (visibleFiles.isEmpty) {
-      return const Center(
-        child: Text(
-          'This directory is empty.',
-          style: TextStyle(color: Colors.grey, fontSize: 16),
-        ),
+    } else if (visibleFiles.isEmpty) {
+      content = const Center(
+        child: Text('This directory is empty.', style: TextStyle(color: Colors.grey, fontSize: 16)),
       );
-    }
-
-    if (!isNarrow) {
-      return GridView.builder(
+    } else {
+      content = !isNarrow
+          ? GridView.builder(
         padding: const EdgeInsets.all(8),
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 280,
@@ -105,20 +98,37 @@ class FileExplorerScreen extends StatelessWidget {
             ),
           );
         },
+      )
+          : ListView.builder(
+        itemCount: visibleFiles.length,
+        itemBuilder: (context, index) {
+          final file = visibleFiles[index];
+          return FileEntryItem(
+            file: file,
+            onClick: () => onEvent(OpenFolder(folderPath: file.path)),
+          );
+        },
       );
     }
 
-    // List View for narrow screens (Phones)
-    return ListView.builder(
-      itemCount: visibleFiles.length,
-      itemBuilder: (context, index) {
-        final file = visibleFiles[index];
-        return FileEntryItem(
-          file: file,
-          onClick: () => onEvent(OpenFolder(folderPath: file.path)),
-        );
-      },
-    );
+    if (!isNarrow) {
+      return Row(
+        children: [
+          SizedBox(
+            width: 250,
+            child: PinnedFoldersMenu(
+              currentPath: state.currentPath,
+              folders: state.pinnedFolders,
+              onFolderTap: (path) => onEvent(OpenFolder(folderPath: path)),
+            ),
+          ),
+          const VerticalDivider(width: 1, thickness: 1),
+          Expanded(child: content),
+        ],
+      );
+    }
+
+    return content;
   }
 
 }

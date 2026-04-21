@@ -1,10 +1,13 @@
 
+import 'package:domain/model/ssh/pinned_folder.dart';
+
 import '../data/file_entry.dart';
 
 class FileExplorerState {
     final String currentPath;
     final bool isPinned;
     final List<FileEntry> files;
+    final List<PinnedFolder> pinnedFolders;
     final bool loading;
     final String error;
     final bool showHidden;
@@ -13,6 +16,7 @@ class FileExplorerState {
         this.currentPath = "/",
         this.isPinned = false,
         this.files = const [],
+        this.pinnedFolders = const [],
         this.loading = false,
         this.error = "",
         this.showHidden = false
@@ -22,6 +26,7 @@ class FileExplorerState {
         String? currentPath,
         bool? isPinned,
         List<FileEntry>? files,
+        List<PinnedFolder>? pinnedFolders,
         bool? loading,
         String? error,
         bool? showHidden
@@ -30,6 +35,7 @@ class FileExplorerState {
             currentPath: currentPath ?? this.currentPath,
             isPinned: isPinned ?? this.isPinned,
             files: files ?? this.files,
+            pinnedFolders: pinnedFolders ?? this.pinnedFolders,
             loading: loading ?? this.loading,
             error: error ?? this.error,
             showHidden: showHidden ?? this.showHidden

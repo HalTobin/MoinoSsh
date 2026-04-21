@@ -5,7 +5,7 @@ import 'package:feature_file_explorer/use_case/navigate_up_use_case.dart';
 import 'package:feature_file_explorer/use_case/pin_unpin_directory_use_case.dart';
 import 'package:feature_file_explorer/use_case/rename_pinned_folder_use_case.dart';
 import 'package:feature_file_explorer/use_case/select_file_use_case.dart';
-import 'package:feature_file_explorer/use_case/watch_folder_use_case.dart';
+import 'package:feature_file_explorer/use_case/watch_folders_use_case.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ui/screen_format/screen_format_helper.dart';
@@ -24,7 +24,7 @@ class FileExplorerProvider extends StatelessWidget {
         Provider(create: (context) => (CheckDefaultShowHiddenUseCase(preferenceRepository: context.read()))),
         Provider(
           create: (context) => (
-            WatchFolderUseCase(
+            WatchFoldersUseCase(
               getCurrentServerProfileUseCase: context.read(),
               pinnedFolderRepository: context.read()
             )
@@ -76,7 +76,7 @@ class FileExplorerProvider extends StatelessWidget {
           create: (context) => (
             FileExplorerUseCases(
               checkDefaultShowHiddenUseCase: context.read(),
-              watchFolderUseCase: context.read(),
+              watchFoldersUseCase: context.read(),
               navigateToFolderUseCase: context.read(),
               navigateToRootUseCase: context.read(),
               navigateUpUseCase: context.read(),

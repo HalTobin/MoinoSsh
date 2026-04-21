@@ -136,9 +136,6 @@ class _MainScreenState extends State<MainScreen> {
       print("_showAuthDialog()");
     }
 
-    final size = MediaQuery.of(context).size;
-    final constraints = BoxConstraints.tight(size);
-
     final password = await showDialog<String?>(
       context: context,
       builder: (context) {

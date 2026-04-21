@@ -27,6 +27,7 @@ class FileExplorerViewModel extends ChangeNotifier {
 
     Future<void> _init() async {
         _state = _state.copyWith(loading: true);
+        _watchFolders();
         notifyListeners();
         final showHidden = await _useCases.checkDefaultShowHiddenUseCase.execute();
         _state = _state.copyWith(showHidden: showHidden);
@@ -53,12 +54,20 @@ class FileExplorerViewModel extends ChangeNotifier {
         }
     }
 
-    Future<void> _watchFolder(String path) async {
+    Future<void> _watchFolders() async {
         await _folderSubscription?.cancel();
-        final folderWatcher = await _useCases.watchFolderUseCase.execute(path);
-        _folderSubscription = folderWatcher.listen((folder) {
-            final bool isPinned = folder != null;
-            _state = _state.copyWith(isPinned: isPinned);
+        final folderWatcher = await _useCases.watchFoldersUseCase.execute();
+        _folderSubscription = folderWatcher.listen((folders) {
+            if (kDebugMode) {
+                final folderNames = folders.map((folder) => folder.path)
+                    .toList();
+                print("[$tag] Folders changed: $folderNames");
+            }
+            final bool isPinned = folders.any((folder) => folder.path == _state.currentPath);
+            _state = _state.copyWith(
+                isPinned: isPinned,
+                pinnedFolders: folders
+            );
             notifyListeners();
         });
     }
@@ -94,7 +103,6 @@ class FileExplorerViewModel extends ChangeNotifier {
                 files: result.content,
                 isPinned: result.isPinned
             );
-            await _watchFolder(result.destinationPath);
         }
         else {
             _setError("Couldn't navigate to $requestedPath");
