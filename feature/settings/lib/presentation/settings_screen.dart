@@ -116,6 +116,13 @@ class SettingsScreen extends StatelessWidget {
                 hint: "Will delete all data related to biometrics and quick connect",
                 onPressed: () => confirmKeyDeletionModal(context, constraints),
               ),
+              SettingEntryAction(
+                icon: LucideIcons.copyright,
+                trailingIcon: LucideIcons.mousePointerClick,
+                label: "Licenses",
+                hint: "Check the licenses, this app works thanks to all these projects",
+                onPressed: () => showLicensePage(context: context)
+              ),
               SettingEntryInfo(
                 icon: LucideIcons.wrench,
                 info: "0.0.1",
