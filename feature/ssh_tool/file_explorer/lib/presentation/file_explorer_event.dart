@@ -18,10 +18,18 @@ class NavigateUpEvent extends FileExplorerEvent {}
 
 class ToggleHiddenEvent extends FileExplorerEvent {}
 
-class PinUnpinEvent extends FileExplorerEvent {}
+class PinUnpinEvent extends FileExplorerEvent {
+    final String? path;
+
+    PinUnpinEvent({this.path});
+}
 
 class RenamePinnedFolder extends FileExplorerEvent {
+    final String path;
     final String newAlias;
 
-    RenamePinnedFolder({required this.newAlias});
+    RenamePinnedFolder({
+        required this.path,
+        required this.newAlias
+    });
 }

@@ -3,9 +3,7 @@ import 'package:feature_file_explorer/presentation/component/pinned_folders_menu
 import 'package:feature_file_explorer/util/path_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:ui/component/app_dialog_layout.dart';
 import 'package:ui/component/title_header.dart';
-import 'package:ui/navigation/auto_modal.dart';
 import 'package:ui/screen_format/screen_format_helper.dart';
 
 class FileExplorerTopBar extends StatelessWidget {
@@ -18,6 +16,8 @@ class FileExplorerTopBar extends StatelessWidget {
   final Function() navigateUp;
   final Function(String) navigateTo;
   final Function() toggleHiddenFiles;
+  final Function(String) onUnpin;
+  final Function(String, String) onFolderRename;
 
   const FileExplorerTopBar({
     super.key,
@@ -30,6 +30,8 @@ class FileExplorerTopBar extends StatelessWidget {
     required this.navigateUp,
     required this.navigateTo,
     required this.toggleHiddenFiles,
+    required this.onUnpin,
+    required this.onFolderRename
   });
   
   Widget _buildPathBar(BuildContext context) {
@@ -192,7 +194,9 @@ class FileExplorerTopBar extends StatelessWidget {
               onFolderTap: (folder) {
                 Navigator.of(context).pop();
                 navigateTo(folder);
-              }
+              },
+              onUnpin: onUnpin,
+              onFolderRename: onFolderRename,
             ),
             SizedBox(
               height: 12,

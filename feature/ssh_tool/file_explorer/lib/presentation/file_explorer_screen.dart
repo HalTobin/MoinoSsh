@@ -42,6 +42,8 @@ class FileExplorerScreen extends StatelessWidget {
                   navigateUp: () => onEvent(NavigateUpEvent()),
                   navigateTo: (path) => onEvent(OpenFolder(folderPath: path)),
                   toggleHiddenFiles: () => onEvent(ToggleHiddenEvent()),
+                  onUnpin: (path) => onEvent(OpenFolder(folderPath: path)),
+                  onFolderRename: (path, newAlias) => onEvent(RenamePinnedFolder(path: path, newAlias: newAlias)),
                 ),
                 Expanded(
                   child: _buildBody(context, visibleFiles),
@@ -120,6 +122,8 @@ class FileExplorerScreen extends StatelessWidget {
               currentPath: state.currentPath,
               folders: state.pinnedFolders,
               onFolderTap: (path) => onEvent(OpenFolder(folderPath: path)),
+              onUnpin: (path) => onEvent(PinUnpinEvent(path: path)),
+              onFolderRename: (path, alias) => onEvent(RenamePinnedFolder(path: path, newAlias: alias)),
             ),
           ),
           const VerticalDivider(width: 1, thickness: 1),

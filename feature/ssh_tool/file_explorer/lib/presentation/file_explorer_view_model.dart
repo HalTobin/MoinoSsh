@@ -48,9 +48,9 @@ class FileExplorerViewModel extends ChangeNotifier {
             case ToggleHiddenEvent():
                 _toggleHidden();
             case PinUnpinEvent():
-                _pinUnpinFolder();
+                _pinUnpinFolder(event.path);
             case RenamePinnedFolder():
-                _renamePinnedFolder(event.newAlias);
+                _renamePinnedFolder(path: event.path, newAlias: event.newAlias);
         }
     }
 
@@ -115,13 +115,13 @@ class FileExplorerViewModel extends ChangeNotifier {
         notifyListeners();
     }
 
-    Future<void> _pinUnpinFolder() async {
-        await _useCases.pinUnpinDirectoryUseCase.execute(_state.currentPath);
+    Future<void> _pinUnpinFolder(String? path) async {
+        await _useCases.pinUnpinDirectoryUseCase.execute(path ?? _state.currentPath);
         notifyListeners();
     }
 
-    Future<void> _renamePinnedFolder(String newAlias) async {
-        await _useCases.renamePinnedFolderUseCase.execute(_state.currentPath, newAlias);
+    Future<void> _renamePinnedFolder({required String path, required String newAlias}) async {
+        await _useCases.renamePinnedFolderUseCase.execute(path, newAlias);
     }
 
     void setLoading(bool loading) {
