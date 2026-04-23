@@ -1,6 +1,8 @@
 import 'package:domain/model/ssh/pinned_folder.dart';
 import 'package:feature_file_explorer/presentation/component/rename_dialog.dart';
+import 'package:feature_file_explorer/presentation/component/unpin_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class PinnedFoldersMenu extends StatelessWidget {
   final String? currentPath;
@@ -18,6 +20,29 @@ class PinnedFoldersMenu extends StatelessWidget {
     required this.onFolderRename
   });
 
+  List<Widget> buildMenu({
+    required PinnedFolder folder,
+    required Function(PinnedFolder) onEdit,
+    required Function(PinnedFolder) onUnpin
+  }) {
+    return [
+      MenuItemButton(
+        onPressed: () => onEdit(folder),
+        child: Padding(
+          padding: EdgeInsetsGeometry.symmetric(horizontal: 12),
+          child: const Text("Edit"),
+        ),
+      ),
+      MenuItemButton(
+        onPressed: () => onUnpin(folder),
+        child: Padding(
+          padding: EdgeInsetsGeometry.symmetric(horizontal: 12),
+          child: const Text("Unpin"),
+        ),
+      )
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -31,13 +56,24 @@ class PinnedFoldersMenu extends StatelessWidget {
         builder: (context) {
           return RenameDialog(
             currentAlias: alias,
-            onDismiss: () => Navigator.of(context).pop,
-            onUnpin: () {
-              onUnpin(path);
-              Navigator.of(context).pop();
-            },
+            onDismiss: () => Navigator.of(context).pop(),
             onRename: (newAlias) {
               onFolderRename(path, newAlias);
+              Navigator.of(context).pop();
+            }
+          );
+        }
+      );
+    }
+
+    void unpinRequest({required String path}) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return UnpinDialog(
+            onDismiss: () => Navigator.of(context).pop(),
+            onUnpin: () {
+              onUnpin(path);
               Navigator.of(context).pop();
             }
           );
@@ -59,30 +95,40 @@ class PinnedFoldersMenu extends StatelessWidget {
           final String? subtitle = folder.alias != null ? folder.path : null;
           final bool isSelected = currentPath == folder.path;
 
-          return GestureDetector(
-            onSecondaryTap: () => renameRequest(path: folder.path, alias: folder.alias),
-            onLongPress: () => renameRequest(path: folder.path, alias: folder.alias),
-            child: ListTile(
-              dense: true,
-              selected: isSelected,
-              selectedTileColor: colorScheme.primaryContainer.withValues(alpha: 0.6),
-              selectedColor: colorScheme.onPrimaryContainer,
-              leading: const Icon(Icons.folder_outlined, size: 20),
-              title: Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w500),
-              ),
-              subtitle: subtitle != null
-                  ? Text(
-                subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12),
-              )
-                  : null,
-              onTap: () => onFolderTap(folder.path),
+          return MenuAnchor(
+            alignmentOffset: Offset(12, 0),
+            builder: (context, controller, child) {
+              return GestureDetector(
+                onSecondaryTapDown: (details) => controller.open(position: Offset(details.globalPosition.dx, 24)),
+                onLongPress: () => controller.open(position: Offset(64, 24)),
+                child:  ListTile(
+                  dense: true,
+                  selected: isSelected,
+                  selectedTileColor: colorScheme.primaryContainer.withValues(alpha: 0.6),
+                  selectedColor: colorScheme.onPrimaryContainer,
+                  leading: const Icon(Icons.folder_outlined, size: 20),
+                  title: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: subtitle != null
+                      ? Text(
+                    subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12),
+                  )
+                      : null,
+                  onTap: () => onFolderTap(folder.path),
+                )
+              );
+            },
+            menuChildren: buildMenu(
+              folder: folder,
+              onEdit: (folder) => renameRequest(path: folder.path, alias: folder.alias),
+              onUnpin: (folder) => unpinRequest(path: folder.path)
             ),
           );
         },
