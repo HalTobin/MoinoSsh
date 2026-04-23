@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:domain/model/preferences/file_view_mode.dart';
 import 'package:path/path.dart' as p;
 import 'package:feature_file_explorer/presentation/file_explorer_event.dart';
 import 'package:flutter/foundation.dart';
@@ -30,7 +31,8 @@ class FileExplorerViewModel extends ChangeNotifier {
         _watchFolders();
         notifyListeners();
         final showHidden = await _useCases.checkDefaultShowHiddenUseCase.execute();
-        _state = _state.copyWith(showHidden: showHidden);
+        final viewMode = await _useCases.getDefaultViewModeUseCase.execute();
+        _state = _state.copyWith(showHidden: showHidden, viewMode: viewMode);
         notifyListeners();
         await _navigateRoot();
     }
@@ -47,6 +49,8 @@ class FileExplorerViewModel extends ChangeNotifier {
                 _navigateUp();
             case ToggleHiddenEvent():
                 _toggleHidden();
+            case SelectViewMode():
+                _selectViewMode(event.viewMode);
             case PinUnpinEvent():
                 _pinUnpinFolder(event.path);
             case RenamePinnedFolder():
@@ -73,7 +77,7 @@ class FileExplorerViewModel extends ChangeNotifier {
     }
 
     Future<void> _openFolder(String path) async {
-        setLoading(true);
+        _setLoading(true);
         final result = await _useCases.navigateToFolderUseCase.execute(path);
         _handleNavigateResult(result, path);
     }
@@ -84,13 +88,13 @@ class FileExplorerViewModel extends ChangeNotifier {
     }
 
     Future<void> _navigateRoot() async {
-        setLoading(true);
+        _setLoading(true);
         final result = await _useCases.navigateToRootUseCase.execute();
         _handleNavigateResult(result, "/");
     }
 
     Future<void> _navigateUp() async {
-        setLoading(true);
+        _setLoading(true);
         final result = await _useCases.navigateUpUseCase.execute(_state.currentPath);
         _handleNavigateResult(result, p.dirname(_state.currentPath));
     }
@@ -124,7 +128,12 @@ class FileExplorerViewModel extends ChangeNotifier {
         await _useCases.renamePinnedFolderUseCase.execute(path, newAlias);
     }
 
-    void setLoading(bool loading) {
+    void _selectViewMode(FileViewMode viewMode) {
+        _state = _state.copyWith(viewMode: viewMode);
+        notifyListeners();
+    }
+
+    void _setLoading(bool loading) {
         _state = _state.copyWith(loading: loading);
         notifyListeners();
     }

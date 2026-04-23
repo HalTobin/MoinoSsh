@@ -1,4 +1,5 @@
-import 'package:feature_file_explorer/use_case/check_default_show_hidden_use_case.dart';
+import 'package:feature_file_explorer/use_case/get_default_show_hidden_use_case.dart';
+import 'package:feature_file_explorer/use_case/get_default_view_mode_use_case.dart';
 import 'package:feature_file_explorer/use_case/navigate_to_folder_use_case.dart';
 import 'package:feature_file_explorer/use_case/navigate_to_root_use_case.dart';
 import 'package:feature_file_explorer/use_case/navigate_up_use_case.dart';
@@ -22,6 +23,7 @@ class FileExplorerProvider extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider(create: (context) => (CheckDefaultShowHiddenUseCase(preferenceRepository: context.read()))),
+        Provider(create: (context) => (GetDefaultViewModeUseCase(preferenceRepository: context.read()))),
         Provider(
           create: (context) => (
             WatchFoldersUseCase(
@@ -76,6 +78,7 @@ class FileExplorerProvider extends StatelessWidget {
           create: (context) => (
             FileExplorerUseCases(
               checkDefaultShowHiddenUseCase: context.read(),
+              getDefaultViewModeUseCase: context.read(),
               watchFoldersUseCase: context.read(),
               navigateToFolderUseCase: context.read(),
               navigateToRootUseCase: context.read(),

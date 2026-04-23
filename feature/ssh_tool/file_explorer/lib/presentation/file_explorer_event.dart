@@ -1,3 +1,5 @@
+import 'package:domain/model/preferences/file_view_mode.dart';
+
 sealed class FileExplorerEvent {}
 
 class OpenFolder extends FileExplorerEvent {
@@ -17,6 +19,12 @@ class NavigateRootEvent extends FileExplorerEvent {}
 class NavigateUpEvent extends FileExplorerEvent {}
 
 class ToggleHiddenEvent extends FileExplorerEvent {}
+
+class SelectViewMode extends FileExplorerEvent {
+    final FileViewMode viewMode;
+
+    SelectViewMode({required this.viewMode});
+}
 
 class PinUnpinEvent extends FileExplorerEvent {
     final String? path;

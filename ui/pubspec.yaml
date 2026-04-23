@@ -9,6 +9,8 @@ dependencies:
     sdk: flutter
 
   lucide_icons_flutter:
+  domain:
+    path: ../domain
 
 dev_dependencies:
   flutter_test:

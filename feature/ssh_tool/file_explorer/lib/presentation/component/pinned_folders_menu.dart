@@ -101,7 +101,7 @@ class PinnedFoldersMenu extends StatelessWidget {
               return GestureDetector(
                 onSecondaryTapDown: (details) => controller.open(position: Offset(details.globalPosition.dx, 24)),
                 onLongPress: () => controller.open(position: Offset(64, 24)),
-                child:  ListTile(
+                child: ListTile(
                   dense: true,
                   selected: isSelected,
                   selectedTileColor: colorScheme.primaryContainer.withValues(alpha: 0.6),

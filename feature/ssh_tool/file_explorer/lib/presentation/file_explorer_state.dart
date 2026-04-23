@@ -1,4 +1,5 @@
 
+import 'package:domain/model/preferences/file_view_mode.dart';
 import 'package:domain/model/ssh/pinned_folder.dart';
 
 import '../data/file_entry.dart';
@@ -11,6 +12,7 @@ class FileExplorerState {
     final bool loading;
     final String error;
     final bool showHidden;
+    final FileViewMode viewMode;
 
     FileExplorerState({
         this.currentPath = "/",
@@ -19,7 +21,8 @@ class FileExplorerState {
         this.pinnedFolders = const [],
         this.loading = false,
         this.error = "",
-        this.showHidden = false
+        this.showHidden = false,
+        this.viewMode = FileViewMode.list
     });
 
     FileExplorerState copyWith({
@@ -29,7 +32,8 @@ class FileExplorerState {
         List<PinnedFolder>? pinnedFolders,
         bool? loading,
         String? error,
-        bool? showHidden
+        bool? showHidden,
+        FileViewMode? viewMode
     }) {
         return FileExplorerState(
             currentPath: currentPath ?? this.currentPath,
@@ -38,7 +42,8 @@ class FileExplorerState {
             pinnedFolders: pinnedFolders ?? this.pinnedFolders,
             loading: loading ?? this.loading,
             error: error ?? this.error,
-            showHidden: showHidden ?? this.showHidden
+            showHidden: showHidden ?? this.showHidden,
+            viewMode: viewMode ?? this.viewMode
         );
     }
 }

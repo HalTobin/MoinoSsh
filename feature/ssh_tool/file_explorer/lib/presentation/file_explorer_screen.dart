@@ -1,3 +1,4 @@
+import 'package:domain/model/preferences/file_view_mode.dart';
 import 'package:feature_file_explorer/presentation/component/pinned_folders_menu.dart';
 import 'package:feature_file_explorer/presentation/file_explorer_event.dart';
 import 'package:flutter/material.dart';
@@ -37,11 +38,13 @@ class FileExplorerScreen extends StatelessWidget {
                   pinnedFolders: state.pinnedFolders,
                   isPinned: state.isPinned,
                   showHidden: state.showHidden,
+                  viewMode: state.viewMode,
                   onPin: () => onEvent(PinUnpinEvent()),
                   navigateRoot: () => onEvent(NavigateRootEvent()),
                   navigateUp: () => onEvent(NavigateUpEvent()),
                   navigateTo: (path) => onEvent(OpenFolder(folderPath: path)),
                   toggleHiddenFiles: () => onEvent(ToggleHiddenEvent()),
+                  selectViewMode: (viewMode) => onEvent(SelectViewMode(viewMode: viewMode)),
                   onUnpin: (path) => onEvent(OpenFolder(folderPath: path)),
                   onFolderRename: (path, newAlias) => onEvent(RenamePinnedFolder(path: path, newAlias: newAlias)),
                 ),
@@ -59,26 +62,8 @@ class FileExplorerScreen extends StatelessWidget {
   Widget _buildBody(BuildContext context, List<FileEntry> visibleFiles) {
     Widget content;
 
-    if (state.loading) {
-      content = const Center(child: CircularProgressIndicator());
-    } else if (state.error.isNotEmpty) {
-      content = Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(LucideIcons.circleAlert, color: Theme.of(context).colorScheme.error, size: 48),
-            const SizedBox(height: 16),
-            Text(state.error, style: TextStyle(color: Theme.of(context).colorScheme.error), textAlign: TextAlign.center),
-          ],
-        ),
-      );
-    } else if (visibleFiles.isEmpty) {
-      content = const Center(
-        child: Text('This directory is empty.', style: TextStyle(color: Colors.grey, fontSize: 16)),
-      );
-    } else {
-      content = !isNarrow
-          ? GridView.builder(
+    Widget buildGrid() {
+      return GridView.builder(
         padding: const EdgeInsets.all(8),
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 280,
@@ -100,8 +85,11 @@ class FileExplorerScreen extends StatelessWidget {
             ),
           );
         },
-      )
-          : ListView.builder(
+      );
+    }
+
+    Widget buildList() {
+      return ListView.builder(
         itemCount: visibleFiles.length,
         itemBuilder: (context, index) {
           final file = visibleFiles[index];
@@ -111,6 +99,30 @@ class FileExplorerScreen extends StatelessWidget {
           );
         },
       );
+    }
+
+    if (state.loading) {
+      content = const Center(child: CircularProgressIndicator());
+    } else if (state.error.isNotEmpty) {
+      content = Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(LucideIcons.circleAlert, color: Theme.of(context).colorScheme.error, size: 48),
+            const SizedBox(height: 16),
+            Text(state.error, style: TextStyle(color: Theme.of(context).colorScheme.error), textAlign: TextAlign.center),
+          ],
+        ),
+      );
+    } else if (visibleFiles.isEmpty) {
+      content = const Center(
+        child: Text('This directory is empty.', style: TextStyle(color: Colors.grey, fontSize: 16)),
+      );
+    } else {
+      content = switch (state.viewMode) {
+        FileViewMode.grid => buildGrid(),
+        FileViewMode.list => buildList(),
+      };
     }
 
     if (!isNarrow) {

@@ -1,21 +1,27 @@
+import 'package:domain/model/preferences/file_view_mode.dart';
 import 'package:domain/model/ssh/pinned_folder.dart';
 import 'package:feature_file_explorer/presentation/component/pinned_folders_menu.dart';
 import 'package:feature_file_explorer/util/path_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:ui/component/title_header.dart';
+import 'package:ui/icons/file_view_mode_icon.dart';
 import 'package:ui/screen_format/screen_format_helper.dart';
+import 'package:ui/texts/file_view_mode_text.dart';
 
 class FileExplorerTopBar extends StatelessWidget {
   final String currentPath;
   final List<PinnedFolder> pinnedFolders;
   final bool isPinned;
   final bool showHidden;
+  final FileViewMode viewMode;
+
   final Function() onPin;
   final Function() navigateRoot;
   final Function() navigateUp;
   final Function(String) navigateTo;
   final Function() toggleHiddenFiles;
+  final Function(FileViewMode) selectViewMode;
   final Function(String) onUnpin;
   final Function(String, String) onFolderRename;
 
@@ -25,11 +31,13 @@ class FileExplorerTopBar extends StatelessWidget {
     required this.pinnedFolders,
     required this.isPinned,
     required this.showHidden,
+    required this.viewMode,
     required this.onPin,
     required this.navigateRoot,
     required this.navigateUp,
     required this.navigateTo,
     required this.toggleHiddenFiles,
+    required this.selectViewMode,
     required this.onUnpin,
     required this.onFolderRename
   });
@@ -89,6 +97,33 @@ class FileExplorerTopBar extends StatelessWidget {
     return Row(
       spacing: 4,
       children: [
+        MenuAnchor(
+          builder: (context, controller, child) {
+            return _TopBarButton(
+              icon: viewMode.getIcon(),
+              onTap: () => controller.open(),
+            );
+          },
+          menuChildren: FileViewMode.values.map((fileViewMode) =>
+            MenuItemButton(
+              onPressed: () => selectViewMode(fileViewMode),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 6,
+                  children: [
+                    Icon(
+                      fileViewMode.getIcon(),
+                      size: 20,
+                    ),
+                    Text(fileViewMode.getText())
+                  ],
+                ),
+              ),
+            )
+          ).toList()
+        ),
         _TopBarButton(
           on: showHidden,
           icon: LucideIcons.eye,
