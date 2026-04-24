@@ -55,6 +55,8 @@ class FileExplorerViewModel extends ChangeNotifier {
                 _pinUnpinFolder(event.path);
             case RenamePinnedFolder():
                 _renamePinnedFolder(path: event.path, newAlias: event.newAlias);
+            case EditPinnedFolderIcon():
+                _updatePinnedFolderIcon(path: event.path, newIcon: event.newIcon);
         }
     }
 
@@ -126,6 +128,10 @@ class FileExplorerViewModel extends ChangeNotifier {
 
     Future<void> _renamePinnedFolder({required String path, required String newAlias}) async {
         await _useCases.renamePinnedFolderUseCase.execute(path, newAlias);
+    }
+
+    Future<void> _updatePinnedFolderIcon({required String path, required int? newIcon}) async {
+        await _useCases.changePinnedFolderIconUseCase.execute(path, newIcon);
     }
 
     void _selectViewMode(FileViewMode viewMode) {

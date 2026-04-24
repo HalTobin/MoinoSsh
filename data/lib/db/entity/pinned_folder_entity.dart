@@ -8,4 +8,5 @@ class PinnedFolder extends Table {
     TextColumn get path => text()();
     TextColumn get alias => text().nullable()();
     IntColumn get customIndex => integer()();
+    IntColumn get iconId => integer().nullable()();
 }

@@ -47,6 +47,7 @@ class FileExplorerScreen extends StatelessWidget {
                   selectViewMode: (viewMode) => onEvent(SelectViewMode(viewMode: viewMode)),
                   onUnpin: (path) => onEvent(OpenFolder(folderPath: path)),
                   onFolderRename: (path, newAlias) => onEvent(RenamePinnedFolder(path: path, newAlias: newAlias)),
+                  onEditFolderIcon: (path, newIcon) => onEvent(EditPinnedFolderIcon(path: path, newIcon: newIcon)),
                 ),
                 Expanded(
                   child: _buildBody(context, visibleFiles),
@@ -136,6 +137,7 @@ class FileExplorerScreen extends StatelessWidget {
               onFolderTap: (path) => onEvent(OpenFolder(folderPath: path)),
               onUnpin: (path) => onEvent(PinUnpinEvent(path: path)),
               onFolderRename: (path, alias) => onEvent(RenamePinnedFolder(path: path, newAlias: alias)),
+              onIconEdit: (path, icon) => onEvent(EditPinnedFolderIcon(path: path, newIcon: icon)),
             ),
           ),
           const VerticalDivider(width: 1, thickness: 1),

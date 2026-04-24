@@ -1,8 +1,11 @@
+import 'package:domain/model/moino_ssh_icon.dart';
 import 'package:domain/model/ssh/pinned_folder.dart';
 import 'package:feature_file_explorer/presentation/component/rename_dialog.dart';
 import 'package:feature_file_explorer/presentation/component/unpin_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:ui/icons/icon_select_dialog.dart';
+import 'package:ui/icons/moino_ssh_icon_data.dart';
 
 class PinnedFoldersMenu extends StatelessWidget {
   final String? currentPath;
@@ -10,6 +13,7 @@ class PinnedFoldersMenu extends StatelessWidget {
   final Function(String) onFolderTap;
   final Function(String) onUnpin;
   final Function(String, String) onFolderRename;
+  final Function(String, int?) onIconEdit;
 
   const PinnedFoldersMenu({
     super.key,
@@ -17,12 +21,14 @@ class PinnedFoldersMenu extends StatelessWidget {
     required this.folders,
     required this.onFolderTap,
     required this.onUnpin,
-    required this.onFolderRename
+    required this.onFolderRename,
+    required this.onIconEdit
   });
 
   List<Widget> buildMenu({
     required PinnedFolder folder,
     required Function(PinnedFolder) onEdit,
+    required Function(PinnedFolder) onEditIcon,
     required Function(PinnedFolder) onUnpin
   }) {
     return [
@@ -30,7 +36,14 @@ class PinnedFoldersMenu extends StatelessWidget {
         onPressed: () => onEdit(folder),
         child: Padding(
           padding: EdgeInsetsGeometry.symmetric(horizontal: 12),
-          child: const Text("Edit"),
+          child: const Text("Rename"),
+        ),
+      ),
+      MenuItemButton(
+        onPressed: () => onEditIcon(folder),
+        child: Padding(
+          padding: EdgeInsetsGeometry.symmetric(horizontal: 12),
+          child: const Text("Edit icon"),
         ),
       ),
       MenuItemButton(
@@ -66,6 +79,22 @@ class PinnedFoldersMenu extends StatelessWidget {
       );
     }
 
+    void editIconRequest({required String path, required int? iconId}) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return IconSelectDialog(
+            initialSelection: iconId,
+            onSelect: (newIcon) {
+              onIconEdit(path, newIcon);
+              Navigator.of(context).pop();
+            },
+            onDismiss: () => Navigator.of(context).pop()
+          );
+        }
+      );
+    }
+
     void unpinRequest({required String path}) {
       showDialog(
         context: context,
@@ -94,6 +123,7 @@ class PinnedFoldersMenu extends StatelessWidget {
           final String title = folder.alias ?? folder.path;
           final String? subtitle = folder.alias != null ? folder.path : null;
           final bool isSelected = currentPath == folder.path;
+          final IconData icon = folder.iconId != null ? MoinoSshIcon.findById(folder.iconId)?.icon ?? LucideIcons.folder : LucideIcons.folder;
 
           return MenuAnchor(
             alignmentOffset: Offset(12, 0),
@@ -106,7 +136,7 @@ class PinnedFoldersMenu extends StatelessWidget {
                   selected: isSelected,
                   selectedTileColor: colorScheme.primaryContainer.withValues(alpha: 0.6),
                   selectedColor: colorScheme.onPrimaryContainer,
-                  leading: const Icon(Icons.folder_outlined, size: 20),
+                  leading: Icon(icon, size: 20),
                   title: Text(
                     title,
                     maxLines: 1,
@@ -128,6 +158,7 @@ class PinnedFoldersMenu extends StatelessWidget {
             menuChildren: buildMenu(
               folder: folder,
               onEdit: (folder) => renameRequest(path: folder.path, alias: folder.alias),
+              onEditIcon: (folder) => editIconRequest(path: folder.path, iconId: folder.iconId),
               onUnpin: (folder) => unpinRequest(path: folder.path)
             ),
           );

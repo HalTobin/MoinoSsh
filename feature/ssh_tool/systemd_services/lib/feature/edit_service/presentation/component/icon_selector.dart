@@ -1,12 +1,12 @@
+import 'package:domain/model/moino_ssh_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:ui/component/shaking_widget.dart';
-
-import '../../../../data/icon_set.dart';
+import 'package:ui/icons/moino_ssh_icon_data.dart';
 
 class IconSelector extends StatelessWidget {
   final int currentIconId;
-  final List<ServiceIconType> iconSets;
-  final void Function(ServiceIconType?) onIconSelected;
+  final List<MoinoSshIcon> iconSets;
+  final void Function(MoinoSshIcon?) onIconSelected;
   final bool deleteMode;
   final int lines;
 

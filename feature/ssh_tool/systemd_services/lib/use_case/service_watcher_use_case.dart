@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:domain/model/moino_ssh_icon.dart';
 import 'package:domain/model/ssh/favorite_service.dart';
 import 'package:domain/model/response_result.dart';
 import 'package:domain/repository/favorite_service_repository.dart';
@@ -7,8 +8,8 @@ import 'package:domain/repository/server_profile_repository.dart';
 import 'package:domain/service/ssh_client_service.dart';
 import 'package:domain/service/ssh_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:ui/icons/moino_ssh_icon_data.dart';
 
-import '../data/icon_set.dart';
 import '../data/service_presentation.dart';
 import 'notifier/service_status_notifier.dart';
 
@@ -121,7 +122,7 @@ class ServiceWatcherUseCase {
                         favorite: (favorite != null),
                         title: service,
                         alias: favorite?.alias,
-                        icon: ServiceIconType.findById(favorite?.iconId)?.icon
+                        icon: MoinoSshIcon.findById(favorite?.iconId)?.icon
                     );
 
                     result.add(serviceUi);
@@ -140,7 +141,7 @@ class ServiceWatcherUseCase {
             return service.copyWith(
                 favorite: matched != null,
                 alias: matched?.alias,
-                icon: ServiceIconType.findById(matched?.iconId)?.icon,
+                icon: MoinoSshIcon.findById(matched?.iconId)?.icon,
             );
         }).toList();
 

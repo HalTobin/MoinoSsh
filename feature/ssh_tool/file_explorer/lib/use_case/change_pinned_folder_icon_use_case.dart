@@ -3,16 +3,16 @@ import 'package:domain/repository/pinned_folder_repository.dart';
 import 'package:domain/use_case/get_current_server_profile_use_case.dart';
 import 'package:flutter/foundation.dart';
 
-class RenamePinnedFolderUseCase {
+class ChangePinnedFolderIconUseCase {
     final GetCurrentServerProfileUseCase getCurrentServerProfileUseCase;
     final PinnedFolderRepository pinnedFolderRepository;
 
-    const RenamePinnedFolderUseCase({
+    const ChangePinnedFolderIconUseCase({
         required this.getCurrentServerProfileUseCase,
         required this.pinnedFolderRepository
     });
 
-    Future<void> execute(String path, String alias) async {
+    Future<void> execute(String path, int? iconId) async {
         final profile = await getCurrentServerProfileUseCase.execute();
         if (profile == null) {
             if (kDebugMode) {
@@ -23,16 +23,14 @@ class RenamePinnedFolderUseCase {
 
         final pinnedFolder = await pinnedFolderRepository.getByProfileIdAndPath(profile.id, path);
 
-        final newAlias = alias.isEmpty ? null : alias;
-
         if (pinnedFolder != null) {
             final renamedFolder = UpdatePinnedFolder(
                 id: pinnedFolder.id,
                 profileId: pinnedFolder.profileId,
                 path: path,
-                alias: newAlias,
+                alias: pinnedFolder.alias,
                 customIndex: pinnedFolder.customIndex,
-                iconId: pinnedFolder.iconId
+                iconId: iconId
             );
             pinnedFolderRepository.updateFolder(renamedFolder);
         }
@@ -43,6 +41,6 @@ class RenamePinnedFolderUseCase {
         }
     }
 
-    static final String _tag = "RenamePinnedFolderUseCase";
+    static final String _tag = "ChangePinnedFolderIconUseCase";
 
 }

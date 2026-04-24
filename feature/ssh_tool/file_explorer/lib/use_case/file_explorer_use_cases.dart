@@ -1,3 +1,4 @@
+import 'package:feature_file_explorer/use_case/change_pinned_folder_icon_use_case.dart';
 import 'package:feature_file_explorer/use_case/get_default_show_hidden_use_case.dart';
 import 'package:feature_file_explorer/use_case/get_default_view_mode_use_case.dart';
 import 'package:feature_file_explorer/use_case/pin_unpin_directory_use_case.dart';
@@ -18,6 +19,7 @@ class FileExplorerUseCases {
     final SelectFileUseCase selectFileUseCase;
     final PinUnpinDirectoryUseCase pinUnpinDirectoryUseCase;
     final RenamePinnedFolderUseCase renamePinnedFolderUseCase;
+    final ChangePinnedFolderIconUseCase changePinnedFolderIconUseCase;
 
     FileExplorerUseCases({
         required this.checkDefaultShowHiddenUseCase,
@@ -28,6 +30,7 @@ class FileExplorerUseCases {
         required this.navigateUpUseCase,
         required this.selectFileUseCase,
         required this.pinUnpinDirectoryUseCase,
-        required this.renamePinnedFolderUseCase
+        required this.renamePinnedFolderUseCase,
+        required this.changePinnedFolderIconUseCase
     });
 }

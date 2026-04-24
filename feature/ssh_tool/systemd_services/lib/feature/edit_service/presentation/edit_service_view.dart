@@ -1,9 +1,9 @@
+import 'package:domain/model/moino_ssh_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:ui/component/shaking_widget.dart';
 import 'package:ui/component/title_header.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../../../data/icon_set.dart';
 import 'component/ask_deletion_button.dart';
 import 'component/delete_service_button.dart';
 import 'component/icon_selector.dart';
@@ -117,7 +117,7 @@ class _EditServiceState extends State<EditServiceView> {
             IconSelector(
               deleteMode: widget.state.deleteMode,
               currentIconId: widget.state.iconId,
-              iconSets: ServiceIconType.values,
+              iconSets: MoinoSshIcon.values,
               onIconSelected: (icon) => {
                 widget.onEvent(SelectIcon(iconId: icon?.id))
               }

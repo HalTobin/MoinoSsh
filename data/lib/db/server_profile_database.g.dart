@@ -965,6 +965,15 @@ class $PinnedFolderTable extends PinnedFolder
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _iconIdMeta = const VerificationMeta('iconId');
+  @override
+  late final GeneratedColumn<int> iconId = GeneratedColumn<int>(
+    'icon_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -972,6 +981,7 @@ class $PinnedFolderTable extends PinnedFolder
     path,
     alias,
     customIndex,
+    iconId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1021,6 +1031,12 @@ class $PinnedFolderTable extends PinnedFolder
     } else if (isInserting) {
       context.missing(_customIndexMeta);
     }
+    if (data.containsKey('icon_id')) {
+      context.handle(
+        _iconIdMeta,
+        iconId.isAcceptableOrUnknown(data['icon_id']!, _iconIdMeta),
+      );
+    }
     return context;
   }
 
@@ -1050,6 +1066,10 @@ class $PinnedFolderTable extends PinnedFolder
         DriftSqlType.int,
         data['${effectivePrefix}custom_index'],
       )!,
+      iconId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}icon_id'],
+      ),
     );
   }
 
@@ -1066,12 +1086,14 @@ class PinnedFolderEntity extends DataClass
   final String path;
   final String? alias;
   final int customIndex;
+  final int? iconId;
   const PinnedFolderEntity({
     required this.id,
     required this.profileId,
     required this.path,
     this.alias,
     required this.customIndex,
+    this.iconId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1083,6 +1105,9 @@ class PinnedFolderEntity extends DataClass
       map['alias'] = Variable<String>(alias);
     }
     map['custom_index'] = Variable<int>(customIndex);
+    if (!nullToAbsent || iconId != null) {
+      map['icon_id'] = Variable<int>(iconId);
+    }
     return map;
   }
 
@@ -1095,6 +1120,9 @@ class PinnedFolderEntity extends DataClass
           ? const Value.absent()
           : Value(alias),
       customIndex: Value(customIndex),
+      iconId: iconId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(iconId),
     );
   }
 
@@ -1109,6 +1137,7 @@ class PinnedFolderEntity extends DataClass
       path: serializer.fromJson<String>(json['path']),
       alias: serializer.fromJson<String?>(json['alias']),
       customIndex: serializer.fromJson<int>(json['customIndex']),
+      iconId: serializer.fromJson<int?>(json['iconId']),
     );
   }
   @override
@@ -1120,6 +1149,7 @@ class PinnedFolderEntity extends DataClass
       'path': serializer.toJson<String>(path),
       'alias': serializer.toJson<String?>(alias),
       'customIndex': serializer.toJson<int>(customIndex),
+      'iconId': serializer.toJson<int?>(iconId),
     };
   }
 
@@ -1129,12 +1159,14 @@ class PinnedFolderEntity extends DataClass
     String? path,
     Value<String?> alias = const Value.absent(),
     int? customIndex,
+    Value<int?> iconId = const Value.absent(),
   }) => PinnedFolderEntity(
     id: id ?? this.id,
     profileId: profileId ?? this.profileId,
     path: path ?? this.path,
     alias: alias.present ? alias.value : this.alias,
     customIndex: customIndex ?? this.customIndex,
+    iconId: iconId.present ? iconId.value : this.iconId,
   );
   PinnedFolderEntity copyWithCompanion(PinnedFolderCompanion data) {
     return PinnedFolderEntity(
@@ -1145,6 +1177,7 @@ class PinnedFolderEntity extends DataClass
       customIndex: data.customIndex.present
           ? data.customIndex.value
           : this.customIndex,
+      iconId: data.iconId.present ? data.iconId.value : this.iconId,
     );
   }
 
@@ -1155,13 +1188,15 @@ class PinnedFolderEntity extends DataClass
           ..write('profileId: $profileId, ')
           ..write('path: $path, ')
           ..write('alias: $alias, ')
-          ..write('customIndex: $customIndex')
+          ..write('customIndex: $customIndex, ')
+          ..write('iconId: $iconId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, profileId, path, alias, customIndex);
+  int get hashCode =>
+      Object.hash(id, profileId, path, alias, customIndex, iconId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1170,7 +1205,8 @@ class PinnedFolderEntity extends DataClass
           other.profileId == this.profileId &&
           other.path == this.path &&
           other.alias == this.alias &&
-          other.customIndex == this.customIndex);
+          other.customIndex == this.customIndex &&
+          other.iconId == this.iconId);
 }
 
 class PinnedFolderCompanion extends UpdateCompanion<PinnedFolderEntity> {
@@ -1179,12 +1215,14 @@ class PinnedFolderCompanion extends UpdateCompanion<PinnedFolderEntity> {
   final Value<String> path;
   final Value<String?> alias;
   final Value<int> customIndex;
+  final Value<int?> iconId;
   const PinnedFolderCompanion({
     this.id = const Value.absent(),
     this.profileId = const Value.absent(),
     this.path = const Value.absent(),
     this.alias = const Value.absent(),
     this.customIndex = const Value.absent(),
+    this.iconId = const Value.absent(),
   });
   PinnedFolderCompanion.insert({
     this.id = const Value.absent(),
@@ -1192,6 +1230,7 @@ class PinnedFolderCompanion extends UpdateCompanion<PinnedFolderEntity> {
     required String path,
     this.alias = const Value.absent(),
     required int customIndex,
+    this.iconId = const Value.absent(),
   }) : profileId = Value(profileId),
        path = Value(path),
        customIndex = Value(customIndex);
@@ -1201,6 +1240,7 @@ class PinnedFolderCompanion extends UpdateCompanion<PinnedFolderEntity> {
     Expression<String>? path,
     Expression<String>? alias,
     Expression<int>? customIndex,
+    Expression<int>? iconId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1208,6 +1248,7 @@ class PinnedFolderCompanion extends UpdateCompanion<PinnedFolderEntity> {
       if (path != null) 'path': path,
       if (alias != null) 'alias': alias,
       if (customIndex != null) 'custom_index': customIndex,
+      if (iconId != null) 'icon_id': iconId,
     });
   }
 
@@ -1217,6 +1258,7 @@ class PinnedFolderCompanion extends UpdateCompanion<PinnedFolderEntity> {
     Value<String>? path,
     Value<String?>? alias,
     Value<int>? customIndex,
+    Value<int?>? iconId,
   }) {
     return PinnedFolderCompanion(
       id: id ?? this.id,
@@ -1224,6 +1266,7 @@ class PinnedFolderCompanion extends UpdateCompanion<PinnedFolderEntity> {
       path: path ?? this.path,
       alias: alias ?? this.alias,
       customIndex: customIndex ?? this.customIndex,
+      iconId: iconId ?? this.iconId,
     );
   }
 
@@ -1245,6 +1288,9 @@ class PinnedFolderCompanion extends UpdateCompanion<PinnedFolderEntity> {
     if (customIndex.present) {
       map['custom_index'] = Variable<int>(customIndex.value);
     }
+    if (iconId.present) {
+      map['icon_id'] = Variable<int>(iconId.value);
+    }
     return map;
   }
 
@@ -1255,7 +1301,8 @@ class PinnedFolderCompanion extends UpdateCompanion<PinnedFolderEntity> {
           ..write('profileId: $profileId, ')
           ..write('path: $path, ')
           ..write('alias: $alias, ')
-          ..write('customIndex: $customIndex')
+          ..write('customIndex: $customIndex, ')
+          ..write('iconId: $iconId')
           ..write(')'))
         .toString();
   }
@@ -2101,6 +2148,7 @@ typedef $$PinnedFolderTableCreateCompanionBuilder =
       required String path,
       Value<String?> alias,
       required int customIndex,
+      Value<int?> iconId,
     });
 typedef $$PinnedFolderTableUpdateCompanionBuilder =
     PinnedFolderCompanion Function({
@@ -2109,6 +2157,7 @@ typedef $$PinnedFolderTableUpdateCompanionBuilder =
       Value<String> path,
       Value<String?> alias,
       Value<int> customIndex,
+      Value<int?> iconId,
     });
 
 final class $$PinnedFolderTableReferences
@@ -2169,6 +2218,11 @@ class $$PinnedFolderTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get iconId => $composableBuilder(
+    column: $table.iconId,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$ServerProfilesTableFilterComposer get profileId {
     final $$ServerProfilesTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -2222,6 +2276,11 @@ class $$PinnedFolderTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get iconId => $composableBuilder(
+    column: $table.iconId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ServerProfilesTableOrderingComposer get profileId {
     final $$ServerProfilesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -2268,6 +2327,9 @@ class $$PinnedFolderTableAnnotationComposer
     column: $table.customIndex,
     builder: (column) => column,
   );
+
+  GeneratedColumn<int> get iconId =>
+      $composableBuilder(column: $table.iconId, builder: (column) => column);
 
   $$ServerProfilesTableAnnotationComposer get profileId {
     final $$ServerProfilesTableAnnotationComposer composer = $composerBuilder(
@@ -2328,12 +2390,14 @@ class $$PinnedFolderTableTableManager
                 Value<String> path = const Value.absent(),
                 Value<String?> alias = const Value.absent(),
                 Value<int> customIndex = const Value.absent(),
+                Value<int?> iconId = const Value.absent(),
               }) => PinnedFolderCompanion(
                 id: id,
                 profileId: profileId,
                 path: path,
                 alias: alias,
                 customIndex: customIndex,
+                iconId: iconId,
               ),
           createCompanionCallback:
               ({
@@ -2342,12 +2406,14 @@ class $$PinnedFolderTableTableManager
                 required String path,
                 Value<String?> alias = const Value.absent(),
                 required int customIndex,
+                Value<int?> iconId = const Value.absent(),
               }) => PinnedFolderCompanion.insert(
                 id: id,
                 profileId: profileId,
                 path: path,
                 alias: alias,
                 customIndex: customIndex,
+                iconId: iconId,
               ),
           withReferenceMapper: (p0) => p0
               .map(

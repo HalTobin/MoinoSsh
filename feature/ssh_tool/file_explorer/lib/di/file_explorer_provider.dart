@@ -1,3 +1,4 @@
+import 'package:feature_file_explorer/use_case/change_pinned_folder_icon_use_case.dart';
 import 'package:feature_file_explorer/use_case/get_default_show_hidden_use_case.dart';
 import 'package:feature_file_explorer/use_case/get_default_view_mode_use_case.dart';
 import 'package:feature_file_explorer/use_case/navigate_to_folder_use_case.dart';
@@ -76,6 +77,14 @@ class FileExplorerProvider extends StatelessWidget {
         ),
         Provider(
           create: (context) => (
+            ChangePinnedFolderIconUseCase(
+              getCurrentServerProfileUseCase: context.read(),
+              pinnedFolderRepository: context.read()
+            )
+          )
+        ),
+        Provider(
+          create: (context) => (
             FileExplorerUseCases(
               checkDefaultShowHiddenUseCase: context.read(),
               getDefaultViewModeUseCase: context.read(),
@@ -85,7 +94,8 @@ class FileExplorerProvider extends StatelessWidget {
               navigateUpUseCase: context.read(),
               selectFileUseCase: context.read(),
               pinUnpinDirectoryUseCase: context.read(),
-              renamePinnedFolderUseCase: context.read()
+              renamePinnedFolderUseCase: context.read(),
+              changePinnedFolderIconUseCase: context.read()
             )
           )
         ),

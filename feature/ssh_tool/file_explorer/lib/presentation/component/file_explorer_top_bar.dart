@@ -24,6 +24,7 @@ class FileExplorerTopBar extends StatelessWidget {
   final Function(FileViewMode) selectViewMode;
   final Function(String) onUnpin;
   final Function(String, String) onFolderRename;
+  final Function(String, int?) onEditFolderIcon;
 
   const FileExplorerTopBar({
     super.key,
@@ -39,7 +40,8 @@ class FileExplorerTopBar extends StatelessWidget {
     required this.toggleHiddenFiles,
     required this.selectViewMode,
     required this.onUnpin,
-    required this.onFolderRename
+    required this.onFolderRename,
+    required this.onEditFolderIcon
   });
   
   Widget _buildPathBar(BuildContext context) {
@@ -232,6 +234,7 @@ class FileExplorerTopBar extends StatelessWidget {
               },
               onUnpin: onUnpin,
               onFolderRename: onFolderRename,
+              onIconEdit: onEditFolderIcon,
             ),
             SizedBox(
               height: 12,

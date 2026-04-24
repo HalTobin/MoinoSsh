@@ -38,7 +38,8 @@ class PinnedFolderRepositoryImpl implements PinnedFolderRepository {
             profileId: folder.profileId,
             path: folder.path,
             alias: folder.alias,
-            customIndex: folder.customIndex
+            customIndex: folder.customIndex,
+            iconId: folder.iconId
         );
         return await _dao.updateFolder(entity);
     }
@@ -90,6 +91,7 @@ extension on PinnedFolderEntity {
             profileId: this.profileId,
             path: this.path,
             alias: this.alias,
-            customIndex: this.customIndex
+            customIndex: this.customIndex,
+            iconId: this.iconId
         );
 }

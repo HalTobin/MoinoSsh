@@ -4,13 +4,15 @@ class PinnedFolder {
     final String path;
     final String? alias;
     final int customIndex;
+    final int? iconId;
 
     const PinnedFolder({
         required this.id,
         required this.profileId,
         required this.path,
         required this.alias,
-        required this.customIndex
+        required this.customIndex,
+        required this.iconId
     });
 
     @override
@@ -42,12 +44,14 @@ class UpdatePinnedFolder {
     final String path;
     final String? alias;
     final int customIndex;
+    final int? iconId;
 
     const UpdatePinnedFolder({
         required this.id,
         required this.profileId,
         required this.path,
         required this.alias,
-        required this.customIndex
+        required this.customIndex,
+        required this.iconId
     });
 }

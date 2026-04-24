@@ -41,3 +41,13 @@ class RenamePinnedFolder extends FileExplorerEvent {
         required this.newAlias
     });
 }
+
+class EditPinnedFolderIcon extends FileExplorerEvent {
+    final String path;
+    final int? newIcon;
+
+    EditPinnedFolderIcon({
+        required this.path,
+        required this.newIcon
+    });
+}
