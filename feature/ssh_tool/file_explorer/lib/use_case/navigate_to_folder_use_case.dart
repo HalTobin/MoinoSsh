@@ -1,3 +1,4 @@
+import 'package:domain/model/sftp/remote_file_item.dart';
 import 'package:domain/repository/pinned_folder_repository.dart';
 import 'package:domain/service/sftp_service.dart';
 import 'package:domain/use_case/get_current_server_profile_use_case.dart';
@@ -16,7 +17,7 @@ class NavigateToFolderUseCase {
         required this.pinnedFolderRepository
     });
 
-    Future<NavigationResult?> execute(String path) async {
+    Future<NavigationResult> execute(String path) async {
         final profile = await getCurrentServerProfileUseCase.execute();
         bool isPinned = false;
         if (profile != null) {
@@ -26,38 +27,51 @@ class NavigateToFolderUseCase {
             }
         }
 
-        final files = await sftpService.listDirectory(path);
+        final listResult = await sftpService.listDirectory(path);
 
-        final entries = files.map((file) {
-            final isHidden = file.name.startsWith('.');
-            final fullPath = "$path/${file.name}".replaceAll('//', '/');
+        switch (listResult) {
+            case ListFileSuccess(): {
+                final entries = listResult.files.map((file) {
+                    final isHidden = file.name.startsWith('.');
+                    final fullPath = "$path/${file.name}".replaceAll('//', '/');
 
-            if (file.isDirectory) {
-                return Folder(
-                    path: fullPath,
-                    isHidden: isHidden,
-                );
-            } else {
-                return File(
-                    path: fullPath,
-                    size: file.size,
-                    isHidden: isHidden,
-                    type: FileType.fromPath(file.name),
+                    if (file.isDirectory) {
+                        return Folder(
+                            path: fullPath,
+                            isHidden: isHidden,
+                        );
+                    } else {
+                        return File(
+                            path: fullPath,
+                            size: file.size,
+                            isHidden: isHidden,
+                            type: FileType.fromPath(file.name),
+                        );
+                    }
+                }).toList();
+
+                entries.sort((a, b) {
+                    if (a is Folder && b is File) return -1;
+                    if (a is File && b is Folder) return 1;
+                    return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+                });
+
+                return NavigationResult(
+                    destinationPath: path,
+                    content: entries,
+                    isPinned: isPinned,
+                    error: null
                 );
             }
-        }).toList();
-
-        entries.sort((a, b) {
-            if (a is Folder && b is File) return -1;
-            if (a is File && b is Folder) return 1;
-            return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-        });
-
-        return NavigationResult(
-            destinationPath: path,
-            content: entries,
-            isPinned: isPinned
-        );
+            case ListFileFail(): {
+                return NavigationResult(
+                    destinationPath: path,
+                    content: [],
+                    isPinned: isPinned,
+                    error: listResult.errorMessage
+                );
+            }
+        }
     }
 
 }

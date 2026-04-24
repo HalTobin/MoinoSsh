@@ -6,7 +6,7 @@ import '../../util/size_helper.dart';
 
 class FileEntryItem extends StatelessWidget {
   final FileEntry file;
-  final Function() onClick;
+  final Function()? onClick;
 
   const FileEntryItem({
     super.key,

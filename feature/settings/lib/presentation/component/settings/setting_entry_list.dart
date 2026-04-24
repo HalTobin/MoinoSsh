@@ -48,36 +48,39 @@ class SettingEntryList extends StatelessWidget {
       builder: (context) {
         return AppDialogLayout(
           padding: const EdgeInsets.all(4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const SizedBox(width: 48),
-                  Text(label, style: Theme.of(context).textTheme.titleLarge),
-                  IconButton(
-                    icon: const Icon(LucideIcons.x),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              RadioGroup<String>(
-                groupValue: selection.identifier,
-                onChanged: (value) {
-                  final newEntry = entries.firstWhere((e) => e.identifier == value);
-                  onChanged(newEntry);
-                  Navigator.pop(context);
-                },
-                child: Column(
-                  children: entries.map((entry) => RadioListTile<String>(
-                    value: entry.identifier,
-                    title: Text(entry.text),
-                  )).toList(),
+          child: SizedBox(
+            width: 386,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const SizedBox(width: 48),
+                    Text(label, style: Theme.of(context).textTheme.titleLarge),
+                    IconButton(
+                      icon: const Icon(LucideIcons.x),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
                 ),
-              )
-            ],
+                const SizedBox(height: 8),
+                RadioGroup<String>(
+                  groupValue: selection.identifier,
+                  onChanged: (value) {
+                    final newEntry = entries.firstWhere((e) => e.identifier == value);
+                    onChanged(newEntry);
+                    Navigator.pop(context);
+                  },
+                  child: Column(
+                    children: entries.map((entry) => RadioListTile<String>(
+                      value: entry.identifier,
+                      title: Text(entry.text),
+                    )).toList(),
+                  ),
+                )
+              ],
+            ),
           )
         );
       }

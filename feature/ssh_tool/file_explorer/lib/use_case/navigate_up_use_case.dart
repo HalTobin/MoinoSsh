@@ -13,7 +13,7 @@ class NavigateUpUseCase {
         required this.pinnedFolderRepository
     });
 
-    Future<NavigationResult?> execute(String path) async {
+    Future<NavigationResult> execute(String path) async {
         final String parentPath = p.dirname(path);
         if (parentPath == path) {
             return await navigateToFolderUseCase.execute(path);

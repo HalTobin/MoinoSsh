@@ -34,14 +34,14 @@ class SftpServiceImpl implements SftpService {
     }
 
     @override
-    Future<List<RemoteFileItem>> listDirectory(String path) async {
+    Future<ListFileResult> listDirectory(String path) async {
         final sftp = await getSftpClient();
         if (kDebugMode) {
             print("Listing: $path");
         }
         if (sftp == null) {
             if (kDebugMode) print("Cannot list directory: SFTP client is null");
-            return [];
+            return ListFileFail(errorMessage: "SFTP client is null");
         }
 
         try {
@@ -67,10 +67,10 @@ class SftpServiceImpl implements SftpService {
                 );
             }
 
-            return items;
+            return ListFileSuccess(files: items);
         } catch (e) {
             if (kDebugMode) print("Error listing directory $path: $e");
-            rethrow;
+            return ListFileFail(errorMessage: "ERROR: $e");
         }
     }
 

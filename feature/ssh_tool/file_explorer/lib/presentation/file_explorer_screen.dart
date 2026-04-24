@@ -1,4 +1,5 @@
 import 'package:domain/model/preferences/file_view_mode.dart';
+import 'package:feature_file_explorer/presentation/component/folder_warning.dart';
 import 'package:feature_file_explorer/presentation/component/pinned_folders_menu.dart';
 import 'package:feature_file_explorer/presentation/file_explorer_event.dart';
 import 'package:flutter/material.dart';
@@ -60,47 +61,51 @@ class FileExplorerScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context, List<FileEntry> visibleFiles) {
-    Widget content;
-
-    Widget buildGrid() {
-      return GridView.builder(
-        padding: const EdgeInsets.all(8),
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 280,
-          childAspectRatio: 3.5,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-        ),
-        itemCount: visibleFiles.length,
-        itemBuilder: (context, index) {
-          final file = visibleFiles[index];
-          return Card(
-            elevation: 0,
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+  Widget buildGrid(BuildContext context, List<FileEntry> files) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(8),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 280,
+        childAspectRatio: 3.5,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+      ),
+      itemCount: files.length,
+      itemBuilder: (context, index) {
+        final file = files[index];
+        return Card(
+          clipBehavior: Clip.hardEdge,
+          elevation: 0,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+          child: InkWell(
+            onTap: () => onEvent(OpenFolder(folderPath: file.path)),
             child: Center(
               child: FileEntryItem(
                 file: file,
-                onClick: () => onEvent(OpenFolder(folderPath: file.path)),
+                onClick: null,
               ),
             ),
-          );
-        },
-      );
-    }
+          ),
+        );
+      },
+    );
+  }
 
-    Widget buildList() {
-      return ListView.builder(
-        itemCount: visibleFiles.length,
-        itemBuilder: (context, index) {
-          final file = visibleFiles[index];
-          return FileEntryItem(
-            file: file,
-            onClick: () => onEvent(OpenFolder(folderPath: file.path)),
-          );
-        },
-      );
-    }
+  Widget buildList(BuildContext context, List<FileEntry> files) {
+    return ListView.builder(
+      itemCount: files.length,
+      itemBuilder: (context, index) {
+        final file = files[index];
+        return FileEntryItem(
+          file: file,
+          onClick: () => onEvent(OpenFolder(folderPath: file.path)),
+        );
+      },
+    );
+  }
+
+  Widget _buildBody(BuildContext context, List<FileEntry> visibleFiles) {
+    Widget content;
 
     if (state.loading) {
       content = const Center(child: CircularProgressIndicator());
@@ -115,14 +120,22 @@ class FileExplorerScreen extends StatelessWidget {
           ],
         ),
       );
+    } else if (state.fileListError.isNotEmpty) {
+      content = FolderWarning(
+        icon: LucideIcons.folderX200,
+        text: "Can't open this directory!\n${state.fileListError}",
+        color: Theme.of(context).colorScheme.error
+      );
     } else if (visibleFiles.isEmpty) {
-      content = const Center(
-        child: Text('This directory is empty.', style: TextStyle(color: Colors.grey, fontSize: 16)),
+      content = FolderWarning(
+        icon: LucideIcons.folderOpen200,
+        text: 'This directory is empty.',
+        color: Colors.grey
       );
     } else {
       content = switch (state.viewMode) {
-        FileViewMode.grid => buildGrid(),
-        FileViewMode.list => buildList(),
+        FileViewMode.grid => buildGrid(context, visibleFiles),
+        FileViewMode.list => buildList(context, visibleFiles),
       };
     }
 

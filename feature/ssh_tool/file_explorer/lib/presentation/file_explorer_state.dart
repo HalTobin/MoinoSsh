@@ -8,6 +8,7 @@ class FileExplorerState {
     final String currentPath;
     final bool isPinned;
     final List<FileEntry> files;
+    final String fileListError;
     final List<PinnedFolder> pinnedFolders;
     final bool loading;
     final String error;
@@ -18,6 +19,7 @@ class FileExplorerState {
         this.currentPath = "/",
         this.isPinned = false,
         this.files = const [],
+        this.fileListError = "",
         this.pinnedFolders = const [],
         this.loading = false,
         this.error = "",
@@ -29,6 +31,7 @@ class FileExplorerState {
         String? currentPath,
         bool? isPinned,
         List<FileEntry>? files,
+        String? fileListError,
         List<PinnedFolder>? pinnedFolders,
         bool? loading,
         String? error,
@@ -39,6 +42,7 @@ class FileExplorerState {
             currentPath: currentPath ?? this.currentPath,
             isPinned: isPinned ?? this.isPinned,
             files: files ?? this.files,
+            fileListError: fileListError ?? this.fileListError,
             pinnedFolders: pinnedFolders ?? this.pinnedFolders,
             loading: loading ?? this.loading,
             error: error ?? this.error,

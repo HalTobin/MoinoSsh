@@ -15,3 +15,17 @@ class RemoteFileItem {
 
     bool get isHidden => name.startsWith('.');
 }
+
+sealed class ListFileResult {}
+
+class ListFileSuccess extends ListFileResult {
+    final List<RemoteFileItem> files;
+
+    ListFileSuccess({required this.files});
+}
+
+class ListFileFail extends ListFileResult {
+    final String errorMessage;
+
+    ListFileFail({required this.errorMessage});
+}

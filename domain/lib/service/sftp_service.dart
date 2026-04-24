@@ -2,7 +2,7 @@ import 'package:domain/model/sftp/remote_file_item.dart';
 
 abstract interface class SftpService {
 
-    Future<List<RemoteFileItem>> listDirectory(String path);
+    Future<ListFileResult> listDirectory(String path);
 
     Future<void> closeSession();
 

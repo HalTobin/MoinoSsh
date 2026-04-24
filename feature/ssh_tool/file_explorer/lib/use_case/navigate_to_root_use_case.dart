@@ -11,7 +11,7 @@ class NavigateToRootUseCase {
         required this.pinnedFolderRepository
     });
 
-    Future<NavigationResult?> execute() async {
+    Future<NavigationResult> execute() async {
         return await navigateToFolderUseCase.execute("/");
     }
 

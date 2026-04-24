@@ -101,18 +101,14 @@ class FileExplorerViewModel extends ChangeNotifier {
         _handleNavigateResult(result, p.dirname(_state.currentPath));
     }
 
-    Future<void> _handleNavigateResult(NavigationResult? result, String requestedPath) async {
-        if (result != null) {
-            _state = _state.copyWith(
-                loading: false,
-                currentPath: result.destinationPath,
-                files: result.content,
-                isPinned: result.isPinned
-            );
-        }
-        else {
-            _setError("Couldn't navigate to $requestedPath");
-        }
+    Future<void> _handleNavigateResult(NavigationResult result, String requestedPath) async {
+        _state = _state.copyWith(
+            loading: false,
+            currentPath: result.destinationPath,
+            files: result.content,
+            fileListError: result.error ?? "",
+            isPinned: result.isPinned
+        );
         notifyListeners();
     }
 
