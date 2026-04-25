@@ -14,7 +14,7 @@ class MySshKeysView extends StatelessWidget {
   final Function(MySshKeysEvent) onEvent;
   final bool selectionEnable;
 
-  final Function(String?) onSelect;
+  final Function(String?)? onSelect;
   final Function() onDismiss;
 
   const MySshKeysView({
@@ -141,7 +141,7 @@ class _ModalBottomActions extends StatelessWidget {
   final Function(MySshKeysEvent) onEvent;
   final bool isShrink;
 
-  final Function(String?) onKeySelect;
+  final Function(String?)? onKeySelect;
 
   const _ModalBottomActions({
     super.key,
@@ -181,15 +181,16 @@ class _ModalBottomActions extends StatelessWidget {
             stretch: true
           )
         ),
-        wrapButton(
-          AppButton(
-            onClick: () => onKeySelect(state.selectedKeyPath),
-            icon: LucideIcons.key,
-            text: "SELECT",
-            enabled: state.selectedKeyPath != null,
-            stretch: true
+        if (onKeySelect != null)
+          wrapButton(
+            AppButton(
+              onClick: () => onKeySelect?.call(state.selectedKeyPath),
+              icon: LucideIcons.key,
+              text: "SELECT",
+              enabled: state.selectedKeyPath != null,
+              stretch: true
+            )
           )
-        )
       ],
     );
   }

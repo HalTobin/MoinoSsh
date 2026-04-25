@@ -14,10 +14,12 @@ import '../presentation/settings_view_model.dart';
 
 class SettingsProvider extends StatelessWidget {
   final Function() onExit;
+  final Function() openSshKeyView;
 
   const SettingsProvider({
     super.key,
-    required this.onExit
+    required this.onExit,
+    required this.openSshKeyView
   });
 
   @override
@@ -64,6 +66,7 @@ class SettingsProvider extends StatelessWidget {
           state: viewmodel.state,
           onEvent: viewmodel.onEvent,
           onExit: onExit,
+          openSshKeyView: openSshKeyView,
         )
       )
     );

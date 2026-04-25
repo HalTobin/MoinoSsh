@@ -22,11 +22,14 @@ class SettingsScreen extends StatelessWidget {
   final Function(SettingsEvent) onEvent;
   final Function() onExit;
 
+  final Function() openSshKeyView;
+
   const SettingsScreen({
     super.key,
     required this.state,
     required this.onEvent,
-    required this.onExit
+    required this.onExit,
+    required this.openSshKeyView
   });
 
   @override
@@ -110,6 +113,13 @@ class SettingsScreen extends StatelessWidget {
                 onToggle: () => onEvent(ToggleShowHiddenFileByDefault()),
               ),
               SettingEntryAction(
+                icon: LucideIcons.folderKey,
+                trailingIcon: LucideIcons.externalLink,
+                label: "SSH keys",
+                hint: "Manage your imported SSH keys",
+                onPressed: openSshKeyView,
+              ),
+              SettingEntryAction(
                 icon: LucideIcons.rotateCcwKey,
                 trailingIcon: LucideIcons.mousePointerClick,
                 label: "Delete keys and secrets",
@@ -118,7 +128,7 @@ class SettingsScreen extends StatelessWidget {
               ),
               SettingEntryAction(
                 icon: LucideIcons.copyright,
-                trailingIcon: LucideIcons.mousePointerClick,
+                trailingIcon: LucideIcons.externalLink,
                 label: "Licenses",
                 hint: "Check the licenses, this app works thanks to all these projects",
                 onPressed: () => showLicensePage(context: context)

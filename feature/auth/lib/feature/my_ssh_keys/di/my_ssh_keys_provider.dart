@@ -10,7 +10,7 @@ import '../use_case/my_ssh_keys_use_cases.dart';
 import '../use_case/rename_key_use_case.dart';
 
 class MySshKeysProvider extends StatelessWidget {
-  final Function(String?) onKeySelect;
+  final Function(String?)? onKeySelect;
 
   const MySshKeysProvider({
     super.key,
@@ -45,9 +45,9 @@ class MySshKeysProvider extends StatelessWidget {
             state: viewmodel.state,
             onEvent: viewmodel.onEvent,
             selectionEnable: true,
-            onSelect: (String? keyPath) {
-              onKeySelect(keyPath ?? "");
-            },
+            onSelect: (onKeySelect != null)
+              ? (String? keyPath) { onKeySelect?.call(keyPath ?? ""); }
+              : null,
             onDismiss: () => Navigator.pop(context),
           );
         }

@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:domain/service/ssh_client_service.dart';
+import 'package:feature_auth/feature/my_ssh_keys/di/my_ssh_keys_provider.dart';
 import 'package:feature_settings/di/settings_provider.dart';
 import 'package:feature_auth/di/auth_provider.dart';
 import 'package:feature_toolbox/presentation/toolbox_screen.dart';
@@ -121,7 +122,14 @@ class _MainScreenState extends State<MainScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => SettingsProvider(
         onExit: () => Navigator.of(context).pop(),
+        openSshKeyView: () => _navigateToSshKeyView(),
       )),
+    );
+  }
+
+  void _navigateToSshKeyView() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => MySshKeysProvider(onKeySelect: null))
     );
   }
 
