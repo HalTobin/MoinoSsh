@@ -38,6 +38,7 @@ class ConnectionStatusBar extends StatelessWidget implements PreferredSizeWidget
               )
             ]
           ),
+          centerTitle: true,
           title: _StatusBarTitle(
             profile: state.profile,
             isConnected: state.isConnected,
