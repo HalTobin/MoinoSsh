@@ -1,12 +1,7 @@
-import 'package:provider/provider.dart';
 import 'package:feature_auth/feature/my_ssh_keys/di/my_ssh_keys_provider.dart';
-import 'package:feature_auth/feature/my_ssh_keys/presentation/my_ssh_keys_view.dart';
-import 'package:feature_auth/feature/my_ssh_keys/presentation/my_ssh_keys_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:ui/navigation/auto_modal.dart';
-import 'package:ui/screen_format/screen_format_helper.dart';
 
 class SshFilePickerField extends StatelessWidget {
   final bool enable;
@@ -56,36 +51,22 @@ class SshFilePickerField extends StatelessWidget {
           _select(sshFile);
         }
       } else {
-        _showMySshKeyMenu(context, constraints);
+        _navigateToSshMenu(context);
       }
     }
   }
 
-  Future<void> _showMySshKeyMenu(
-    BuildContext context,
-    BoxConstraints constraints,
-  ) async {
-    final bool isShrink = ScreenFormatHelper.isNarrow(constraints);
-    autoModal(
-      context: context,
-      constraints: constraints,
-      child: MySshKeysProvider(
-        child: Consumer<MySshKeysViewModel>(
-          builder: (context, viewmodel, child) {
-            return MySshKeysView(
-              state: viewmodel.state,
-              onEvent: viewmodel.onEvent,
-              isShrink: isShrink,
-              selectionEnable: true,
-              onSelect: (String? keyPath) {
-                _select(keyPath ?? "");
-                Navigator.pop(context);
-              },
-              onDismiss: () => Navigator.pop(context),
-            );
-          }
-        )
-      )
+  Future<void> _navigateToSshMenu(BuildContext context) async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MySshKeysProvider(
+          onKeySelect: (String? keyPath) {
+            _select(keyPath ?? "");
+            Navigator.pop(context);
+          },
+        ),
+      ),
     );
   }
 

@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class AppDialogLayout extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;
+  final double width;
 
   const AppDialogLayout({
     super.key,
-    required this.padding,
-    required this.child
+    this.padding = const EdgeInsets.all(12),
+    required this.child,
+    this.width = 386
   });
 
   @override
@@ -18,7 +20,10 @@ class AppDialogLayout extends StatelessWidget {
       ),
       child: Padding(
         padding: padding,
-        child: child,
+        child: SizedBox(
+          width: width,
+          child: child
+        ),
       )
     );
   }

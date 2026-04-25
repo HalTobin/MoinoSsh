@@ -56,87 +56,83 @@ class _IconSelectDialogState extends State<IconSelectDialog> {
   @override
   Widget build(BuildContext context) {
     return AppDialogLayout(
-      padding: EdgeInsets.all(12),
-      child: SizedBox(
-        width: 386,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 12,
-          children: [
-            TitleHeader(
-              icon: LucideIcons.image,
-              title: "Select an icon",
-              trailingContent: TitleHeaderTrailingContent.dismissable(onDismiss: widget.onDismiss),
-            ),
-            TextFormField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: "Search",
-                border: const OutlineInputBorder()
-              )
-            ),
-            Flexible(
-              child: GridView.builder(
-                shrinkWrap: true,
-                itemCount: _filteredIcons.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 6,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                  childAspectRatio: 1,
-                ),
-                itemBuilder: (context, index) {
-                  final item = _filteredIcons[index];
-                  final isSelected = _currentSelection == item.id;
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 12,
+        children: [
+          TitleHeader(
+            icon: LucideIcons.image,
+            title: "Select an icon",
+            trailingContent: TitleHeaderTrailingContent.dismissable(onDismiss: widget.onDismiss),
+          ),
+          TextFormField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              labelText: "Search",
+              border: const OutlineInputBorder()
+            )
+          ),
+          Flexible(
+            child: GridView.builder(
+              shrinkWrap: true,
+              itemCount: _filteredIcons.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 6,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                childAspectRatio: 1,
+              ),
+              itemBuilder: (context, index) {
+                final item = _filteredIcons[index];
+                final isSelected = _currentSelection == item.id;
 
-                  return InkWell(
-                    onTap: () => _handleSelect(isSelected ? null : item.id),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: isSelected
-                            ? Theme.of(context).colorScheme.primary
-                            : Colors.transparent,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                        color: isSelected
-                          ? Theme.of(context).colorScheme.primaryContainer.withAlpha(50)
-                          : null,
-                      ),
-                      child: Icon(
-                        item.icon,
+                return InkWell(
+                  onTap: () => _handleSelect(isSelected ? null : item.id),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
                         color: isSelected
                           ? Theme.of(context).colorScheme.primary
-                          : null,
+                          : Colors.transparent,
+                        width: 2,
                       ),
+                      borderRadius: BorderRadius.circular(8),
+                      color: isSelected
+                        ? Theme.of(context).colorScheme.primaryContainer.withAlpha(50)
+                        : null,
                     ),
-                  );
-                },
-              ),
+                    child: Icon(
+                      item.icon,
+                      color: isSelected
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+                    ),
+                  ),
+                );
+              },
             ),
-            Row(
-              spacing: 12,
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => widget.onDismiss(),
-                    child: Text("Cancel")
-                  )
-                ),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () => widget.onSelect(_currentSelection),
-                    child: Text("Select")
-                  )
+          ),
+          Row(
+            spacing: 12,
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => widget.onDismiss(),
+                  child: Text("Cancel")
                 )
-              ],
-            )
-          ],
-        ),
-      )
+              ),
+              Expanded(
+                child: FilledButton(
+                  onPressed: () => widget.onSelect(_currentSelection),
+                  child: Text("Select")
+                )
+              )
+            ],
+          )
+        ],
+      ),
     );
   }
 

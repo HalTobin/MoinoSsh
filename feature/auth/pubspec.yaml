@@ -8,6 +8,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+  file_picker:
   lucide_icons_flutter:
   provider:
   domain:

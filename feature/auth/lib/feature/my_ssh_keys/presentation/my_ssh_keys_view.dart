@@ -4,8 +4,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:ui/component/app_button.dart';
 import 'package:ui/component/empty_list.dart';
-import 'package:ui/component/title_header.dart';
-import 'package:ui/navigation/auto_expanded.dart';
 import 'package:ui/screen_format/screen_format_helper.dart';
 
 import 'my_ssh_keys_event.dart';
@@ -14,7 +12,6 @@ import 'my_ssh_keys_state.dart';
 class MySshKeysView extends StatelessWidget {
   final MySshKeysState state;
   final Function(MySshKeysEvent) onEvent;
-  final bool isShrink;
   final bool selectionEnable;
 
   final Function(String?) onSelect;
@@ -24,7 +21,6 @@ class MySshKeysView extends StatelessWidget {
     super.key,
     required this.state,
     required this.onEvent,
-    required this.isShrink,
     required this.selectionEnable,
     required this.onSelect,
     required this.onDismiss
@@ -32,50 +28,62 @@ class MySshKeysView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isNarrow = ScreenFormatHelper.isNarrow(constraints);
-        return Column(
-          spacing: 16,
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(onPressed: onDismiss, icon: const Icon(LucideIcons.arrowLeft)),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 12,
           children: [
-            TitleHeader(
-              icon: LucideIcons.folderKey,
-              title: "My SSH Keys",
-              trailingContent: TitleHeaderTrailingContent.dismissable(onDismiss: onDismiss),
-            ),
-
-            AutoExpanded(
-              isShrink: isShrink,
-              child: AnimatedCrossFade(
-                firstChild: CircularProgressIndicator(),
-                secondChild: AnimatedCrossFade(
-                  crossFadeState: state.keys.isEmpty ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-                  duration: const Duration(milliseconds: 300),
-                  firstChild: _KeyList(
-                    state: state,
-                    onEvent: onEvent,
-                    isShrink: isNarrow,
-                    isBottomSheet: isNarrow,
-                  ),
-                  secondChild: EmptyList(
-                    message: "No profile found",
-                    onAction: null
-                  ),
-                ),
-                crossFadeState: state.loading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-                duration: const Duration(milliseconds: 300)
-              )
-            ),
-
-            _ModalBottomActions(
-              state: state,
-              onEvent: onEvent,
-              isShrink: isShrink,
-              onKeySelect: onSelect
-            )
+            Icon(LucideIcons.folderKey),
+            Text("My SSH keys"),
           ],
-        );
-      }
+        )
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = ScreenFormatHelper.isNarrow(constraints);
+          return Padding(
+            padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
+            child: Column(
+              spacing: 16,
+              children: [
+                Expanded(
+                  child: AnimatedCrossFade(
+                    firstChild: CircularProgressIndicator(),
+                    secondChild: AnimatedCrossFade(
+                      crossFadeState: state.keys.isEmpty ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                      duration: const Duration(milliseconds: 300),
+                      firstChild: _KeyList(
+                        state: state,
+                        onEvent: onEvent,
+                        isShrink: isNarrow,
+                        isBottomSheet: isNarrow,
+                      ),
+                      secondChild: EmptyList(
+                          message: "No profile found",
+                          onAction: null
+                      ),
+                    ),
+                    crossFadeState: state.loading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                    duration: const Duration(milliseconds: 300)
+                  )
+                ),
+
+                _ModalBottomActions(
+                  state: state,
+                  onEvent: onEvent,
+                  isShrink: isNarrow,
+                  onKeySelect: onSelect
+                ),
+
+                SizedBox(height: 8)
+              ],
+            ),
+          );
+        }
+      ),
     );
   }
 }

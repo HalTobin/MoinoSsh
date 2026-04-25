@@ -20,49 +20,45 @@ class RenameDialog extends StatelessWidget {
     final textController = TextEditingController(text: currentAlias);
 
     return AppDialogLayout(
-      padding: EdgeInsets.all(12),
-      child: SizedBox(
-        width: 386,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 12,
-          children: [
-            TitleHeader(
-              icon: LucideIcons.folderPen,
-              title: "Rename folder",
-              trailingContent: TitleHeaderTrailingContent.dismissable(onDismiss: () => onDismiss()),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 12,
+        children: [
+          TitleHeader(
+            icon: LucideIcons.folderPen,
+            title: "Rename folder",
+            trailingContent: TitleHeaderTrailingContent.dismissable(onDismiss: () => onDismiss()),
+          ),
+          TextFormField(
+            controller: textController,
+            decoration: InputDecoration(
+              labelText: "Alias",
+              border: const OutlineInputBorder(),
             ),
-            TextFormField(
-              controller: textController,
-              decoration: InputDecoration(
-                labelText: "Alias",
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              spacing: 12,
-              children: [
-                Expanded(
-                  child: Expanded(
-                    child: TextButton(
-                      onPressed: onDismiss,
-                      child: const Text("Cancel"),
-                    )
-                  ),
-                ),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: () => onRename(textController.text),
-                    label: const Text("Rename"),
-                    icon: const Icon(LucideIcons.pen)
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 12,
+            children: [
+              Expanded(
+                child: Expanded(
+                  child: TextButton(
+                    onPressed: onDismiss,
+                    child: const Text("Cancel"),
                   )
+                ),
+              ),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () => onRename(textController.text),
+                  label: const Text("Rename"),
+                  icon: const Icon(LucideIcons.pen)
                 )
-              ],
-            )
-          ],
-        ),
+              )
+            ],
+          )
+        ],
       )
     );
   }

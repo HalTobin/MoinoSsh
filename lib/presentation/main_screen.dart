@@ -140,7 +140,6 @@ class _MainScreenState extends State<MainScreen> {
       context: context,
       builder: (context) {
         return AppDialogLayout(
-          padding: EdgeInsets.all(12),
           child: PasswordRequiredDialog(
             onPasswordEntered: (password, save) async {
               if (kDebugMode) {

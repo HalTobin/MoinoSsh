@@ -88,7 +88,7 @@ class _MyServersScreenState extends State<MyServersScreen> {
                   onPressed: widget.state.selectedServerId != null
                     ? () {
                       if (widget.state.sshPasswordRequired) {
-                        openPasswordRequest(context, constraints);
+                        openPasswordRequest(context);
                       }
                       else {
                         final method = ConnectWithProfilePasswordMethod.none();
@@ -110,18 +110,11 @@ class _MyServersScreenState extends State<MyServersScreen> {
     );
   }
 
-  void openPasswordRequest(
-    BuildContext context,
-    BoxConstraints constraints
-  ) {
-    final isNarrow = ScreenFormatHelper.isNarrow(constraints);
-    final paddingValue = isNarrow ? 12.0 : 24.0;
-
+  void openPasswordRequest(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) {
         return AppDialogLayout(
-          padding: EdgeInsets.all(paddingValue),
           child: PasswordRequiredDialog(
             onPasswordEntered: (password, save) {
               Navigator.pop(context);

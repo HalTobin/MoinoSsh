@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../presentation/my_ssh_keys_view.dart';
 import '../presentation/my_ssh_keys_view_model.dart';
 import '../use_case/add_key_use_case.dart';
 import '../use_case/delete_key_use_case.dart';
@@ -9,11 +10,11 @@ import '../use_case/my_ssh_keys_use_cases.dart';
 import '../use_case/rename_key_use_case.dart';
 
 class MySshKeysProvider extends StatelessWidget {
-  final Widget child;
+  final Function(String?) onKeySelect;
 
   const MySshKeysProvider({
     super.key,
-    required this.child
+    required this.onKeySelect
   });
 
   @override
@@ -38,7 +39,19 @@ class MySshKeysProvider extends StatelessWidget {
           )
         )
       ],
-      child: child,
+      child: Consumer<MySshKeysViewModel>(
+        builder: (context, viewmodel, child) {
+          return MySshKeysView(
+            state: viewmodel.state,
+            onEvent: viewmodel.onEvent,
+            selectionEnable: true,
+            onSelect: (String? keyPath) {
+              onKeySelect(keyPath ?? "");
+            },
+            onDismiss: () => Navigator.pop(context),
+          );
+        }
+      ),
     );
   }
 

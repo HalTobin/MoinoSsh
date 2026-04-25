@@ -1,11 +1,11 @@
 import 'package:feature_auth/feature/my_ssh_keys/domain/ssh_key_file.dart';
+import 'package:feature_auth/feature/my_ssh_keys/presentation/component/delete_ssh_key_dialog.dart';
+import 'package:feature_auth/feature/my_ssh_keys/presentation/component/rename_ssh_key_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:ui/component/app_dialog_layout.dart';
 import 'package:ui/component/selectable.dart';
-import 'package:ui/component/title_header.dart';
 
-class SshKeyItem extends StatefulWidget {
+class SshKeyItem extends StatelessWidget {
   final SshKeyFile sshKeyFile;
   final bool selected;
   final Function() onClick;
@@ -32,146 +32,48 @@ class SshKeyItem extends StatefulWidget {
   });
 
   @override
-  State<StatefulWidget> createState() => _SshKeyItemState();
-
-}
-
-enum _SshKeyItemInteractionState {
-  idle,
-  editing,
-  deleting
-}
-
-class _SshKeyItemState extends State<SshKeyItem> {
-
-  _SshKeyItemInteractionState state = _SshKeyItemInteractionState.idle;
-  final FocusNode _nameFieldFocusNode = FocusNode();
-  final TextEditingController _nameController = TextEditingController();
-  final FocusNode _deleteFieldFocusNode = FocusNode();
-  final TextEditingController _deleteController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-
-    _nameFieldFocusNode.addListener(() {
-      if (!_nameFieldFocusNode.hasFocus && state == _SshKeyItemInteractionState.editing) {
-        backToIdle();
-      }
-    });
-
-    _deleteFieldFocusNode.addListener(() {
-      if (!_deleteFieldFocusNode.hasFocus && state == _SshKeyItemInteractionState.deleting) {
-        backToIdle();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _nameFieldFocusNode.dispose();
-    _nameController.dispose();
-    super.dispose();
-  }
-
-  void enableRenameMode() {
-    if (!widget.shouldEditDeleteInDialog) {
-      setState(() {
-        _nameController.text = widget.sshKeyFile.name;
-        state = _SshKeyItemInteractionState.editing;
-      });
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _nameFieldFocusNode.requestFocus();
-      });
-    }
-    else {
-      showRenameDialog(context, widget.sshKeyFile.name);
-    }
-  }
-
-  void confirmRename() {
-    setState(() {
-      state = _SshKeyItemInteractionState.idle;
-      widget.onEdit(_nameController.text);
-    });
-  }
-
-  void enableDeleteMode() {
-    if (!widget.shouldEditDeleteInDialog) {
-      setState(() {
-        _deleteController.text = "";
-        state = _SshKeyItemInteractionState.deleting;
-      });
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _deleteFieldFocusNode.requestFocus();
-      });
-    }
-    else {
-      showDeleteDialog(context, widget.sshKeyFile.name);
-    }
-  }
-
-  void backToIdle() {
-    setState(() {
-      state = _SshKeyItemInteractionState.idle;
-    });
-  }
-
-  void confirmDeletion() {
-    setState(() {
-      state = _SshKeyItemInteractionState.idle;
-      if (_deleteController.text == widget.sshKeyFile.name) {
-        widget.onDelete();
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Selectable(
-      selectionEnable: true,
-      selected: widget.selected,
-      onSelect: widget.onClick,
-      child: AnimatedCrossFade(
-        crossFadeState: !widget.editionMode ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-        firstChild: Row(
-          children: [
-            _BaseKeyItem(sshKeyFile: widget.sshKeyFile),
-            const Spacer(),
-            IconButton(
-              icon: const Icon(LucideIcons.ellipsisVertical),
-              onPressed: widget.onEditionMode,
-            )
-          ],
-        ),
-        secondChild: switch (state) {
-          _SshKeyItemInteractionState.idle => Row(
+        selectionEnable: true,
+        selected: selected,
+        onSelect: onClick,
+        child: AnimatedCrossFade(
+          crossFadeState: !editionMode ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+          firstChild: Row(
             children: [
-              _BaseKeyItem(sshKeyFile: widget.sshKeyFile),
+              _BaseKeyItem(sshKeyFile: sshKeyFile),
               const Spacer(),
               IconButton(
-                icon: Icon(
-                  LucideIcons.pen,
-                  color: Colors.orange
-                ),
-                onPressed: enableRenameMode,
-              ),
-              IconButton(
-                icon: Icon(
-                  LucideIcons.trash2,
-                  color: Colors.red
-                ),
-                onPressed: enableDeleteMode,
-              ),
-              IconButton(
-                icon: const Icon(LucideIcons.undo),
-                onPressed: widget.onEditionMode,
+                icon: const Icon(LucideIcons.ellipsisVertical),
+                onPressed: onEditionMode,
               )
             ],
           ),
-          _SshKeyItemInteractionState.editing => Row(
+          secondChild: Row(
+            children: [
+              _BaseKeyItem(sshKeyFile: sshKeyFile),
+              const Spacer(),
+              IconButton(
+                icon: Icon(
+                    LucideIcons.pen,
+                    color: Colors.orange
+                ),
+                onPressed: () => showRenameDialog(context, sshKeyFile.name),
+              ),
+              IconButton(
+                icon: Icon(
+                    LucideIcons.trash2,
+                    color: Colors.red
+                ),
+                onPressed: () => showDeleteDialog(context, sshKeyFile.name),
+              ),
+              IconButton(
+                icon: const Icon(LucideIcons.undo),
+                onPressed: onEditionMode,
+              )
+            ],
+          ),
+          /*_SshKeyItemInteractionState.editing => Row(
             children: [
               const _SshKeyFile(color: Colors.orange),
 
@@ -223,108 +125,43 @@ class _SshKeyItemState extends State<SshKeyItem> {
                 onPressed: backToIdle,
               )
             ],
-          ),
-        },
-        duration: Duration(milliseconds: 300),
-      )
+          ),*/
+          duration: Duration(milliseconds: 300),
+        )
     );
   }
 
   void showRenameDialog(
-    BuildContext context,
-    String textStartState
-  ) {
+      BuildContext context,
+      String textStartState
+      ) {
     showDialog(
       context: context,
       builder: (context) {
-        final nameController = TextEditingController(text: textStartState);
-
-        return AppDialogLayout(
-          padding: EdgeInsets.all(12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 12,
-            children: [
-              TitleHeader(
-                icon: LucideIcons.pen,
-                title: "Rename a key",
-                trailingContent: TitleHeaderTrailingContent.dismissable(
-                  onDismiss: Navigator.of(context).pop
-                ),
-              ),
-              
-              TextFormField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: "New name",
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      widget.onEdit(nameController.text);
-                      Navigator.of(context).pop();
-                    },
-                    icon: Icon(LucideIcons.check)
-                  )
-                ),
-              )
-            ],
-          )
+        return RenameSshKeyDialog(
+          initialName: textStartState,
+          onDismiss: () => Navigator.of(context).pop(),
+          onConfirm: (newName) {
+            Navigator.of(context).pop();
+            onEdit(newName);
+          }
         );
       }
     );
   }
 
-  void showDeleteDialog(
-    BuildContext context,
-    String targetText
-  ) {
+  void showDeleteDialog(BuildContext context, String targetText) {
     showDialog(
       context: context,
-      builder: (context
-    ) {
-      final confirmationController = TextEditingController();
-
-      return AppDialogLayout(
-        padding: EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 12,
-          children: [
-            TitleHeader(
-              icon: LucideIcons.trash2,
-              title: "Delete a key",
-              trailingContent: TitleHeaderTrailingContent.dismissable(
-                onDismiss: Navigator.of(context).pop
-              ),
-            ),
-
-            TextFormField(
-              controller: confirmationController,
-              decoration: InputDecoration(
-                hintText: "Enter: \"${widget.sshKeyFile.name}\" to confirm",
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-                ),
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    if (confirmationController.text == targetText) {
-                      widget.onDelete();
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  icon: Icon(
-                    LucideIcons.trash2,
-                    color: Theme.of(context).colorScheme.error,
-                  )
-                )
-              ),
-            )
-          ],
-        )
-      );
+      builder: (context) {
+        return DeleteSshKeyDialog(
+          textToTarget: targetText,
+          onDelete: () {
+            Navigator.of(context).pop();
+            onDelete();
+          },
+          onDismiss: () => Navigator.of(context).pop(),
+        );
       }
     );
   }
@@ -364,7 +201,7 @@ class _BaseKeyItem extends StatelessWidget {
                 size: 16
               ),
               const Text(
-                "Password required",
+                "Requires a password",
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
                 style: TextStyle(
@@ -378,25 +215,4 @@ class _BaseKeyItem extends StatelessWidget {
     );
   }
 
-}
-
-class _SshKeyFile extends StatelessWidget {
-  final Color? color;
-
-  const _SshKeyFile({
-    super.key,
-    this.color
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Icon(
-        LucideIcons.fileKey,
-        size: 32,
-        color: color
-      )
-    );
-  }
 }
