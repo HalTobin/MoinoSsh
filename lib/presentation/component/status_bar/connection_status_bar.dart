@@ -78,7 +78,7 @@ class _StatusBarTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       spacing: 16,
-      mainAxisSize: MainAxisSize.max,
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (!isNarrow) ...[

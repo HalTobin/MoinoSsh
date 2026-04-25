@@ -5,7 +5,7 @@ import 'package:domain/repository/server_profile_repository.dart';
 import 'package:domain/service/biometrics_service.dart';
 import 'package:domain/service/ssh_client_service.dart';
 
-import '../model/ConnectWithProfilePasswordMethod.dart';
+import '../model/connect_with_profile_password_method.dart';
 
 class AuthFromProfileUseCase {
     AuthFromProfileUseCase({

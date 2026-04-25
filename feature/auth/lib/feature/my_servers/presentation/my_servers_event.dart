@@ -1,18 +1,12 @@
-import '../model/ConnectWithProfilePasswordMethod.dart';
+import 'package:feature_auth/feature/my_servers/model/server_profile_ui.dart';
+
+import '../model/connect_with_profile_password_method.dart';
 
 sealed class MyServersEvent {}
 
-class SelectServer extends MyServersEvent {
-    final int serverProfileId;
-    SelectServer({required this.serverProfileId});
-}
-
-class EditionMode extends MyServersEvent {
-    final int? serverProfileId;
-    EditionMode({required this.serverProfileId});
-}
-
 class ConnectWithProfile extends MyServersEvent {
+    final ServerProfileUi profile;
     final ConnectWithProfilePasswordMethod method;
-    ConnectWithProfile({required this.method});
+
+    ConnectWithProfile({required this.profile, required this.method});
 }

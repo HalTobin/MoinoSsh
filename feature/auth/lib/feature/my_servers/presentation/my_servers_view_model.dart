@@ -1,6 +1,7 @@
 import 'package:domain/model/ssh/connection_status.dart';
+import 'package:feature_auth/feature/my_servers/model/server_profile_ui.dart';
 import 'package:flutter/foundation.dart';
-import '../model/ConnectWithProfilePasswordMethod.dart';
+import '../model/connect_with_profile_password_method.dart';
 import '../use_case/my_servers_use_cases.dart';
 import 'my_servers_event.dart';
 import 'my_servers_state.dart';
@@ -43,59 +44,19 @@ class MyServersViewModel extends ChangeNotifier {
 
     Future<void> onEvent(MyServersEvent event) async {
         switch (event) {
-            case SelectServer():
-                _selectServer(event.serverProfileId);
-            case EditionMode():
-                _editionMode(event.serverProfileId);
             case ConnectWithProfile():
-                _connectWithProfileAndMethod(event.method);
+                _connectWithProfileAndMethod(profile: event.profile, method: event.method);
         }
     }
 
-    Future<void> _selectServer(int serverProfileId) async {
-        if (_state.selectedServerId == serverProfileId) {
-           _state = _state.copyWith(selectedServerId: null, editionServerId: null, sshPasswordRequired: false);
-        }
-        else {
-            try {
-                final serverProfile = _state.servers.firstWhere((element) => element.id == serverProfileId);
-                final bool passwordRequired = await _useCases.checkPasswordRequirementByServerProfileIdUseCase.execute(serverProfileId);
-
-                final bool biometricsAvailable = (serverProfile.securedSshKeyPassword != null);
-                if (kDebugMode) {
-                    print("[MyServersViewModel] Biometrics availability: $biometricsAvailable");
-                }
-                _state = _state.copyWith(
-                    sshPasswordRequired: passwordRequired,
-                    selectedServerId: serverProfileId,
-                    selectedServerHasBiometrics: biometricsAvailable
-                );
-            } catch (e) {
-                if (kDebugMode) {
-                    print("[MyServersViewModel] Error: $e");
-                }
-            }
-        }
-        notifyListeners();
-    }
-
-    Future<void> _editionMode(int? serverProfileId) async {
-        if (serverProfileId == _state.editionServerId) {
-          _state = _state.copyWith(editionServerId: null);
-        } else {
-          _state = _state.copyWith(editionServerId: serverProfileId, selectedServerId: null);
-        }
-        notifyListeners();
-    }
-
-    Future<void> _connectWithProfileAndMethod(ConnectWithProfilePasswordMethod method) async {
-        final succeed = await _useCases.authFromProfileUseCase.execute(_state.selectedServerId!, method) is ConnectionSucceed;
+    Future<void> _connectWithProfileAndMethod({
+        required ServerProfileUi profile,
+        required ConnectWithProfilePasswordMethod method
+    }) async {
+        final succeed = await _useCases.authFromProfileUseCase.execute(profile.id, method) is ConnectionSucceed;
         if (succeed) {
             _state = _state.copyWith(
-                selectedServerId: null,
-                selectedServerHasBiometrics: false,
                 sshPasswordRequired: false,
-                editionServerId: null
             );
         }
     }

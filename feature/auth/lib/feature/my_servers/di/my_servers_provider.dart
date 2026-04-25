@@ -27,7 +27,8 @@ class MyServersProvider extends StatelessWidget {
         Provider(
           create: (context) => (
             WatchServerProfilesUseCase(
-              serverProfileRepository: context.read()
+              serverProfileRepository: context.read(),
+              checkPasswordRequirementByServerProfileIdUseCase: context.read()
             )
           ),
         ),

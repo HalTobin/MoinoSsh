@@ -43,20 +43,7 @@ class ServiceManagerScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         if (state.services.any((s) => s.favorite)) ...[
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              spacing: 8,
-                              children: [
-                                const Icon(LucideIcons.star),
-                                Text(
-                                  "Favorites",
-                                  style: Theme.of(context).textTheme.titleMedium,
-                                )
-                              ],
-                            ),
-                          ),
+                          _ServiceSection(icon: LucideIcons.star, text: "Favorites"),
                           ...state.services
                               .where((s) => s.favorite)
                               .map((service) => ServiceController(
@@ -70,20 +57,7 @@ class ServiceManagerScreen extends StatelessWidget {
                           ],
 
                         if (state.services.any((s) => !s.favorite)) ...[
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              spacing: 8,
-                              children: [
-                                const Icon(LucideIcons.monitorCog),
-                                Text(
-                                  "Others",
-                                  style: Theme.of(context).textTheme.titleMedium,
-                                )
-                              ],
-                            )
-                        ),
+                          _ServiceSection(icon: LucideIcons.monitorCog, text: "All services"),
                         ...state.services
                             .where((s) => !s.favorite)
                             .map((service) => ServiceController(
@@ -136,4 +110,32 @@ class ServiceManagerScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ServiceSection extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _ServiceSection({
+    super.key,
+    required this.icon,
+    required this.text
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(48, 24, 80, 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.start,
+        spacing: 8,
+        children: [
+          Icon(icon),
+          Text(text, style: Theme.of(context).textTheme.titleLarge)
+        ],
+      ),
+    );
+  }
+
 }
