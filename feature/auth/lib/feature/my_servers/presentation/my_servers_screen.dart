@@ -37,19 +37,16 @@ class MyServersScreen extends StatelessWidget {
               Expanded(
                 child: AnimatedCrossFade(
                   firstChild: CircularProgressIndicator(),
-                  secondChild: AnimatedCrossFade(
-                    crossFadeState:state.servers.isEmpty ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-                    duration: const Duration(milliseconds: 300),
-                    firstChild: _ServerList(
+                  secondChild: state.servers.isNotEmpty
+                    ? _ServerList(
                       state: state,
                       onConnect: (profile) => _connect(context: context, profile: profile),
                       onAddEditServer: (profile) => onAddEditServer(profile.id)
-                    ),
-                    secondChild: EmptyList(
+                    )
+                    : EmptyList(
                       message: "No profile found",
                       onAction: () => onAddEditServer(null)
                     ),
-                  ),
                   crossFadeState: state.loading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
                   duration: const Duration(milliseconds: 300)
                 )

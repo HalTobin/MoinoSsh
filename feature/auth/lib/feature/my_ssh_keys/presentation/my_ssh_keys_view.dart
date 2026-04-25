@@ -51,21 +51,20 @@ class MySshKeysView extends StatelessWidget {
               children: [
                 Expanded(
                   child: AnimatedCrossFade(
-                    firstChild: CircularProgressIndicator(),
-                    secondChild: AnimatedCrossFade(
-                      crossFadeState: state.keys.isEmpty ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-                      duration: const Duration(milliseconds: 300),
-                      firstChild: _KeyList(
+                    firstChild: Center(
+                      child: CircularProgressIndicator()
+                    ),
+                    secondChild: state.keys.isNotEmpty
+                      ? _KeyList(
                         state: state,
                         onEvent: onEvent,
                         isShrink: isNarrow,
                         isBottomSheet: isNarrow,
+                      )
+                      : EmptyList(
+                        message: "No profile found",
+                        onAction: null
                       ),
-                      secondChild: EmptyList(
-                          message: "No profile found",
-                          onAction: null
-                      ),
-                    ),
                     crossFadeState: state.loading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
                     duration: const Duration(milliseconds: 300)
                   )
