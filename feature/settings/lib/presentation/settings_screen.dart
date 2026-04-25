@@ -124,7 +124,7 @@ class SettingsScreen extends StatelessWidget {
                 trailingIcon: LucideIcons.mousePointerClick,
                 label: "Delete keys and secrets",
                 hint: "Will delete all data related to biometrics and quick connect",
-                onPressed: () => confirmKeyDeletionModal(context, constraints),
+                onPressed: () => _confirmKeyDeletionModal(context, constraints),
               ),
               SettingEntryAction(
                 icon: LucideIcons.copyright,
@@ -145,7 +145,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void confirmKeyDeletionModal(
+  void _confirmKeyDeletionModal(
     BuildContext context,
     BoxConstraints constraints
   ) {
@@ -156,7 +156,7 @@ class SettingsScreen extends StatelessWidget {
         onClose: () => Navigator.pop(context),
         onConfirm: () {
           Navigator.pop(context);
-          onEvent(DeleteKeys()) ;
+          onEvent(DeleteKeys());
         }
       )
     );

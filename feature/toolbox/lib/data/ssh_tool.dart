@@ -4,7 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 enum SshTool {
     systemd(
         identifier: "systemd",
-        title: "Manage System",
+        title: "System Service",
         icon: LucideIcons.monitorPlay
     ),
     fileExplorer(

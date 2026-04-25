@@ -1,9 +1,11 @@
 import 'package:domain/model/preferences/file_view_mode.dart';
+import 'package:feature_file_explorer/presentation/component/file_details_modal.dart';
 import 'package:feature_file_explorer/presentation/component/folder_warning.dart';
 import 'package:feature_file_explorer/presentation/component/pinned_folders_menu.dart';
 import 'package:feature_file_explorer/presentation/file_explorer_event.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:ui/navigation/auto_modal.dart';
 
 import '../data/file_entry.dart';
 import 'component/file_entry_item.dart';
@@ -51,7 +53,7 @@ class FileExplorerScreen extends StatelessWidget {
                   onEditFolderIcon: (path, newIcon) => onEvent(EditPinnedFolderIcon(path: path, newIcon: newIcon)),
                 ),
                 Expanded(
-                  child: _buildBody(context, visibleFiles),
+                  child: _buildBody(context: context, constraints: constraints, visibleFiles: visibleFiles),
                 ),
               ],
             );
@@ -61,7 +63,11 @@ class FileExplorerScreen extends StatelessWidget {
     );
   }
 
-  Widget buildGrid(BuildContext context, List<FileEntry> files) {
+  Widget _buildGrid({
+    required BuildContext context,
+    required BoxConstraints constraints,
+    required List<FileEntry> files
+  }) {
     return GridView.builder(
       padding: const EdgeInsets.all(8),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -71,14 +77,14 @@ class FileExplorerScreen extends StatelessWidget {
         mainAxisSpacing: 8,
       ),
       itemCount: files.length,
-      itemBuilder: (context, index) {
+      itemBuilder: (gridContext, index) {
         final file = files[index];
         return Card(
           clipBehavior: Clip.hardEdge,
           elevation: 0,
           color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
           child: InkWell(
-            onTap: () => onEvent(OpenFolder(folderPath: file.path)),
+            onTap: () => _onItemTap(context: context, constraints: constraints, file: file),
             child: Center(
               child: FileEntryItem(
                 file: file,
@@ -91,20 +97,28 @@ class FileExplorerScreen extends StatelessWidget {
     );
   }
 
-  Widget buildList(BuildContext context, List<FileEntry> files) {
+  Widget _buildList({
+    required BuildContext context,
+    required BoxConstraints constraints,
+    required List<FileEntry> files
+  }) {
     return ListView.builder(
       itemCount: files.length,
-      itemBuilder: (context, index) {
+      itemBuilder: (listContent, index) {
         final file = files[index];
         return FileEntryItem(
           file: file,
-          onClick: () => onEvent(OpenFolder(folderPath: file.path)),
+          onClick: () => _onItemTap(context: context, constraints: constraints, file: file),
         );
       },
     );
   }
 
-  Widget _buildBody(BuildContext context, List<FileEntry> visibleFiles) {
+  Widget _buildBody({
+    required BuildContext context,
+    required BoxConstraints constraints,
+    required List<FileEntry> visibleFiles
+  }) {
     Widget content;
 
     if (state.loading) {
@@ -134,8 +148,8 @@ class FileExplorerScreen extends StatelessWidget {
       );
     } else {
       content = switch (state.viewMode) {
-        FileViewMode.grid => buildGrid(context, visibleFiles),
-        FileViewMode.list => buildList(context, visibleFiles),
+        FileViewMode.grid => _buildGrid(context: context, constraints: constraints, files: visibleFiles),
+        FileViewMode.list => _buildList(context: context, constraints: constraints, files: visibleFiles),
       };
     }
 
@@ -160,6 +174,26 @@ class FileExplorerScreen extends StatelessWidget {
     }
 
     return content;
+  }
+
+  void _onItemTap({
+    required BuildContext context,
+    required BoxConstraints constraints,
+    required FileEntry file
+  }) {
+    switch (file) {
+      case Folder():
+        onEvent(OpenFolder(folderPath: file.path));
+      case File():
+        autoModal(
+          context: context,
+          constraints: constraints,
+          child: FileDetailsModal(
+            file: file,
+            onDismiss: () => Navigator.pop(context)
+          )
+        );
+    }
   }
 
 }
