@@ -1,6 +1,5 @@
 import 'package:domain/model/server_profile.dart';
 import 'package:domain/model/ssh/connection_status.dart';
-import 'package:domain/repository/preference_repository.dart';
 import 'package:domain/repository/server_profile_repository.dart';
 import 'package:domain/service/biometrics_service.dart';
 import 'package:domain/service/ssh_client_service.dart';
@@ -12,17 +11,14 @@ class AuthFromProfileUseCase {
         required SshClientService sshClientService,
         required ServerProfileRepository serverProfileRepository,
         required BiometricsService biometricsService,
-        required PreferenceRepository preferenceRepository,
     })
         : _sshClientService = sshClientService,
           _serverProfileRepository = serverProfileRepository,
-          _biometricsService = biometricsService,
-          _preferenceRepository = preferenceRepository;
+          _biometricsService = biometricsService;
 
     final SshClientService _sshClientService;
     final ServerProfileRepository _serverProfileRepository;
     final BiometricsService _biometricsService;
-    final PreferenceRepository _preferenceRepository;
 
     Future<ConnectionStatus> execute(
         int serverProfileId,
@@ -44,7 +40,6 @@ class AuthFromProfileUseCase {
                         password: null
                     );
                 case Password(): {
-                    final prefs = await _preferenceRepository.getUserPreferences();
                     final authResult = await _sshClientService.connect(
                         user: profile.user,
                         serverUrl: profile.url,
