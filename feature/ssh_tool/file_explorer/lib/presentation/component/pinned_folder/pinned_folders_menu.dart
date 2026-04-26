@@ -136,7 +136,7 @@ class PinnedFoldersMenu extends StatelessWidget {
                   selected: isSelected,
                   selectedTileColor: colorScheme.primaryContainer.withValues(alpha: 0.6),
                   selectedColor: colorScheme.onPrimaryContainer,
-                  leading: Icon(icon, size: 20),
+                  leading: Icon(icon, size: 24),
                   title: Text(
                     title,
                     maxLines: 1,

@@ -1,7 +1,7 @@
 import 'package:domain/model/preferences/file_view_mode.dart';
 import 'package:feature_file_explorer/presentation/component/file_details_modal.dart';
 import 'package:feature_file_explorer/presentation/component/folder_warning.dart';
-import 'package:feature_file_explorer/presentation/component/pinned_folders_menu.dart';
+import 'package:feature_file_explorer/presentation/component/pinned_folder/pinned_folders_menu.dart';
 import 'package:feature_file_explorer/presentation/file_explorer_event.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';

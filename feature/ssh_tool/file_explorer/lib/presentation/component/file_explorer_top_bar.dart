@@ -1,13 +1,16 @@
 import 'package:domain/model/preferences/file_view_mode.dart';
 import 'package:domain/model/ssh/pinned_folder.dart';
-import 'package:feature_file_explorer/presentation/component/pinned_folders_menu.dart';
+import 'package:feature_file_explorer/presentation/component/pinned_folder/pinned_folder_modal.dart';
 import 'package:feature_file_explorer/util/path_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:provider/provider.dart';
 import 'package:ui/component/title_header.dart';
 import 'package:ui/icons/file_view_mode_icon.dart';
 import 'package:ui/screen_format/screen_format_helper.dart';
 import 'package:ui/texts/file_view_mode_text.dart';
+
+import '../file_explorer_view_model.dart';
 
 class FileExplorerTopBar extends StatelessWidget {
   final String currentPath;
@@ -72,10 +75,10 @@ class FileExplorerTopBar extends StatelessWidget {
     return Row(
       spacing: 4,
       children: [
-        if (isNarrow && pinnedFolders.isNotEmpty)
+        if (isNarrow)
           _TopBarButton(
             icon: LucideIcons.folders,
-            onTap: () => _showMyFolders(context)
+            onTap: () => pinnedFolders.isNotEmpty ? _showMyFolders(context) : null
           ),
         _TopBarButton(
           on: isPinned,
@@ -206,40 +209,13 @@ class FileExplorerTopBar extends StatelessWidget {
   }
 
   void _showMyFolders(BuildContext context) {
-    final padding = 16.0;
+    final viewModel = context.read<FileExplorerViewModel>();
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          spacing: 12,
-          children: [
-            Padding(
-              padding: EdgeInsetsGeometry.directional(top: padding, bottom: 0, start: padding, end: padding/2),
-              child: TitleHeader(
-                icon: LucideIcons.folders,
-                title: "Pinned folders",
-                trailingContent: TitleHeaderTrailingContent.dismissable(
-                  onDismiss: () => Navigator.of(context).pop()
-                ),
-              )
-            ),
-            PinnedFoldersMenu(
-              currentPath: currentPath,
-              folders: pinnedFolders,
-              onFolderTap: (folder) {
-                Navigator.of(context).pop();
-                navigateTo(folder);
-              },
-              onUnpin: onUnpin,
-              onFolderRename: onFolderRename,
-              onIconEdit: onEditFolderIcon,
-            ),
-            SizedBox(
-              height: 12,
-            )
-          ],
+        return ChangeNotifierProvider.value(
+          value: viewModel,
+          child: const PinnedFolderModal(),
         );
       }
     );
