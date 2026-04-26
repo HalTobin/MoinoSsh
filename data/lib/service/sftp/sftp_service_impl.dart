@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dartssh2/dartssh2.dart';
 import 'package:data/service/ssh_client_service_impl.dart';
 import 'package:domain/model/sftp/remote_file_item.dart';
@@ -28,7 +30,7 @@ class SftpServiceImpl implements SftpService {
             return _sftpClient;
         }
         else {
-            if (kDebugMode) print("Cannot get SFTP client: SSHClient is null");
+            if (kDebugMode) print("[$tag] Cannot get SFTP client: SSHClient is null");
             return null;
         }
     }
@@ -119,5 +121,42 @@ class SftpServiceImpl implements SftpService {
         // TODO: implement uploadFile
         throw UnimplementedError();
     }
+
+    @override
+    Future<String?> readFileAsString(String filePath) async {
+        final sftp = await getSftpClient();
+
+        if (sftp == null) {
+            if (kDebugMode) {
+                print("[$tag] SFTP client is null");
+            }
+        }
+
+        final file = await sftp?.open(filePath);
+
+        if (file == null) {
+            if (kDebugMode) {
+                print("[$tag] File at $filePath is null");
+            }
+            return null;
+        }
+
+        try {
+            final List<int> bytes = [];
+            await for (final chunk in file.read()) {
+                bytes.addAll(chunk);
+            }
+            return utf8.decode(bytes);
+        } catch (e) {
+            if (kDebugMode) {
+                print("[$tag] Error reading file at $filePath: $e");
+            }
+            rethrow;
+        } finally {
+            await file.close();
+        }
+    }
+
+    static const String tag = "SftpServiceImpl";
 
 }

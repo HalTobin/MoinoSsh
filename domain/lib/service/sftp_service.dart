@@ -16,4 +16,6 @@ abstract interface class SftpService {
 
     Future<bool> uploadFile(String localPath, String remoteTargetPath);
 
+    Future<String?> readFileAsString(String filePath);
+
 }

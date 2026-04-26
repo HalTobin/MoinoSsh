@@ -1,8 +1,10 @@
 import 'package:domain/model/preferences/file_view_mode.dart';
+import 'package:feature_file_explorer/feature/file_content/di/file_content_provider.dart';
 import 'package:feature_file_explorer/presentation/component/file_details_modal.dart';
 import 'package:feature_file_explorer/presentation/component/folder_warning.dart';
 import 'package:feature_file_explorer/presentation/component/pinned_folder/pinned_folders_menu.dart';
 import 'package:feature_file_explorer/presentation/file_explorer_event.dart';
+import 'package:feature_file_explorer/util/path_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:ui/navigation/auto_modal.dart';
@@ -30,37 +32,49 @@ class FileExplorerScreen extends StatelessWidget {
       return state.showHidden || !f.isHidden;
     }).toList();
 
-    return Scaffold(
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Column(
-              children: [
-                FileExplorerTopBar(
-                  currentPath: state.currentPath,
-                  pinnedFolders: state.pinnedFolders,
-                  isPinned: state.isPinned,
-                  showHidden: state.showHidden,
-                  viewMode: state.viewMode,
-                  onPin: () => onEvent(PinUnpinEvent()),
-                  navigateRoot: () => onEvent(NavigateRootEvent()),
-                  navigateUp: () => onEvent(NavigateUpEvent()),
-                  navigateTo: (path) => onEvent(OpenFolder(folderPath: path)),
-                  toggleHiddenFiles: () => onEvent(ToggleHiddenEvent()),
-                  selectViewMode: (viewMode) => onEvent(SelectViewMode(viewMode: viewMode)),
-                  onUnpin: (path) => onEvent(OpenFolder(folderPath: path)),
-                  onFolderRename: (path, newAlias) => onEvent(RenamePinnedFolder(path: path, newAlias: newAlias)),
-                  onEditFolderIcon: (path, newIcon) => onEvent(EditPinnedFolderIcon(path: path, newIcon: newIcon)),
-                ),
-                Expanded(
-                  child: _buildBody(context: context, constraints: constraints, visibleFiles: visibleFiles),
-                ),
-              ],
-            );
-          }
+    return PopScope(
+      canPop: !PathHelper.canNavigateUp(state.currentPath),
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) {
+          return;
+        }
+        else {
+          onEvent(NavigateUpEvent());
+        }
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Column(
+                children: [
+                  FileExplorerTopBar(
+                    currentPath: state.currentPath,
+                    pinnedFolders: state.pinnedFolders,
+                    isPinned: state.isPinned,
+                    showHidden: state.showHidden,
+                    viewMode: state.viewMode,
+                    onPin: () => onEvent(PinUnpinEvent()),
+                    navigateRoot: () => onEvent(NavigateRootEvent()),
+                    navigateUp: () => onEvent(NavigateUpEvent()),
+                    navigateTo: (path) => onEvent(OpenFolder(folderPath: path)),
+                    toggleHiddenFiles: () => onEvent(ToggleHiddenEvent()),
+                    selectViewMode: (viewMode) => onEvent(SelectViewMode(viewMode: viewMode)),
+                    onUnpin: (path) => onEvent(OpenFolder(folderPath: path)),
+                    onFolderRename: (path, newAlias) => onEvent(RenamePinnedFolder(path: path, newAlias: newAlias)),
+                    onEditFolderIcon: (path, newIcon) => onEvent(EditPinnedFolderIcon(path: path, newIcon: newIcon)),
+                  ),
+                  Expanded(
+                    child: _buildBody(context: context, constraints: constraints, visibleFiles: visibleFiles),
+                  ),
+                ],
+              );
+            }
+          ),
         ),
       ),
     );
+
   }
 
   Widget _buildGrid({
@@ -108,7 +122,7 @@ class FileExplorerScreen extends StatelessWidget {
         final file = files[index];
         return FileEntryItem(
           file: file,
-          onClick: () => _onItemTap(context: context, constraints: constraints, file: file),
+          onClick: () => _onItemTap(context: context, constraints: constraints, file: file)
         );
       },
     );
@@ -190,7 +204,18 @@ class FileExplorerScreen extends StatelessWidget {
           constraints: constraints,
           child: FileDetailsModal(
             file: file,
-            onDismiss: () => Navigator.pop(context)
+            onDismiss: () => Navigator.pop(context),
+            openFile: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FileContentProvider(
+                    filePath: file.path,
+                  ),
+                ),
+              );
+            },
           )
         );
     }

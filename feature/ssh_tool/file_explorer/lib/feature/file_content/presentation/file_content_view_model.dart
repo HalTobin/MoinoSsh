@@ -1,12 +1,16 @@
+import 'package:feature_file_explorer/feature/file_content/presentation/file_content_event.dart';
 import 'package:feature_file_explorer/feature/file_content/use_case/file_content_use_cases.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 
 import 'file_content_state.dart';
 
 class FileContentViewModel extends ChangeNotifier {
+    final String filePath;
 
-    FileContentViewModel({required FileContentUseCases fileContentUseCase})
+    FileContentViewModel({
+        required FileContentUseCases fileContentUseCase,
+        required this.filePath
+    })
       : _useCases = fileContentUseCase
     {
         if (kDebugMode) {
@@ -20,6 +24,31 @@ class FileContentViewModel extends ChangeNotifier {
     FileContentState get state => _state;
 
     Future<void> _init() async {
+        final fileName = _useCases.getFileNameFromPathUseCase.execute(filePath);
+        _state = _state.copyWith(fileName: fileName ?? "Error", filePath: filePath);
+        _loadFile(filePath);
+    }
+
+    Future<void> _loadFile(String path) async {
+        final String? text = await _useCases.readFileAsTextUseCase.execute(path);
+        _state = _state.copyWith(content: text);
+        notifyListeners();
+    }
+
+    Future<void> onEvent(FileContentEvent event) async {
+        switch (event) {
+            case FilterContent():
+                _filterContent(event.filter);
+            case SearchContent():
+                _searchContent(event.search);
+        }
+    }
+
+    Future<void> _filterContent(String? filter) async {
+
+    }
+
+    Future<void> _searchContent(String? search) async {
 
     }
 

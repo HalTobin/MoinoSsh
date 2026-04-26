@@ -9,12 +9,14 @@ class FileDetailsModal extends StatelessWidget {
   final File file;
   final Function()? openAsText;
   final Function() onDismiss;
+  final Function()? openFile;
 
   const FileDetailsModal({
     super.key,
     required this.file,
     this.openAsText = null,
-    required this.onDismiss
+    required this.onDismiss,
+    required this.openFile
   });
 
   bool get isOpenable => openAsText != null;
@@ -49,9 +51,9 @@ class FileDetailsModal extends StatelessWidget {
             label: const Text("Open as Text"),
           )
         else
-          const ElevatedButton(
-            onPressed: null,
-            child: Text("Can't open this file"),
+          ElevatedButton(
+            onPressed: openFile,
+            child: Text((openFile != null) ? "Open as text" : "Can't open this file"),
           ),
       ],
     );
