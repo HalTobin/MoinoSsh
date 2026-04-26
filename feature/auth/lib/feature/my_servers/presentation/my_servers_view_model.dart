@@ -53,12 +53,13 @@ class MyServersViewModel extends ChangeNotifier {
         required ServerProfileUi profile,
         required ConnectWithProfilePasswordMethod method
     }) async {
+        _state = _state.copyWith(connecting: true);
+        notifyListeners();
         final succeed = await _useCases.authFromProfileUseCase.execute(profile.id, method) is ConnectionSucceed;
         if (succeed) {
-            _state = _state.copyWith(
-                sshPasswordRequired: false,
-            );
+            _state = _state.copyWith(sshPasswordRequired: false, connecting: false);
         }
+        notifyListeners();
     }
 
 }

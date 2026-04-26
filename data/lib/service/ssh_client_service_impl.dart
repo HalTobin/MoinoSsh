@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:dartssh2/dartssh2.dart';
 import 'package:domain/model/ssh/connection_status.dart';
@@ -40,15 +41,20 @@ class SshClientServiceImpl implements SshClientService {
             }
 
             final port = int.tryParse(serverPort) ?? 22;
-            final key = File(sshFilePath).readAsStringSync();
+            final identities = await Isolate.run(() async {
+                final key = await File(sshFilePath).readAsString();
+                return SSHKeyPair.fromPem(key, password);
+            });
+
             final socket = await SSHSocket.connect(serverUrl, port);
+
             _client = SSHClient(
                 socket,
                 username: user,
-                identities: [
-                  ...SSHKeyPair.fromPem(key, password)
-                ]
+                identities: identities,
             );
+
+            await _client!.authenticated;
 
             profile = SshProfile(
                 url: serverUrl,
@@ -58,6 +64,7 @@ class SshClientServiceImpl implements SshClientService {
 
             _profileController.add(profile);
             return ConnectionSucceed();
+
         } catch (e) {
             if (kDebugMode) {
                 print('SSH connection failed: $e');

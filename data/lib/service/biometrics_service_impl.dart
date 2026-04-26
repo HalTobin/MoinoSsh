@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 import 'package:domain/repository/server_profile_repository.dart';
 import 'package:domain/service/biometrics_service.dart';
 import 'package:flutter/foundation.dart';
@@ -57,25 +59,20 @@ class BiometricsServiceImpl implements BiometricsService {
         final masterKeyBase64 = await _getOrCreateMasterKey('Authenticate to enable Secure SSH');
         if (masterKeyBase64 == null) return null;
 
-        try {
-            final key = enc.Key.fromBase64(masterKeyBase64);
-            // CRITICAL: Always generate a new, random 16-byte IV for every encryption
-            final iv = enc.IV.fromSecureRandom(16);
+        return await Isolate.run(() {
+            try {
+                final key = enc.Key.fromBase64(masterKeyBase64);
+                final iv = enc.IV.fromSecureRandom(16);
 
-            // Use AES in GCM mode (Industry standard for authenticated encryption)
-            final encrypter = enc.Encrypter(enc.AES(key, mode: enc.AESMode.gcm));
+                final encrypter = enc.Encrypter(enc.AES(key, mode: enc.AESMode.gcm));
+                final encrypted = encrypter.encrypt(password, iv: iv);
 
-            final encrypted = encrypter.encrypt(password, iv: iv);
-
-            // We must store BOTH the IV and the ciphertext to decrypt later.
-            // Standard practice is joining them with a delimiter like a colon.
-            final payload = '${iv.base64}:${encrypted.base64}';
-            return payload;
-
-        } catch (e) {
-            if (kDebugMode) print("[BiometricsServiceImpl] Encryption failed: $e");
-            return null;
-        }
+                return '${iv.base64}:${encrypted.base64}';
+            } catch (e) {
+                if (kDebugMode) print("[BiometricsServiceImpl] Encryption failed: $e");
+                return null;
+            }
+        });
     }
 
     @override
@@ -85,23 +82,23 @@ class BiometricsServiceImpl implements BiometricsService {
         final masterKeyBase64 = await _getOrCreateMasterKey('Unlock your SSH Session');
         if (masterKeyBase64 == null) return null;
 
-        try {
-            // Split the payload back into IV and actual ciphertext
-            final parts = ciphertext.split(':');
-            if (parts.length != 2) throw Exception('Invalid ciphertext format');
+        return await Isolate.run(() {
+            try {
+                final parts = ciphertext.split(':');
+                if (parts.length != 2) throw Exception('Invalid ciphertext format');
 
-            final iv = enc.IV.fromBase64(parts[0]);
-            final encryptedText = enc.Encrypted.fromBase64(parts[1]);
-            final key = enc.Key.fromBase64(masterKeyBase64);
+                final iv = enc.IV.fromBase64(parts[0]);
+                final encryptedText = enc.Encrypted.fromBase64(parts[1]);
+                final key = enc.Key.fromBase64(masterKeyBase64);
 
-            final encrypter = enc.Encrypter(enc.AES(key, mode: enc.AESMode.gcm));
+                final encrypter = enc.Encrypter(enc.AES(key, mode: enc.AESMode.gcm));
 
-            return encrypter.decrypt(encryptedText, iv: iv);
-
-        } catch (e) {
-            if (kDebugMode) print("[BiometricsServiceImpl] Decryption failed: $e");
-            return null;
-        }
+                return encrypter.decrypt(encryptedText, iv: iv);
+            } catch (e) {
+                if (kDebugMode) print("[BiometricsServiceImpl] Decryption failed: $e");
+                return null;
+            }
+        });
     }
 
     @override
