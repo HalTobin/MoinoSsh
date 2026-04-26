@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../feature/direct_auth/di/direct_auth_provider.dart';
 import '../../feature/direct_auth/presentation/direct_auth_screen.dart';
 import '../../feature/direct_auth/presentation/direct_auth_viewmodel.dart';
-import 'auth_tab_layout.dart';
 
 class DirectAuthTab extends StatelessWidget {
   const DirectAuthTab({super.key});
@@ -14,11 +13,9 @@ class DirectAuthTab extends StatelessWidget {
     return DirectAuthProvider(
       child: Consumer<DirectAuthViewModel>(
         builder: (context, viewmodel, child) {
-          return AuthTabLayout(
-            child: DirectAuthScreen(
-              state: viewmodel.state,
-              onEvent: viewmodel.onEvent
-            )
+          return DirectAuthScreen(
+            state: viewmodel.state,
+            onEvent: viewmodel.onEvent
           );
         }
       )

@@ -20,16 +20,19 @@ class ServerProfileItem extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final bool isNarrow = constraints.maxWidth < 500;
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12)
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: !isNarrow
-              ? _buildExpandedCard()
-              : _buildNarrowedCard(context)
+        return Padding(
+          padding: EdgeInsetsGeometry.symmetric(horizontal: 12, vertical: 6),
+          child: Card(
+            margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12)
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: !isNarrow
+                ? _buildExpandedCard()
+                : _buildNarrowedCard(context)
+            ),
           ),
         );
       }
