@@ -37,9 +37,9 @@ class FileContentViewModel extends ChangeNotifier {
 
     Future<void> onEvent(FileContentEvent event) async {
         switch (event) {
-            case FilterContent():
+            case FilterContentEvent():
                 _filterContent(event.filter);
-            case SearchContent():
+            case SearchContentEvent():
                 _searchContent(event.search);
         }
     }
@@ -49,7 +49,8 @@ class FileContentViewModel extends ChangeNotifier {
     }
 
     Future<void> _searchContent(String? search) async {
-
+        _state = _state.copyWith(searchQuery: search);
+        notifyListeners();
     }
 
     static final String tag = "FileContentViewModel";

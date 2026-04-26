@@ -38,7 +38,8 @@ class FileContentProvider extends StatelessWidget {
       child: Consumer<FileContentViewModel>(
         builder: (builder, viewmodel, child) {
           return FileContentScreen(
-            state: viewmodel.state
+            state: viewmodel.state,
+            onEvent: viewmodel.onEvent,
           );
         }
       )

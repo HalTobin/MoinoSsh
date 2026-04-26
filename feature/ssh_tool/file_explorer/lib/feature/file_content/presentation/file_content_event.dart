@@ -1,13 +1,13 @@
 sealed class FileContentEvent {}
 
-class FilterContent extends FileContentEvent {
+class FilterContentEvent extends FileContentEvent {
     final String? filter;
 
-    FilterContent({required this.filter});
+    FilterContentEvent({required this.filter});
 }
 
-class SearchContent extends FileContentEvent {
+class SearchContentEvent extends FileContentEvent {
     final String? search;
 
-    SearchContent({required this.search});
+    SearchContentEvent({required this.search});
 }
