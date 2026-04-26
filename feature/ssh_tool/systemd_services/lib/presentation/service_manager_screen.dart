@@ -119,23 +119,41 @@ class _ServiceSection extends StatelessWidget {
   const _ServiceSection({
     super.key,
     required this.icon,
-    required this.text
+    required this.text,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(48, 24, 80, 8),
+      padding: const EdgeInsets.fromLTRB(24, 24, 12, 8),
       child: Row(
         mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.start,
-        spacing: 8,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(icon),
-          Text(text, style: Theme.of(context).textTheme.titleLarge)
+          Icon(
+            icon,
+            color: colorScheme.primary,
+            size: 22,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            text,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Divider(
+              color: colorScheme.outlineVariant,
+              thickness: 1,
+            ),
+          ),
         ],
       ),
     );
   }
-
 }
