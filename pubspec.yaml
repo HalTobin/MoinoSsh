@@ -43,6 +43,7 @@ dependencies:
   drift_flutter: ^0.3.0
   biometric_storage: ^5.0.1
   collection: ^1.19.1
+  url_launcher: ^6.3.2
 
   domain:
     path: domain

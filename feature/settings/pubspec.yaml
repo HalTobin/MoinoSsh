@@ -10,6 +10,7 @@ dependencies:
 
   provider:
   lucide_icons_flutter:
+  url_launcher:
   domain:
     path: ../../domain
   ui:

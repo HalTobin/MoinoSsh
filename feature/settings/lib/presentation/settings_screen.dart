@@ -8,12 +8,14 @@ import 'package:feature_settings/presentation/component/settings/setting_entry_a
 import 'package:feature_settings/presentation/component/settings/setting_entry_info.dart';
 import 'package:feature_settings/presentation/component/settings/setting_entry_list.dart';
 import 'package:feature_settings/presentation/component/settings/setting_entry_toggle.dart';
+import 'package:feature_settings/presentation/component/settings_section.dart';
 import 'package:feature_settings/presentation/util/app_contrast_text.dart';
 import 'package:feature_settings/presentation/util/app_theme_text.dart';
 import 'package:feature_settings/presentation/util/file_view_mode_text.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:ui/navigation/auto_modal.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'settings_state.dart';
 import 'settings_event.dart';
 
@@ -49,6 +51,7 @@ class SettingsScreen extends StatelessWidget {
         builder: (context, constraints) {
           return ListView(
             children: [
+              const SettingSection(title: "Interface"),
               SettingEntryList(
                 icon: LucideIcons.sunMoon,
                 label: "App theme",
@@ -84,6 +87,8 @@ class SettingsScreen extends StatelessWidget {
                 state: state.preferences.materialYou,
                 onToggle: () => onEvent(ToggleMaterialYou()),
               ),
+
+              const SettingSection(title: "File explorer"),
               SettingEntryList(
                 icon: LucideIcons.columns2,
                 label: "File view mode",
@@ -105,6 +110,8 @@ class SettingsScreen extends StatelessWidget {
                 state: state.preferences.showHiddenFilesByDefault,
                 onToggle: () => onEvent(ToggleShowHiddenFileByDefault()),
               ),
+
+              const SettingSection(title: "Security"),
               SettingEntryAction(
                 icon: LucideIcons.folderKey,
                 trailingIcon: LucideIcons.externalLink,
@@ -126,6 +133,8 @@ class SettingsScreen extends StatelessWidget {
                 hint: "Will delete all data related to biometrics and quick connect",
                 onPressed: () => _confirmKeyDeletionModal(context, constraints),
               ),
+
+              const SettingSection(title: "About"),
               SettingEntryAction(
                 icon: LucideIcons.copyright,
                 trailingIcon: LucideIcons.externalLink,
@@ -133,11 +142,28 @@ class SettingsScreen extends StatelessWidget {
                 hint: "Check the licenses, this app works thanks to all these projects",
                 onPressed: () => showLicensePage(context: context)
               ),
+              SettingEntryAction(
+                icon: LucideIcons.folderGit2,
+                trailingIcon: LucideIcons.globe,
+                label: "Github",
+                hint: "Check the app's repository",
+                onPressed: () async {
+                  final Uri url = Uri.parse('https://github.com/HalTobin/MoinoSsh');
+                  if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Could not open the repository link")),
+                    );
+                  }
+                }
+              ),
               SettingEntryInfo(
                 icon: LucideIcons.wrench,
                 info: "0.0.1",
                 label: "App version",
-              )
+              ),
+
+              SizedBox(height: 16)
             ],
           );
         }
