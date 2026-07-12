@@ -1,0 +1,29 @@
+name: feature_settings
+
+environment:
+  sdk: ^3.9.2
+  flutter:
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  provider:
+  lucide_icons_flutter:
+  url_launcher:
+  domain:
+    path: ../../domain
+  ui:
+    path: ../../ui
+  util:
+    path: ../../util
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints:
+
+resolution:
+  workspace
+
+flutter:

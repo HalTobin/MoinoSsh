@@ -1,0 +1,4 @@
+enum NavigationType {
+  horizontal,
+  vertical;
+}

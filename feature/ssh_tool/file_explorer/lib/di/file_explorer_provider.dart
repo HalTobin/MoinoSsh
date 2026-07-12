@@ -1,0 +1,140 @@
+import 'package:feature_file_explorer/use_case/change_pinned_folder_icon_use_case.dart';
+import 'package:feature_file_explorer/use_case/create_directory_use_case.dart';
+import 'package:feature_file_explorer/use_case/create_file_use_case.dart';
+import 'package:feature_file_explorer/use_case/download_file_use_case.dart';
+import 'package:feature_file_explorer/use_case/get_default_show_hidden_use_case.dart';
+import 'package:feature_file_explorer/use_case/get_default_view_mode_use_case.dart';
+import 'package:feature_file_explorer/use_case/navigate_to_folder_use_case.dart';
+import 'package:feature_file_explorer/use_case/navigate_to_root_use_case.dart';
+import 'package:feature_file_explorer/use_case/navigate_up_use_case.dart';
+import 'package:feature_file_explorer/use_case/pin_unpin_directory_use_case.dart';
+import 'package:feature_file_explorer/use_case/rename_file_use_case.dart';
+import 'package:feature_file_explorer/use_case/rename_pinned_folder_use_case.dart';
+import 'package:feature_file_explorer/use_case/select_file_use_case.dart';
+import 'package:feature_file_explorer/use_case/upload_file_use_case.dart';
+import 'package:feature_file_explorer/use_case/watch_folders_use_case.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:ui/screen_format/screen_format_helper.dart';
+
+import '../presentation/file_explorer_screen.dart';
+import '../presentation/file_explorer_view_model.dart';
+import '../use_case/delete_file_use_case.dart';
+import '../use_case/file_explorer_use_cases.dart';
+
+class FileExplorerProvider extends StatelessWidget {
+  const FileExplorerProvider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        Provider(create: (context) => (CheckDefaultShowHiddenUseCase(preferenceRepository: context.read()))),
+        Provider(create: (context) => (GetDefaultViewModeUseCase(preferenceRepository: context.read()))),
+        Provider(
+          create: (context) => (
+            WatchFoldersUseCase(
+              getCurrentServerProfileUseCase: context.read(),
+              pinnedFolderRepository: context.read()
+            )
+          )
+        ),
+        Provider(
+          create: (context) => (
+            NavigateToFolderUseCase(
+              sftpService: context.read(),
+              getCurrentServerProfileUseCase: context.read(),
+              pinnedFolderRepository: context.read()
+            )
+          )
+        ),
+        Provider(
+          create: (context) => (
+            NavigateToRootUseCase(
+              navigateToFolderUseCase: context.read(),
+              pinnedFolderRepository: context.read()
+            )
+          )
+        ),
+        Provider(
+          create: (context) => (
+            NavigateUpUseCase(
+              navigateToFolderUseCase: context.read(),
+              pinnedFolderRepository: context.read()
+            )
+          )
+        ),
+        Provider(create: (context) => (SelectFileUseCase(sshService: context.read()))),
+        Provider(
+          create: (context) => (
+            PinUnpinDirectoryUseCase(
+              getCurrentServerProfileUseCase: context.read(),
+              pinnedFolderRepository: context.read()
+            )
+          )
+        ),
+        Provider(
+          create: (context) => (
+            RenamePinnedFolderUseCase(
+              getCurrentServerProfileUseCase: context.read(),
+              pinnedFolderRepository: context.read()
+            )
+          )
+        ),
+        Provider(
+          create: (context) => (
+            ChangePinnedFolderIconUseCase(
+              getCurrentServerProfileUseCase: context.read(),
+              pinnedFolderRepository: context.read()
+            )
+          )
+        ),
+        Provider(create: (context) => (DeleteFileUseCase(sftpService: context.read()))),
+        Provider(create: (context) => (RenameFileUseCase(sftpService: context.read()))),
+        Provider(create: (context) => (CreateFileUseCase(sftpService: context.read()))),
+        Provider(create: (context) => (CreateDirectoryUseCase(sftpService: context.read()))),
+        Provider(create: (context) => (DownloadFileUseCase(sftpService: context.read()))),
+        Provider(create: (context) => (UploadFileUseCase(sftpService: context.read()))),
+        Provider(
+          create: (context) => (
+            FileExplorerUseCases(
+              checkDefaultShowHiddenUseCase: context.read(),
+              getDefaultViewModeUseCase: context.read(),
+              watchFoldersUseCase: context.read(),
+              navigateToFolderUseCase: context.read(),
+              navigateToRootUseCase: context.read(),
+              navigateUpUseCase: context.read(),
+              selectFileUseCase: context.read(),
+              pinUnpinDirectoryUseCase: context.read(),
+              renamePinnedFolderUseCase: context.read(),
+              changePinnedFolderIconUseCase: context.read(),
+              deleteFileUseCase: context.read(),
+              renameFileUseCase: context.read(),
+              createDirectoryUseCase: context.read(),
+              createFileUseCase: context.read(),
+              downloadFileUseCase: context.read(),
+              uploadFileUseCase: context.read()
+            )
+          )
+        ),
+        ChangeNotifierProvider(create: (context) => (
+          FileExplorerViewModel(fileExplorerUseCases: context.read())
+        ))
+      ],
+      child: Consumer<FileExplorerViewModel>(
+        builder: (builder, viewmodel, child) {
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              return FileExplorerScreen(
+                state: viewmodel.state,
+                onEvent: viewmodel.onEvent,
+                uiEvent: viewmodel.uiEvent,
+                isNarrow: ScreenFormatHelper.isNarrow(constraints),
+              );
+            }
+          );
+        }
+      ),
+    );
+  }
+}

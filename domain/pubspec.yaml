@@ -1,0 +1,25 @@
+name: domain
+
+environment:
+  sdk: ^3.9.2
+  flutter:
+
+resolution:
+  workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  collection: 
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints:
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
+flutter:

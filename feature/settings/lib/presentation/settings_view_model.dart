@@ -1,0 +1,89 @@
+import 'package:flutter/material.dart';
+
+import '../use_case/settings_use_cases.dart';
+import 'settings_event.dart';
+import 'settings_state.dart';
+
+
+class SettingsViewModel extends ChangeNotifier {
+
+    SettingsViewModel({
+        required SettingsUseCases settingsUseCases
+    })
+        : _useCases = settingsUseCases {
+            _init();
+    }
+
+    final SettingsUseCases _useCases;
+
+    SettingsState _state = SettingsState();
+    SettingsState get state => _state;
+
+    Future<void> _init() async {
+        _listenPreferences();
+        _checkBiometricsAvailability();
+    }
+
+    Future<void> _checkBiometricsAvailability() async {
+        final bool available = await _useCases.checkBiometricsAvailabilityUseCase.execute();
+        _state = _state.copyWith(biometricsAvailable: available);
+        notifyListeners();
+    }
+
+    void _listenPreferences() {
+        _useCases.listenUserPreferencesUseCase.execute()
+            .listen((preferences) {
+                _state = _state.copyWith(preferences: preferences);
+                notifyListeners();
+            }
+        );
+    }
+
+    Future<void> onEvent(SettingsEvent event) async {
+        switch (event) {
+            case DeleteKeys():
+                _deleteKeys();
+            case UpdateTheme():
+                _updateTheme(event.theme);
+            case UpdateContrast():
+                _updateContrast(event.contrast);
+            case ToggleMaterialYou():
+                _toggleMaterialYou();
+            case ToggleKeepPasswordDuringSession():
+                _toggleKeepPasswordDuringSession();
+            case ToggleShowHiddenFileByDefault():
+                _toggleShowHiddenFileByDefault();
+            case UpdateFileViewMode():
+                _updateFileViewMode(event.fileViewMode);
+        }
+    }
+
+    Future<void> _updateTheme(String theme) async {
+        await _useCases.updateThemeUseCase.execute(theme);
+    }
+
+    Future<void> _updateContrast(String contrast) async {
+        await _useCases.updateContrastUseCase.execute(contrast);
+    }
+
+    Future<void> _toggleMaterialYou() async {
+        await _useCases.toggleMaterialYouUseCase.execute();
+    }
+
+    Future<void> _toggleKeepPasswordDuringSession() async {
+        await _useCases.toggleKeepPasswordDuringSessionUseCase.execute();
+    }
+
+    Future<void> _toggleShowHiddenFileByDefault() async {
+        await _useCases.toggleShowHiddenFileUseCase.execute();
+    }
+
+    Future<void> _updateFileViewMode(String fileViewMode) async {
+        await _useCases.updateFileViewModeUseCase.execute(fileViewMode);
+    }
+
+    Future<void> _deleteKeys() async {
+        await _useCases.deleteKeyUseCase.execute();
+    }
+
+}

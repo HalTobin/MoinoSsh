@@ -1,0 +1,27 @@
+name: di
+
+environment:
+  sdk: ^3.9.2
+  flutter:
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  provider:
+
+  domain:
+    path: ../domain
+  data:
+    path: ../data
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+resolution:
+  workspace
+
+# The following section is specific to Flutter packages.
+flutter:

@@ -1,0 +1,63 @@
+import 'package:feature_systemd_services/presentation/component/service_controller/play_ripple_indicator.dart';
+import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../../data/service_presentation.dart';
+
+class ServiceStatusIndicator extends StatelessWidget {
+  final ServicePresentation service;
+  final bool active;
+  final bool isNarrow;
+
+  const ServiceStatusIndicator({
+    super.key,
+    required this.service,
+    required this.active,
+    required this.isNarrow
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 8,
+        children: [
+          active
+              ? const PlayRippleIndicator()
+              : const Icon(LucideIcons.circlePause, color: Colors.grey),
+          if (!isNarrow || service.icon != null)
+            Icon(service.icon, color: Theme.of(context).colorScheme.primary),
+          Expanded(
+            child: Column(
+              spacing: 2,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  (service.alias ?? service.title).toUpperCase(),
+                  style: (service.alias != null || !isNarrow)
+                      ? const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                      : const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (service.alias != null)
+                  Text(
+                    service.title.toUpperCase(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w100,
+                      fontSize: 10,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  )
+              ],
+            )
+          )
+        ],
+      )
+    );
+  }
+
+}

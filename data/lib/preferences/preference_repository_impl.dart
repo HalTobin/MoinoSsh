@@ -1,0 +1,178 @@
+import 'dart:async';
+
+import 'package:domain/model/preferences/app_contrast.dart';
+import 'package:domain/model/preferences/app_theme.dart';
+import 'package:domain/model/preferences/file_view_mode.dart';
+import 'package:domain/model/preferences/user_preferences.dart';
+import 'package:domain/repository/preference_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class PreferenceRepositoryImpl implements PreferenceRepository {
+    final prefs = SharedPreferencesAsync();
+
+    final StreamController<UserPreferences> _controller = StreamController<UserPreferences>.broadcast();
+
+    static final PreferenceRepositoryImpl _instance = PreferenceRepositoryImpl._internal();
+    factory PreferenceRepositoryImpl() => _instance;
+
+    PreferenceRepositoryImpl._internal();
+
+    @override
+    Future<UserPreferences> getUserPreferences() async {
+        final defaultPrefs = UserPreferences.defaultPreferences;
+
+        final String themeIdentifier = await _loadString(_Keys.appTheme.key, defaultPrefs.theme.identifier);
+        final AppTheme theme = AppTheme.fromIdentifier(themeIdentifier);
+
+        final String contrastIdentifier = await _loadString(_Keys.appContrast.key, defaultPrefs.contrast.identifier);
+        final AppContrast contrast = AppContrast.fromIdentifier(contrastIdentifier);
+
+        final bool materialYou = await _loadBool(_Keys.materialYou.key, defaultPrefs.materialYou);
+        final bool keepPasswordDuringSession = await _loadBool(_Keys.keepPasswordDuringSession.key, defaultPrefs.keepPasswordDuringSession);
+        final bool showHiddenFileByDefault = await _loadBool(_Keys.showHiddenFileByDefault.key, defaultPrefs.showHiddenFilesByDefault);
+
+        final String fileViewModeIdentifier = await _loadString(_Keys.fileViewMode.key, defaultPrefs.fileViewMode.identifier);
+        final FileViewMode fileViewMode = FileViewMode.fromIdentifier(fileViewModeIdentifier);
+
+        final preferences = UserPreferences(
+            theme: theme,
+            contrast: contrast,
+            materialYou: materialYou,
+            keepPasswordDuringSession: keepPasswordDuringSession,
+            showHiddenFilesByDefault: showHiddenFileByDefault,
+            fileViewMode: fileViewMode
+        );
+
+        return preferences;
+    }
+
+    @override
+    Stream<UserPreferences> getUserPreferencesStream() async* {
+        yield await getUserPreferences();
+        yield* _controller.stream;
+    }
+
+    @override
+    Future<void> saveUserPreferences(UserPreferences preferences) async {
+        _Keys.values.forEach((key) async {
+            switch (key) {
+                case _Keys.appTheme:
+                    await _updateString(key: key.key, value: preferences.theme.identifier, notify: false);
+                case _Keys.appContrast:
+                    await _updateString(key: key.key, value: preferences.contrast.identifier, notify: false);
+                case _Keys.materialYou:
+                    await _updateBool(key: key.key, value: preferences.materialYou, notify: false);
+                case _Keys.keepPasswordDuringSession:
+                    await _updateBool(key: key.key, value: preferences.keepPasswordDuringSession, notify: false);
+                case _Keys.showHiddenFileByDefault:
+                    await _updateBool(key: key.key, value: preferences.showHiddenFilesByDefault, notify: false);
+                case _Keys.fileViewMode:
+                    await _updateString(key: key.key, value: preferences.fileViewMode.identifier, notify: false);
+            }
+        });
+        _notify();
+    }
+
+    @override
+    Future<void> updateTheme(AppTheme appTheme) async {
+        _updateString(key: _Keys.appTheme.key, value: appTheme.identifier);
+        final current = await getUserPreferences();
+        _controller.add(current);
+    }
+
+    @override
+    Future<void> updateContrast(AppContrast contrast) async {
+        _updateString(key: _Keys.appContrast.key, value: contrast.identifier);
+        final current = await getUserPreferences();
+        _controller.add(current);
+    }
+
+    @override
+    Future<void> toggleMaterialYou() async {
+        final state = await _loadBool(_Keys.materialYou.key, UserPreferences.defaultPreferences.materialYou);
+        _updateBool(key: _Keys.materialYou.key, value: !state);
+        final current = await getUserPreferences();
+        _controller.add(current);
+    }
+
+    @override
+    Future<void> toggleKeepPasswordDuringSession() async {
+        final state = await _loadBool(_Keys.keepPasswordDuringSession.key, UserPreferences.defaultPreferences.keepPasswordDuringSession);
+        _updateBool(key: _Keys.keepPasswordDuringSession.key, value: !state);
+        final current = await getUserPreferences();
+        _controller.add(current);
+    }
+
+    @override
+    Future<void> toggleShowHiddenFileByDefault() async {
+        final state = await _loadBool(_Keys.showHiddenFileByDefault.key, UserPreferences.defaultPreferences.showHiddenFilesByDefault);
+        _updateBool(key: _Keys.showHiddenFileByDefault.key, value: !state);
+        final current = await getUserPreferences();
+        _controller.add(current);
+    }
+
+    @override
+    Future<void> updateFileViewMode(FileViewMode fileViewMode) async {
+        _updateString(key: _Keys.fileViewMode.key, value: fileViewMode.identifier);
+        final current = await getUserPreferences();
+        _controller.add(current);
+    }
+
+    Future<bool> _loadBool(String key, bool defaultValue) async {
+        return await prefs.getBool(key) ?? defaultValue;
+    }
+
+    Future<int> _loadInt(String key, int defaultValue) async {
+        return await prefs.getInt(key) ?? defaultValue;
+    }
+
+    Future<String> _loadString(String key, String defaultValue) async {
+        return await prefs.getString(key) ?? defaultValue;
+    }
+
+    Future<void> _updateBool({
+        required String key,
+        required bool value,
+        bool notify = true
+    }) async {
+       await prefs.setBool(key, value);
+       if (notify) { _notify(); }
+    }
+
+    Future<void> _updateInt({
+        required String key,
+        required int value,
+        bool notify = true
+    }) async {
+        await prefs.setInt(key, value);
+        if (notify) { _notify(); }
+    }
+
+    Future<void> _updateString({
+        required String key,
+        required String value,
+        bool notify = true
+    }) async {
+        await prefs.setString(key, value);
+        if (notify) { _notify(); }
+    }
+
+    Future<void> _notify() async {
+        final current = await getUserPreferences();
+        _controller.add(current);
+    }
+
+}
+
+enum _Keys {
+    appTheme("app_theme"),
+    appContrast("app_contrast"),
+    materialYou("material_you"),
+    keepPasswordDuringSession("keep_password_during_session"),
+    showHiddenFileByDefault("show_hidden_file_by_default"),
+    fileViewMode("file_view_mode");
+
+    final String key;
+
+    const _Keys(this.key);
+}

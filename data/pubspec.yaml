@@ -1,0 +1,36 @@
+name: data
+
+environment:
+  sdk: ^3.9.2
+  flutter:
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  shared_preferences:
+  encrypt:
+  pointycastle:
+  path_provider:
+  dartssh2:
+  drift:
+  drift_flutter:
+  biometric_storage:
+  collection:
+  path:
+
+  domain:
+    path: ../domain
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints:
+
+  drift_dev:
+  build_runner:
+
+resolution:
+  workspace
+
+flutter:
