@@ -125,21 +125,27 @@ class _ServerList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const AlwaysScrollableScrollPhysics(),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: 600,
+        ),
+        child: ListView.separated(
+          physics: const AlwaysScrollableScrollPhysics(),
 
-      itemCount: state.servers.length,
-      itemBuilder: (BuildContext context, int index) {
-        final profile = state.servers[index];
+          itemCount: state.servers.length,
+          itemBuilder: (BuildContext context, int index) {
+            final profile = state.servers[index];
 
-        return ServerProfileItem(
-          profile: profile,
-          onConnect: () => onConnect(profile),
-          onEdit: () => onAddEditServer(profile)
-        );
-      },
-      separatorBuilder: (BuildContext context, int index) => const Divider()
+            return ServerProfileItem(
+                profile: profile,
+                onConnect: () => onConnect(profile),
+                onEdit: () => onAddEditServer(profile)
+            );
+          },
+          separatorBuilder: (BuildContext context, int index) => const Divider()
+        ),
+      )
     );
   }
 
