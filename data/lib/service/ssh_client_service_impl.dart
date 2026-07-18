@@ -9,6 +9,15 @@ import 'package:domain/service/ssh_client_service.dart';
 import 'package:flutter/foundation.dart';
 
 class SshClientServiceImpl implements SshClientService {
+
+    SshClientServiceImpl._internal();
+
+    static final SshClientServiceImpl _instance = SshClientServiceImpl._internal();
+
+    factory SshClientServiceImpl() {
+        return _instance;
+    }
+
     SSHClient? _client;
 
     final StreamController<SshProfile?> _profileController = StreamController<SshProfile?>.broadcast();

@@ -16,7 +16,8 @@ class ServiceProvider extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<SshClientService>(create: (_) => (SshClientServiceImpl())),Provider<SftpService>(
+        Provider<SshClientService>(create: (_) => (SshClientServiceImpl())),
+        Provider<SftpService>(
           create: (context) => SftpServiceImpl(
             context.read<SshClientService>() as SshClientServiceImpl
           ),
