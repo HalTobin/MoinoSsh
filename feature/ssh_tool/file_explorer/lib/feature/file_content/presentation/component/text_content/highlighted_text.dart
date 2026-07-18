@@ -24,20 +24,22 @@ class HighlightedText extends StatelessWidget {
         ? RegExp(RegExp.escape(searchQuery!), caseSensitive: false)
         : null;
 
-    return ListView.builder(
-      itemCount: lines.length,
-      itemBuilder: (context, index) {
-        final isFocused = focusedLineIndex == index;
+    return SelectionArea(
+      child: ListView.builder(
+        itemCount: lines.length,
+        itemBuilder: (context, index) {
+          final isFocused = focusedLineIndex == index;
 
-        return _LineItem(
-          index: index,
-          lineText: lines[index],
-          searchQuery: searchQuery,
-          isFocused: isFocused,
-          textSize: textSize,
-          regex: regex,
-        );
-      },
+          return _LineItem(
+            index: index,
+            lineText: lines[index],
+            searchQuery: searchQuery,
+            isFocused: isFocused,
+            textSize: textSize,
+            regex: regex,
+          );
+        },
+      )
     );
   }
 }

@@ -14,12 +14,18 @@ class ServiceProvider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final SshClientServiceImpl sshClientService = SshClientServiceImpl();
     return MultiProvider(
       providers: [
-        Provider<SshClientService>(create: (_) => (sshClientService)),
-        Provider<SftpService>(create: (_) => (SftpServiceImpl(sshClientService))),
-        Provider<SshService>(create: (_) => (SshServiceImpl(sshClientService))),
+        Provider<SshClientService>(create: (_) => (SshClientServiceImpl())),Provider<SftpService>(
+          create: (context) => SftpServiceImpl(
+            context.read<SshClientService>() as SshClientServiceImpl
+          ),
+        ),
+        Provider<SshService>(
+          create: (context) => SshServiceImpl(
+            context.read<SshClientService>() as SshClientServiceImpl
+          ),
+        ),
       ],
       child: child
     );

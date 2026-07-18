@@ -159,7 +159,7 @@ class SettingsScreen extends StatelessWidget {
               ),
               SettingEntryInfo(
                 icon: LucideIcons.wrench,
-                info: "0.1.1",
+                info: "0.1.2",
                 label: "App version",
               ),
 
