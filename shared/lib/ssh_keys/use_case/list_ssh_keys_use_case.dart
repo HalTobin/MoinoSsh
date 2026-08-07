@@ -1,8 +1,8 @@
 import 'package:domain/repository/file_repository.dart';
+import 'package:shared/ssh_keys/model/ssh_key_file.dart';
 import 'package:util/ssh/load_ssh_file.dart';
 
-import '../domain/ssh_key_file.dart';
-import '../domain/ssh_key_folder.dart';
+import '../model/ssh_key_folder.dart';
 
 class ListSshKeysUseCase {
     ListSshKeysUseCase({

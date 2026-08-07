@@ -1,6 +1,6 @@
 import 'package:domain/repository/file_repository.dart';
 
-import '../domain/ssh_key_folder.dart';
+import '../model/ssh_key_folder.dart';
 
 class AddKeyUseCase {
     AddKeyUseCase({

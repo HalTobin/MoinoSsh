@@ -1,9 +1,10 @@
-import 'package:feature_auth/feature/my_ssh_keys/domain/ssh_key_file.dart';
-import 'package:feature_auth/feature/my_ssh_keys/presentation/component/delete_ssh_key_dialog.dart';
-import 'package:feature_auth/feature/my_ssh_keys/presentation/component/rename_ssh_key_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:shared/ssh_keys/model/ssh_key_file.dart';
+import 'package:shared/ssh_keys/presentation/component/rename_ssh_key_dialog.dart';
 import 'package:ui/component/selectable.dart';
+
+import 'delete_ssh_key_dialog.dart';
 
 class SshKeyItem extends StatelessWidget {
   final SshKeyFile sshKeyFile;
@@ -73,59 +74,6 @@ class SshKeyItem extends StatelessWidget {
               )
             ],
           ),
-          /*_SshKeyItemInteractionState.editing => Row(
-            children: [
-              const _SshKeyFile(color: Colors.orange),
-
-              Expanded(
-                child: TextField(
-                  maxLines: 1,
-                  focusNode: _nameFieldFocusNode,
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      onPressed: confirmRename,
-                      icon: const Icon(LucideIcons.check)
-                    )
-                  )
-                )
-              ),
-
-              IconButton(
-                icon: Icon(LucideIcons.x),
-                onPressed: backToIdle,
-              )
-            ],
-          ),
-          _SshKeyItemInteractionState.deleting => Row(
-            children: [
-              _SshKeyFile(color: Theme.of(context).colorScheme.error),
-
-              Expanded(
-                child: TextField(
-                  maxLines: 1,
-                  focusNode: _deleteFieldFocusNode,
-                  controller: _deleteController,
-                  decoration: InputDecoration(
-                    hintText: "Enter: \"${widget.sshKeyFile.name}\" to confirm",
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-                    ),
-                    suffixIcon: IconButton(
-                      onPressed: confirmDeletion,
-                      icon: const Icon(LucideIcons.trash2)
-                    )
-                  )
-                )
-              ),
-
-              IconButton(
-                icon: Icon(LucideIcons.x),
-                onPressed: backToIdle,
-              )
-            ],
-          ),*/
           duration: Duration(milliseconds: 300),
         )
     );

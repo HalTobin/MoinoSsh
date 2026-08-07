@@ -1,4 +1,4 @@
-import 'package:feature_auth/feature/my_ssh_keys/use_case/rename_key_use_case.dart';
+import 'package:shared/ssh_keys/use_case/rename_key_use_case.dart';
 
 import 'add_key_use_case.dart';
 import 'delete_key_use_case.dart';

@@ -1,13 +1,13 @@
 import 'dart:ui';
 
 import 'package:domain/service/ssh_client_service.dart';
-import 'package:feature_auth/feature/my_ssh_keys/di/my_ssh_keys_provider.dart';
 import 'package:feature_settings/di/settings_provider.dart';
 import 'package:feature_auth/di/auth_provider.dart';
 import 'package:feature_toolbox/di/toolbox_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:shared/ssh_keys/di/my_ssh_keys_provider.dart';
 import 'package:ui/component/app_dialog_layout.dart';
 import 'package:ui/component/password_required_dialog.dart';
 import 'package:ls_server_app/presentation/component/status_bar/connection_status_bar.dart';
