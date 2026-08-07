@@ -16,4 +16,6 @@ abstract interface class SshService {
 
     Future<ResponseResult<List<String>>> getServiceList();
 
+    Future<ResponseResult<String>> executeCommand(String command);
+
 }

@@ -16,6 +16,7 @@ class MySshKeysView extends StatelessWidget {
 
   final Function(String?)? onSelect;
   final Function() onDismiss;
+  final bool embedded;
 
   const MySshKeysView({
     super.key,
@@ -23,25 +24,13 @@ class MySshKeysView extends StatelessWidget {
     required this.onEvent,
     required this.selectionEnable,
     required this.onSelect,
-    required this.onDismiss
+    required this.onDismiss,
+    this.embedded = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(onPressed: onDismiss, icon: const Icon(LucideIcons.arrowLeft)),
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 12,
-          children: [
-            Icon(LucideIcons.folderKey),
-            Text("My SSH keys"),
-          ],
-        )
-      ),
-      body: LayoutBuilder(
+    final body = LayoutBuilder(
         builder: (context, constraints) {
           final isNarrow = ScreenFormatHelper.isNarrow(constraints);
 
@@ -95,8 +84,27 @@ class MySshKeysView extends StatelessWidget {
               );
             },
           );
-        }
+        },
+    );
+
+    if (embedded) {
+      return body;
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(onPressed: onDismiss, icon: const Icon(LucideIcons.arrowLeft)),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 12,
+          children: [
+            Icon(LucideIcons.folderKey),
+            Text("My SSH keys"),
+          ],
+        )
       ),
+      body: body,
     );
   }
 }

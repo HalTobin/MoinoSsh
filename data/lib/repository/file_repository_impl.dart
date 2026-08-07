@@ -45,6 +45,21 @@ class FileRepositoryImpl implements FileRepository {
     }
 
     @override
+    Future<FileItem?> writeInternalFile({
+        required String folder,
+        required String fileName,
+        required String content,
+    }) async {
+        final targetDirPath = await getInternalDirectoryPathForFolder(folder);
+        await Directory(targetDirPath).create(recursive: true);
+
+        final filePath = p.join(targetDirPath, fileName);
+        final file = File(filePath);
+        await file.writeAsString(content);
+        return _toFileItem(file);
+    }
+
+    @override
     Future<void> deleteFile(String path) async {
         final file = File(path);
         if (await file.exists()) {

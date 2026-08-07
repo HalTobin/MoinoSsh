@@ -21,6 +21,7 @@ workspace:
   - feature/ssh_tool/systemd_services
   - feature/ssh_tool/file_explorer
   - feature/ssh_tool/download_tracker
+  - feature/ssh_tool/ssh_key_manager
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions

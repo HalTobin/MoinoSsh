@@ -8,6 +8,10 @@ dependencies:
   flutter:
     sdk: flutter
 
+  path:
+  cryptography:
+  openssh_ed25519:
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

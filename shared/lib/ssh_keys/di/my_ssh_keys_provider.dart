@@ -11,10 +11,12 @@ import '../use_case/rename_key_use_case.dart';
 
 class MySshKeysProvider extends StatelessWidget {
   final Function(String?)? onKeySelect;
+  final bool embedded;
 
   const MySshKeysProvider({
     super.key,
-    required this.onKeySelect
+    required this.onKeySelect,
+    this.embedded = false,
   });
 
   @override
@@ -45,6 +47,7 @@ class MySshKeysProvider extends StatelessWidget {
             state: viewmodel.state,
             onEvent: viewmodel.onEvent,
             selectionEnable: true,
+            embedded: embedded,
             onSelect: (onKeySelect != null)
               ? (String? keyPath) { onKeySelect?.call(keyPath ?? ""); }
               : null,

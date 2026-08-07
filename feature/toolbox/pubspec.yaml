@@ -22,6 +22,8 @@ dependencies:
     path: ../ssh_tool/file_explorer
   feature_download_tracker:
     path: ../ssh_tool/download_tracker
+  feature_ssh_key_manager:
+    path: ../ssh_tool/ssh_key_manager
 
 
 dev_dependencies:

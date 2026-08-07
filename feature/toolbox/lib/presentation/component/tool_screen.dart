@@ -1,5 +1,6 @@
 import 'package:feature_download_tracker/di/download_tracker_provider.dart';
 import 'package:feature_file_explorer/di/file_explorer_provider.dart';
+import 'package:feature_ssh_key_manager/di/ssh_key_manager_provider.dart';
 import 'package:feature_toolbox/presentation/toolbox_state.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -36,7 +37,8 @@ class ToolScreen extends StatelessWidget {
         SshTool.fileExplorer => const FileExplorerProvider(),
         SshTool.downloadTracker => const DownloadTrackerProvider(
           navigationType: NavigationType.horizontal,
-        )
+        ),
+        SshTool.sshKeyManager => const SshKeyManagerProvider(),
       }
     );
   }

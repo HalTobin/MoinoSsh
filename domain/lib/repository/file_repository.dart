@@ -18,4 +18,10 @@ abstract interface class FileRepository {
 
     Future<void> deleteFile(String path);
 
+    Future<FileItem?> writeInternalFile({
+        required String folder,
+        required String fileName,
+        required String content,
+    });
+
 }

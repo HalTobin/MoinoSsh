@@ -146,6 +146,35 @@ class SshServiceImpl implements SshService {
     }
 
     @override
+    Future<ResponseResult<String>> executeCommand(String command) async {
+        final client = _sshClientService.getClient();
+        try {
+            final session = await client?.execute(command);
+            if (session == null) {
+                return ResponseFailed(error: 'session is null!');
+            }
+
+            final output = <int>[];
+            await for (final data in session.stdout) {
+                output.addAll(data);
+            }
+            await session.done;
+
+            final stdoutStr = String.fromCharCodes(output).trim();
+            final stderrStr = await session.stderr.decodeUtf8();
+            final exitCode = session.exitCode;
+
+            if (exitCode == 0) {
+                return ResponseSucceed(stdoutStr);
+            }
+            return ResponseFailed(error: stderrStr.isNotEmpty ? stderrStr : 'Command failed with exit code $exitCode');
+        } catch (e) {
+            if (kDebugMode) { print('Error executing command: $e'); }
+            return ResponseFailed(error: 'SSH command failed: $e');
+        }
+    }
+
+    @override
     Future<ResponseResult<List<String>>> getServiceList() async {
         final client = _sshClientService.getClient();
         try {

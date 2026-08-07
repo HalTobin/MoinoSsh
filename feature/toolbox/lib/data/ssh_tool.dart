@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 enum SshTool {
+    sshKeyManager(
+        identifier: "ssh_key_manager",
+        title: "SSH Keys",
+        icon: LucideIcons.keyRound
+    ),
     systemd(
         identifier: "systemd",
         title: "SystemD",
