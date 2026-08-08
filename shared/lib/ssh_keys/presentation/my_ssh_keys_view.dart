@@ -71,8 +71,6 @@ class MySshKeysView extends StatelessWidget {
                         ? _KeyList(
                           state: state,
                           onEvent: onEvent,
-                          isShrink: isNarrow,
-                          isBottomSheet: isNarrow,
                         ) : EmptyList(message: "No profile found", onAction: null)
                     ),
 
@@ -99,44 +97,31 @@ class MySshKeysView extends StatelessWidget {
 class _KeyList extends StatelessWidget {
   final MySshKeysState state;
   final Function(MySshKeysEvent) onEvent;
-  final bool isShrink;
-  final bool isBottomSheet;
-  final bool shouldEditDeleteInDialog;
 
   const _KeyList({
-    super.key,
     required this.state,
     required this.onEvent,
-    required this.isShrink,
-    required this.isBottomSheet
-  }): shouldEditDeleteInDialog = isShrink && isBottomSheet;
+  });
 
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 16),
       itemCount: state.keys.length,
       itemBuilder: (BuildContext context, int index) {
         final key = state.keys[index];
 
-        final MySshKeysEvent selectEvent = SelectKey(keyPath: key.path);
-        final MySshKeysEvent deleteEvent = DeleteKey(keyPath: key.path);
-        final MySshKeysEvent editEvent = EditionMode(keyPath: key.path);
-
         return SshKeyItem(
           sshKeyFile: key,
           selected: state.selectedKeyPath == key.path,
-          onClick: () => onEvent(selectEvent),
-          shouldEditDeleteInDialog: shouldEditDeleteInDialog,
-          editionMode: state.editionModeKeyPath == key.path,
-          onEditionMode: () => onEvent(editEvent),
+          onClick: () => onEvent(SelectKey(keyPath: key.path)),
           onEdit: (newName) {
-            final MySshKeysEvent editEvent = RenameKey(keyPath: key.path, newName: newName);
-            onEvent(editEvent);
+            onEvent(RenameKey(keyPath: key.path, newName: newName));
           },
-          onDelete: () => onEvent(deleteEvent),
+          onDelete: () => onEvent(DeleteKey(keyPath: key.path)),
         );
       },
-      separatorBuilder: (BuildContext context, int index) => const Divider()
+      separatorBuilder: (BuildContext context, int index) => const SizedBox(height: 8),
     );
   }
 
@@ -150,7 +135,6 @@ class _ModalBottomActions extends StatelessWidget {
   final Function(String?)? onKeySelect;
 
   const _ModalBottomActions({
-    super.key,
     required this.state,
     required this.onEvent,
     required this.isShrink,

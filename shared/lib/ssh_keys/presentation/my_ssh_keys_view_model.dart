@@ -24,7 +24,6 @@ class MySshKeysViewModel extends ChangeNotifier {
     Future<void> onEvent(MySshKeysEvent event) async {
         switch (event) {
             case SelectKey(): _selectKey(event.keyPath);
-            case EditionMode(): _editionMode(event.keyPath);
             case AddKey(): _addKey(event.keyPath);
             case RenameKey(): _renameKey(event.keyPath, event.newName);
             case DeleteKey(): _deleteKey(event.keyPath);
@@ -63,20 +62,10 @@ class MySshKeysViewModel extends ChangeNotifier {
 
     void _selectKey(String? keyPath) {
         if (keyPath == _state.selectedKeyPath) {
-            _state = _state.copyWith(selectedKeyPath: null, editionModeKeyPath: null);
+            _state = _state.copyWith(selectedKeyPath: null);
         }
         else {
-            _state = _state.copyWith(selectedKeyPath: keyPath, editionModeKeyPath: null);
-        }
-        notifyListeners();
-    }
-
-    void _editionMode(String? keyPath) {
-        if (keyPath == _state.editionModeKeyPath) {
-            _state = _state.copyWith(editionModeKeyPath: null, selectedKeyPath: null);
-        }
-        else {
-            _state = _state.copyWith(editionModeKeyPath: keyPath, selectedKeyPath: null);
+            _state = _state.copyWith(selectedKeyPath: keyPath);
         }
         notifyListeners();
     }

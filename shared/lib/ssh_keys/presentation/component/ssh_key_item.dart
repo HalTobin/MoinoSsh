@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shared/ssh_keys/model/ssh_key_file.dart';
 import 'package:shared/ssh_keys/presentation/component/rename_ssh_key_dialog.dart';
-import 'package:ui/component/selectable.dart';
 
 import 'delete_ssh_key_dialog.dart';
 
@@ -10,11 +9,6 @@ class SshKeyItem extends StatelessWidget {
   final SshKeyFile sshKeyFile;
   final bool selected;
   final Function() onClick;
-
-  final bool shouldEditDeleteInDialog;
-
-  final bool editionMode;
-  final Function() onEditionMode;
   final Function(String newName) onEdit;
   final Function() onDelete;
 
@@ -23,105 +17,159 @@ class SshKeyItem extends StatelessWidget {
     required this.sshKeyFile,
     required this.selected,
     required this.onClick,
-
-    required this.shouldEditDeleteInDialog,
-
-    required this.editionMode,
-    required this.onEditionMode,
     required this.onEdit,
-    required this.onDelete
+    required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Selectable(
-        selectionEnable: true,
-        selected: selected,
-        onSelect: onClick,
-        child: AnimatedCrossFade(
-          crossFadeState: !editionMode ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-          firstChild: Row(
-            children: [
-              _BaseKeyItem(sshKeyFile: sshKeyFile),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(LucideIcons.ellipsisVertical),
-                onPressed: onEditionMode,
-              )
-            ],
-          ),
-          secondChild: Row(
-            children: [
-              _BaseKeyItem(sshKeyFile: sshKeyFile),
-              const Spacer(),
-              IconButton(
-                icon: Icon(
-                    LucideIcons.pen,
-                    color: Colors.orange
+    final colorScheme = Theme.of(context).colorScheme;
+    Offset tapPosition = Offset.zero;
+
+    return GestureDetector(
+      onSecondaryTapDown: (details) {
+        tapPosition = details.globalPosition;
+      },
+      onSecondaryTap: () => _showMenu(context, tapPosition),
+      onLongPressDown: (details) {
+        tapPosition = details.globalPosition;
+      },
+      onLongPress: () => _showMenu(context, tapPosition),
+      child: Card(
+        margin: EdgeInsets.zero,
+        color: selected ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onClick,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(child: _BaseKeyItem(sshKeyFile: sshKeyFile)),
+                Builder(
+                  builder: (buttonContext) {
+                    return IconButton(
+                      icon: const Icon(LucideIcons.ellipsisVertical),
+                      onPressed: () {
+                        final RenderBox button =
+                            buttonContext.findRenderObject() as RenderBox;
+                        final Offset position = button.localToGlobal(Offset.zero);
+                        _showMenu(
+                          context,
+                          Offset(
+                            position.dx + button.size.width,
+                            position.dy + button.size.height,
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
-                onPressed: () => showRenameDialog(context, sshKeyFile.name),
-              ),
-              IconButton(
-                icon: Icon(
-                    LucideIcons.trash2,
-                    color: Colors.red
-                ),
-                onPressed: () => showDeleteDialog(context, sshKeyFile.name),
-              ),
-              IconButton(
-                icon: const Icon(LucideIcons.undo),
-                onPressed: onEditionMode,
-              )
-            ],
+              ],
+            ),
           ),
-          duration: Duration(milliseconds: 300),
-        )
+        ),
+      ),
     );
   }
 
-  void showRenameDialog(
-      BuildContext context,
-      String textStartState
-      ) {
+  void _showMenu(BuildContext context, Offset tapPosition) {
+    final RenderBox overlay =
+        Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
+    final RelativeRect position = RelativeRect.fromRect(
+      Rect.fromLTWH(tapPosition.dx, tapPosition.dy, 0, 0),
+      Offset.zero & overlay.size,
+    );
+
+    showMenu<_SshKeyAction>(
+      context: context,
+      position: position,
+      items: [
+        const PopupMenuItem<_SshKeyAction>(
+          value: _SshKeyAction.rename,
+          child: Row(
+            children: [
+              Icon(LucideIcons.pencil, size: 18),
+              SizedBox(width: 12),
+              Text('Rename'),
+            ],
+          ),
+        ),
+        PopupMenuItem<_SshKeyAction>(
+          value: _SshKeyAction.delete,
+          child: Row(
+            children: [
+              Icon(
+                LucideIcons.trash2,
+                size: 18,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Delete',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ).then((value) {
+      if (!context.mounted) return;
+
+      switch (value) {
+        case _SshKeyAction.rename:
+          _showRenameDialog(context, sshKeyFile.name);
+        case _SshKeyAction.delete:
+          _showDeleteDialog(context, sshKeyFile.name);
+        case null:
+          break;
+      }
+    });
+  }
+
+  void _showRenameDialog(BuildContext context, String textStartState) {
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return RenameSshKeyDialog(
           initialName: textStartState,
-          onDismiss: () => Navigator.of(context).pop(),
+          onDismiss: () => Navigator.of(dialogContext).pop(),
           onConfirm: (newName) {
-            Navigator.of(context).pop();
+            Navigator.of(dialogContext).pop();
             onEdit(newName);
-          }
+          },
         );
-      }
+      },
     );
   }
 
-  void showDeleteDialog(BuildContext context, String targetText) {
+  void _showDeleteDialog(BuildContext context, String targetText) {
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return DeleteSshKeyDialog(
           textToTarget: targetText,
           onDelete: () {
-            Navigator.of(context).pop();
+            Navigator.of(dialogContext).pop();
             onDelete();
           },
-          onDismiss: () => Navigator.of(context).pop(),
+          onDismiss: () => Navigator.of(dialogContext).pop(),
         );
-      }
+      },
     );
   }
+}
 
+enum _SshKeyAction {
+  rename,
+  delete,
 }
 
 class _BaseKeyItem extends StatelessWidget {
   final SshKeyFile sshKeyFile;
 
   const _BaseKeyItem({
-    super.key,
-    required this.sshKeyFile
+    required this.sshKeyFile,
   });
 
   @override
@@ -133,34 +181,32 @@ class _BaseKeyItem extends StatelessWidget {
           sshKeyFile.name,
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
-          style: Theme.of(context).textTheme.titleSmall
-            ?.copyWith(
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontSize: 16,
-            fontWeight: FontWeight.w700
+            fontWeight: FontWeight.w700,
           ),
         ),
         if (sshKeyFile.secured)
-          Row(
+          const Row(
             spacing: 4,
             children: [
-              const Icon(
+              Icon(
                 LucideIcons.lock,
                 color: Colors.green,
-                size: 16
+                size: 16,
               ),
-              const Text(
+              Text(
                 "Requires a password",
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.green
-                )
-              )
+                  color: Colors.green,
+                ),
+              ),
             ],
-          )
+          ),
       ],
     );
   }
-
 }
