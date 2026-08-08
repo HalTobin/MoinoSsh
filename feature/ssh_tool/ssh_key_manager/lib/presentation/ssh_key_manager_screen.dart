@@ -7,8 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shared/ssh_keys/di/my_ssh_keys_provider.dart';
 import 'package:ui/component/global_error_warning.dart';
+import 'package:ui/component/moino_tab.dart';
 
-class SshKeyManagerScreen extends StatelessWidget {
+class SshKeyManagerScreen extends StatefulWidget {
   final SshKeyManagerState state;
   final Function(SshKeyManagerEvent) onEvent;
   final bool isNarrow;
@@ -21,30 +22,67 @@ class SshKeyManagerScreen extends StatelessWidget {
   });
 
   @override
+  State<SshKeyManagerScreen> createState() => _SshKeyManagerScreenState();
+}
+
+class _SshKeyManagerScreenState extends State<SshKeyManagerScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.state.selectedTab,
+    );
+    _tabController.addListener(_onTabChanged);
+  }
+
+  @override
+  void didUpdateWidget(SshKeyManagerScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.state.selectedTab != _tabController.index) {
+      _tabController.index = widget.state.selectedTab;
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) {
+      return;
+    }
+    if (_tabController.index != widget.state.selectedTab) {
+      widget.onEvent(SwitchTab(tabIndex: _tabController.index));
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final showRemoteLoadingOverlay =
-        state.selectedTab == 1 && (state.remoteLoading || state.applying);
+        widget.state.selectedTab == 1 && (widget.state.remoteLoading || widget.state.applying);
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: SegmentedButton<int>(
-            segments: const [
-              ButtonSegment(
-                value: 0,
-                icon: Icon(LucideIcons.folderKey),
-                label: Text('Local'),
-              ),
-              ButtonSegment(
-                value: 1,
-                icon: Icon(LucideIcons.server),
-                label: Text('Remote'),
-              ),
-            ],
-            selected: {state.selectedTab},
-            onSelectionChanged: (selection) => onEvent(SwitchTab(tabIndex: selection.first)),
-          ),
+        TabBar(
+          controller: _tabController,
+          tabs: const [
+            MoinoTab(
+              icon: LucideIcons.folderKey,
+              title: 'Local',
+            ),
+            MoinoTab(
+              icon: LucideIcons.server,
+              title: 'Remote',
+            ),
+          ],
         ),
         Expanded(
           child: Stack(
@@ -52,21 +90,21 @@ class SshKeyManagerScreen extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: IndexedStack(
-                  index: state.selectedTab,
-                  sizing: StackFit.expand,
+                child: TabBarView(
+                  controller: _tabController,
                   children: [
                     SizedBox.expand(
                       child: MySshKeysProvider(
-                        key: ValueKey(state.localKeysRefreshToken),
+                        key: ValueKey(widget.state.localKeysRefreshToken),
                         onKeySelect: null,
                         embedded: true,
                       ),
                     ),
                     RemoteKeysSection(
-                      remoteKeys: state.remoteKeys,
-                      stagedPublicKeyLines: state.stagedPublicKeyLines,
-                      onToggleDeletion: (line) => onEvent(ToggleRemoteKeyDeletion(line: line)),
+                      remoteKeys: widget.state.remoteKeys,
+                      stagedPublicKeyLines: widget.state.stagedPublicKeyLines,
+                      onToggleDeletion: (line) =>
+                          widget.onEvent(ToggleRemoteKeyDeletion(line: line)),
                       onGenerateKey: () => _showGenerateKeyDialog(context),
                     ),
                   ],
@@ -83,15 +121,15 @@ class SshKeyManagerScreen extends StatelessWidget {
           ),
         ),
         AnimatedGlobalErrorWarning(
-          error: state.error,
-          onClose: () => onEvent(DismissError()),
+          error: widget.state.error,
+          onClose: () => widget.onEvent(DismissError()),
         ),
-        if (state.selectedTab == 1 && state.hasPendingRemoteChanges)
+        if (widget.state.selectedTab == 1 && widget.state.hasPendingRemoteChanges)
           PendingChangesBar(
-            pendingChangeCount: state.pendingChangeCount,
-            applying: state.applying,
-            onApply: () => onEvent(ApplyRemoteChanges()),
-            onDiscard: () => onEvent(DiscardRemoteChanges()),
+            pendingChangeCount: widget.state.pendingChangeCount,
+            applying: widget.state.applying,
+            onApply: () => widget.onEvent(ApplyRemoteChanges()),
+            onDiscard: () => widget.onEvent(DiscardRemoteChanges()),
           ),
       ],
     );
@@ -105,7 +143,7 @@ class SshKeyManagerScreen extends StatelessWidget {
           onDismiss: () => Navigator.of(dialogContext).pop(),
           onGenerate: (name) {
             Navigator.of(dialogContext).pop();
-            onEvent(GenerateKeyPair(name: name));
+            widget.onEvent(GenerateKeyPair(name: name));
           },
         );
       },

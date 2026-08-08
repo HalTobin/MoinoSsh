@@ -2,11 +2,10 @@ import 'package:feature_auth/presentation/tabs/direct_auth_tab.dart';
 import 'package:feature_auth/presentation/tabs/my_servers_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:ui/navigation/auto_modal.dart';
+import 'package:ui/component/moino_tab.dart';
 import 'package:ui/navigation/push_animation.dart';
 
 import '../feature/add_edit_server/di/add_edit_server_provider.dart';
-import 'component/auth_screen_tab.dart';
 
 class AuthScreen extends StatelessWidget {
 
@@ -21,11 +20,11 @@ class AuthScreen extends StatelessWidget {
           child: Scaffold(
             appBar: TabBar.secondary(
               tabs: const [
-                AuthScreenTab(
+                MoinoTab(
                   title: "My Servers",
                   icon: LucideIcons.server
                 ),
-                AuthScreenTab(
+                MoinoTab(
                   title: "Direct",
                   icon: LucideIcons.monitorUp
                 )

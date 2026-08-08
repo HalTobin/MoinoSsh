@@ -34,7 +34,7 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
         spacing: 12,
         children: [
           TitleHeader(
-            icon: LucideIcons.keyRound,
+            icon: LucideIcons.bookKey,
             title: 'Generate SSH key pair',
             trailingContent: TitleHeaderTrailingContent.dismissable(onDismiss: widget.onDismiss),
           ),
@@ -60,7 +60,7 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
               Expanded(
                 child: FilledButton.icon(
                   onPressed: () => widget.onGenerate(_nameController.text.trim()),
-                  icon: const Icon(LucideIcons.sparkles),
+                  icon: const Icon(LucideIcons.bookKey),
                   label: const Text('Generate'),
                 ),
               ),

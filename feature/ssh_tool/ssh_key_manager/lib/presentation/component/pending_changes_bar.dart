@@ -8,6 +8,8 @@ class PendingChangesBar extends StatelessWidget {
   final Function() onApply;
   final Function() onDiscard;
 
+  static const double _buttonHeight = 40;
+
   const PendingChangesBar({
     super.key,
     required this.pendingChangeCount,
@@ -18,6 +20,8 @@ class PendingChangesBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Material(
       elevation: 8,
       child: Padding(
@@ -41,18 +45,29 @@ class PendingChangesBar extends StatelessWidget {
               spacing: 12,
               children: [
                 Expanded(
-                  child: OutlinedButton(
-                    onPressed: applying ? null : onDiscard,
-                    child: const Text('Discard'),
+                  child: SizedBox(
+                    height: _buttonHeight,
+                    child: OutlinedButton.icon(
+                      onPressed: applying ? null : onDiscard,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: colorScheme.error,
+                        side: BorderSide(color: colorScheme.error),
+                      ),
+                      icon: const Icon(LucideIcons.x),
+                      label: const Text('Discard'),
+                    ),
                   ),
                 ),
                 Expanded(
-                  child: AppButton(
-                    onClick: onApply,
-                    icon: LucideIcons.check,
-                    text: applying ? 'Applying...' : 'Apply',
-                    enabled: !applying,
-                    stretch: true,
+                  child: SizedBox(
+                    height: _buttonHeight,
+                    child: AppButton(
+                      onClick: onApply,
+                      icon: LucideIcons.check,
+                      text: applying ? 'Applying...' : 'Apply',
+                      enabled: !applying,
+                      stretch: true,
+                    ),
                   ),
                 ),
               ],

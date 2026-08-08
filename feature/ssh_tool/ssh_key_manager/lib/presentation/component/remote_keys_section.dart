@@ -27,13 +27,6 @@ class RemoteKeysSection extends StatelessWidget {
       child: Column(
       spacing: 16,
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Remote authorized keys',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-        ),
         Expanded(
           child: hasEntries
               ? ListView.separated(
@@ -65,7 +58,7 @@ class RemoteKeysSection extends StatelessWidget {
         ),
         AppButton(
           onClick: onGenerateKey,
-          icon: LucideIcons.sparkles,
+          icon: LucideIcons.bookKey,
           text: 'GENERATE KEY PAIR',
           stretch: true,
         ),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class AuthScreenTab extends StatelessWidget {
+class MoinoTab extends StatelessWidget {
   final String title;
   final IconData icon;
 
-  const AuthScreenTab({
+  const MoinoTab({
     super.key,
     required this.title,
     required this.icon
