@@ -20,20 +20,6 @@ class AuthorizedKeyEntry {
     }
 }
 
-class PendingGeneratedKey {
-    final String name;
-    final String publicKeyLine;
-    final String privateKeyContent;
-    final String privateKeyFileName;
-
-    const PendingGeneratedKey({
-        required this.name,
-        required this.publicKeyLine,
-        required this.privateKeyContent,
-        required this.privateKeyFileName,
-    });
-}
-
 class RemoteAuthorizedKeysSnapshot {
     final String authorizedKeysPath;
     final List<AuthorizedKeyEntry> entries;

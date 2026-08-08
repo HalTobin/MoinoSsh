@@ -10,18 +10,16 @@ class SshKeyManagerState {
     final String? authorizedKeysPath;
     final List<AuthorizedKeyEntry> remoteKeys;
     final List<String> stagedPublicKeyLines;
-    final List<PendingGeneratedKey> pendingGeneratedKeys;
     final int localKeysRefreshToken;
 
     const SshKeyManagerState({
         this.remoteLoading = false,
         this.applying = false,
         this.error = '',
-        this.selectedTab = 0,
+        this.selectedTab = 1,
         this.authorizedKeysPath,
         this.remoteKeys = const [],
         this.stagedPublicKeyLines = const [],
-        this.pendingGeneratedKeys = const [],
         this.localKeysRefreshToken = 0,
     });
 
@@ -41,7 +39,6 @@ class SshKeyManagerState {
         Defaulted<String?>? authorizedKeysPath = const Omit(),
         Defaulted<List<AuthorizedKeyEntry>>? remoteKeys = const Omit(),
         Defaulted<List<String>>? stagedPublicKeyLines = const Omit(),
-        Defaulted<List<PendingGeneratedKey>>? pendingGeneratedKeys = const Omit(),
         Defaulted<int>? localKeysRefreshToken = const Omit(),
     }) {
         return SshKeyManagerState(
@@ -52,7 +49,6 @@ class SshKeyManagerState {
             authorizedKeysPath: authorizedKeysPath is Omit ? this.authorizedKeysPath : authorizedKeysPath as String?,
             remoteKeys: remoteKeys is Omit ? this.remoteKeys : remoteKeys as List<AuthorizedKeyEntry>,
             stagedPublicKeyLines: stagedPublicKeyLines is Omit ? this.stagedPublicKeyLines : stagedPublicKeyLines as List<String>,
-            pendingGeneratedKeys: pendingGeneratedKeys is Omit ? this.pendingGeneratedKeys : pendingGeneratedKeys as List<PendingGeneratedKey>,
             localKeysRefreshToken: localKeysRefreshToken is Omit ? this.localKeysRefreshToken : localKeysRefreshToken as int,
         );
     }

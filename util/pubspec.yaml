@@ -11,6 +11,7 @@ dependencies:
   path:
   cryptography:
   openssh_ed25519:
+  dartssh2:
 
 dev_dependencies:
   flutter_test:

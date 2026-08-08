@@ -12,7 +12,8 @@ class ToggleRemoteKeyDeletion extends SshKeyManagerEvent {
 
 class GenerateKeyPair extends SshKeyManagerEvent {
     final String name;
-    GenerateKeyPair({required this.name});
+    final String? password;
+    GenerateKeyPair({required this.name, this.password});
 }
 
 class ApplyRemoteChanges extends SshKeyManagerEvent {}

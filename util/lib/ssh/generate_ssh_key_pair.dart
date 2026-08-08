@@ -1,5 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:cryptography/cryptography.dart';
+import 'package:dartssh2/dartssh2.dart';
 import 'package:openssh_ed25519/openssh_ed25519.dart';
+
+import 'openssh_private_key_encryption.dart';
 
 class GeneratedSshKeyPair {
     final String privateKeyContent;
@@ -14,16 +19,26 @@ class GeneratedSshKeyPair {
 }
 
 class GenerateSshKeyPair {
-    static Future<GeneratedSshKeyPair> generate({required String name}) async {
+    static Future<GeneratedSshKeyPair> generate({
+        required String name,
+        String? passphrase,
+    }) async {
         final sanitizedName = _sanitizeFileName(name);
         final keyPair = await Ed25519().newKeyPair();
-        final privateBytes = await keyPair.extractPrivateKeyBytes();
+        final privateSeed = await keyPair.extractPrivateKeyBytes();
         final publicKey = await keyPair.extractPublicKey();
+        final publicBytes = Uint8List.fromList(publicKey.bytes);
+        final openSshPrivateKey = Uint8List.fromList([
+            ...privateSeed,
+            ...publicKey.bytes,
+        ]);
 
         final publicLine = encodeEd25519Public(publicKey.bytes, sanitizedName);
-        final privateContent = encodeEd25519Private(
-            privateBytes: privateBytes,
-            publicBytes: publicKey.bytes,
+        final privateContent = _encodePrivateKey(
+            publicKey: publicBytes,
+            openSshPrivateKey: openSshPrivateKey,
+            comment: sanitizedName,
+            passphrase: passphrase,
         );
 
         return GeneratedSshKeyPair(
@@ -31,6 +46,32 @@ class GenerateSshKeyPair {
             publicKeyLine: publicLine.trim(),
             privateKeyFileName: sanitizedName,
         );
+    }
+
+    static String _encodePrivateKey({
+        required Uint8List publicKey,
+        required Uint8List openSshPrivateKey,
+        required String comment,
+        String? passphrase,
+    }) {
+        final ed25519KeyPair = OpenSSHEd25519KeyPair(
+            publicKey,
+            openSshPrivateKey,
+            comment,
+        );
+        final unencryptedPem = ed25519KeyPair.toPem();
+        final unencryptedPairs = OpenSSHKeyPairs.decode(
+            SSHPem.decode(unencryptedPem).content,
+        );
+
+        if (passphrase == null || passphrase.isEmpty) {
+            return unencryptedPem;
+        }
+
+        return OpenSshPrivateKeyEncryption.encrypt(
+            unencryptedPairs: unencryptedPairs,
+            passphrase: passphrase,
+        ).toPem();
     }
 
     static String _sanitizeFileName(String name) {

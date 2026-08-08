@@ -32,7 +32,7 @@ class SshKeyManagerViewModel extends ChangeNotifier {
             case ToggleRemoteKeyDeletion():
                 _toggleRemoteKeyDeletion(event.line);
             case GenerateKeyPair():
-                await _generateKeyPair(event.name);
+                await _generateKeyPair(event.name, event.password);
             case ApplyRemoteChanges():
                 await _applyRemoteChanges();
             case DiscardRemoteChanges():
@@ -78,7 +78,7 @@ class SshKeyManagerViewModel extends ChangeNotifier {
         notifyListeners();
     }
 
-    Future<void> _generateKeyPair(String name) async {
+    Future<void> _generateKeyPair(String name, String? password) async {
         if (name.trim().isEmpty) {
             _state = _state.copyWith(error: 'Key name is required');
             notifyListeners();
@@ -89,17 +89,31 @@ class SshKeyManagerViewModel extends ChangeNotifier {
         notifyListeners();
 
         try {
-            final pendingKey = await _useCases.generateSshKeyPairUseCase.execute(name: name);
+            final generatedKey = await _useCases.generateSshKeyPairUseCase.execute(
+                name: name,
+                password: password,
+            );
+            final savedPath = await _saveSshKeyContentUseCase.execute(
+                fileName: generatedKey.privateKeyFileName,
+                content: generatedKey.privateKeyContent,
+            );
+
+            if (savedPath == null) {
+                _state = _state.copyWith(
+                    remoteLoading: false,
+                    error: 'Could not save private key to local storage',
+                );
+                notifyListeners();
+                return;
+            }
+
             _state = _state.copyWith(
                 remoteLoading: false,
                 stagedPublicKeyLines: [
                     ..._state.stagedPublicKeyLines,
-                    pendingKey.publicKeyLine,
+                    generatedKey.publicKeyLine,
                 ],
-                pendingGeneratedKeys: [
-                    ..._state.pendingGeneratedKeys,
-                    pendingKey,
-                ],
+                localKeysRefreshToken: _state.localKeysRefreshToken + 1,
             );
         } catch (error) {
             if (kDebugMode) {
@@ -143,18 +157,9 @@ class SshKeyManagerViewModel extends ChangeNotifier {
             return;
         }
 
-        for (final pendingKey in _state.pendingGeneratedKeys) {
-            await _saveSshKeyContentUseCase.execute(
-                fileName: pendingKey.privateKeyFileName,
-                content: pendingKey.privateKeyContent,
-            );
-        }
-
         _state = _state.copyWith(
             applying: false,
             stagedPublicKeyLines: const [],
-            pendingGeneratedKeys: const [],
-            localKeysRefreshToken: _state.localKeysRefreshToken + 1,
         );
         notifyListeners();
 
@@ -169,7 +174,6 @@ class SshKeyManagerViewModel extends ChangeNotifier {
         _state = _state.copyWith(
             remoteKeys: resetKeys,
             stagedPublicKeyLines: const [],
-            pendingGeneratedKeys: const [],
             error: '',
         );
         notifyListeners();

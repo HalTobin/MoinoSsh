@@ -122,7 +122,7 @@ class _SshKeyManagerScreenState extends State<SshKeyManagerScreen> with SingleTi
           error: widget.state.error,
           onClose: () => widget.onEvent(DismissError()),
         ),
-        if (widget.state.selectedTab == 1 && widget.state.hasPendingRemoteChanges)
+        if (widget.state.selectedTab == 0 && widget.state.hasPendingRemoteChanges)
           PendingChangesBar(
             pendingChangeCount: widget.state.pendingChangeCount,
             applying: widget.state.applying,
@@ -139,9 +139,9 @@ class _SshKeyManagerScreenState extends State<SshKeyManagerScreen> with SingleTi
       builder: (dialogContext) {
         return GenerateKeyDialog(
           onDismiss: () => Navigator.of(dialogContext).pop(),
-          onGenerate: (name) {
+          onGenerate: (name, password) {
             Navigator.of(dialogContext).pop();
-            widget.onEvent(GenerateKeyPair(name: name));
+            widget.onEvent(GenerateKeyPair(name: name, password: password));
           },
         );
       },

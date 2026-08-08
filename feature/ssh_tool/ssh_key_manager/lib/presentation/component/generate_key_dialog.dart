@@ -4,7 +4,7 @@ import 'package:ui/component/app_dialog_layout.dart';
 import 'package:ui/component/title_header.dart';
 
 class GenerateKeyDialog extends StatefulWidget {
-  final Function(String name) onGenerate;
+  final Function(String name, String? password) onGenerate;
   final Function() onDismiss;
 
   const GenerateKeyDialog({
@@ -19,11 +19,48 @@ class GenerateKeyDialog extends StatefulWidget {
 
 class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
   final _nameController = TextEditingController(text: 'id_ed25519');
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  bool _passwordEnabled = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+  String? _validationError;
 
   @override
   void dispose() {
     _nameController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _submit() {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      setState(() => _validationError = 'Key name is required');
+      return;
+    }
+
+    if (_passwordEnabled) {
+      final password = _passwordController.text;
+      final confirmPassword = _confirmPasswordController.text;
+
+      if (password.isEmpty) {
+        setState(() => _validationError = 'Password is required');
+        return;
+      }
+
+      if (password != confirmPassword) {
+        setState(() => _validationError = 'Passwords do not match');
+        return;
+      }
+    }
+
+    setState(() => _validationError = null);
+    widget.onGenerate(
+      name,
+      _passwordEnabled ? _passwordController.text : null,
+    );
   }
 
   @override
@@ -39,7 +76,7 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
             trailingContent: TitleHeaderTrailingContent.dismissable(onDismiss: widget.onDismiss),
           ),
           const Text(
-            'A new Ed25519 key pair will be generated. The public key will be staged for the remote whitelist and the private key will be saved locally when you apply.',
+            'A new Ed25519 key pair will be generated. The private key is saved to local storage immediately. The public key is staged for the remote whitelist until you apply.',
           ),
           TextFormField(
             controller: _nameController,
@@ -48,6 +85,60 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
               border: OutlineInputBorder(),
             ),
           ),
+          Row(
+            spacing: 8,
+            children: [
+              Checkbox(
+                value: _passwordEnabled,
+                onChanged: (value) {
+                  setState(() {
+                    _passwordEnabled = value ?? false;
+                    _validationError = null;
+                    if (!_passwordEnabled) {
+                      _passwordController.clear();
+                      _confirmPasswordController.clear();
+                    }
+                  });
+                },
+              ),
+              const Expanded(
+                child: Text('Protect private key with a password'),
+              ),
+            ],
+          ),
+          if (_passwordEnabled) ...[
+            TextFormField(
+              controller: _passwordController,
+              enabled: _passwordEnabled,
+              obscureText: _obscurePassword,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: Icon(_obscurePassword ? LucideIcons.eye : LucideIcons.eyeOff),
+                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                ),
+              ),
+            ),
+            TextFormField(
+              controller: _confirmPasswordController,
+              enabled: _passwordEnabled,
+              obscureText: _obscureConfirmPassword,
+              decoration: InputDecoration(
+                labelText: 'Confirm password',
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: Icon(_obscureConfirmPassword ? LucideIcons.eye : LucideIcons.eyeOff),
+                  onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                ),
+              ),
+            ),
+          ],
+          if (_validationError != null)
+            Text(
+              _validationError!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           Row(
             spacing: 12,
             children: [
@@ -59,7 +150,7 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
               ),
               Expanded(
                 child: FilledButton.icon(
-                  onPressed: () => widget.onGenerate(_nameController.text.trim()),
+                  onPressed: _submit,
                   icon: const Icon(LucideIcons.bookKey),
                   label: const Text('Generate'),
                 ),
