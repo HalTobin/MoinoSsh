@@ -25,8 +25,7 @@ class SshKeyManagerScreen extends StatefulWidget {
   State<SshKeyManagerScreen> createState() => _SshKeyManagerScreenState();
 }
 
-class _SshKeyManagerScreenState extends State<SshKeyManagerScreen>
-    with SingleTickerProviderStateMixin {
+class _SshKeyManagerScreenState extends State<SshKeyManagerScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -67,7 +66,7 @@ class _SshKeyManagerScreenState extends State<SshKeyManagerScreen>
   @override
   Widget build(BuildContext context) {
     final showRemoteLoadingOverlay =
-        widget.state.selectedTab == 1 && (widget.state.remoteLoading || widget.state.applying);
+        widget.state.selectedTab == 0 && (widget.state.remoteLoading || widget.state.applying);
 
     return Column(
       children: [
@@ -75,12 +74,12 @@ class _SshKeyManagerScreenState extends State<SshKeyManagerScreen>
           controller: _tabController,
           tabs: const [
             MoinoTab(
-              icon: LucideIcons.folderKey,
-              title: 'Local',
-            ),
-            MoinoTab(
               icon: LucideIcons.server,
               title: 'Remote',
+            ),
+            MoinoTab(
+              icon: LucideIcons.folderKey,
+              title: 'Local',
             ),
           ],
         ),
@@ -93,19 +92,18 @@ class _SshKeyManagerScreenState extends State<SshKeyManagerScreen>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
+                    RemoteKeysSection(
+                      remoteKeys: widget.state.remoteKeys,
+                      stagedPublicKeyLines: widget.state.stagedPublicKeyLines,
+                      onToggleDeletion: (line) => widget.onEvent(ToggleRemoteKeyDeletion(line: line)),
+                      onGenerateKey: () => _showGenerateKeyDialog(context),
+                    ),
                     SizedBox.expand(
                       child: MySshKeysProvider(
                         key: ValueKey(widget.state.localKeysRefreshToken),
                         onKeySelect: null,
                         embedded: true,
                       ),
-                    ),
-                    RemoteKeysSection(
-                      remoteKeys: widget.state.remoteKeys,
-                      stagedPublicKeyLines: widget.state.stagedPublicKeyLines,
-                      onToggleDeletion: (line) =>
-                          widget.onEvent(ToggleRemoteKeyDeletion(line: line)),
-                      onGenerateKey: () => _showGenerateKeyDialog(context),
                     ),
                   ],
                 ),
