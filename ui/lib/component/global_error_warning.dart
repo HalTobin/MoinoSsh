@@ -13,21 +13,24 @@ class AnimatedGlobalErrorWarning extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      child: AnimatedSwitcher(
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: AnimatedSize(
         duration: const Duration(milliseconds: 300),
-        switchInCurve: Curves.easeInOut,
-        switchOutCurve: Curves.easeInOut,
-        child: error.isNotEmpty
-          ? GlobalErrorWarning(
-            key: ValueKey(error),
-            error: error,
-            onDismiss: () => onClose(),
-          )
-          : const SizedBox.shrink(),
-      ),
+        curve: Curves.easeInOut,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          switchInCurve: Curves.easeInOut,
+          switchOutCurve: Curves.easeInOut,
+          child: error.isNotEmpty
+            ? GlobalErrorWarning(
+              key: ValueKey(error),
+              error: error,
+              onDismiss: () => onClose(),
+            )
+            : const SizedBox.shrink(),
+        ),
+      )
     );
   }
 

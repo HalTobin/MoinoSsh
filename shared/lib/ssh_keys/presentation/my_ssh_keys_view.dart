@@ -30,65 +30,10 @@ class MySshKeysView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final body = LayoutBuilder(
-        builder: (context, constraints) {
-          final isNarrow = ScreenFormatHelper.isNarrow(constraints);
-
-          return AnimatedCrossFade(
-            firstChild: SizedBox.expand(
-              child: Center(
-                child: CircularProgressIndicator()
-              )
-            ),
-            secondChild: Padding(
-              padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
-              child: Column(
-                spacing: 16,
-                children: [
-                  Expanded(
-                    child: state.keys.isNotEmpty
-                      ? _KeyList(
-                        state: state,
-                        onEvent: onEvent,
-                        isShrink: isNarrow,
-                        isBottomSheet: isNarrow,
-                      ) : EmptyList(message: "No profile found", onAction: null)
-                  ),
-
-                  _ModalBottomActions(
-                      state: state,
-                      onEvent: onEvent,
-                      isShrink: isNarrow,
-                      onKeySelect: onSelect
-                  ),
-
-                  SizedBox(height: 8)
-                ],
-              ),
-            ),
-            crossFadeState: state.loading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-            duration: const Duration(milliseconds: 300),
-            layoutBuilder: (Widget topChild, Key topChildKey, Widget bottomChild, Key bottomChildKey) {
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(
-                    key: bottomChildKey,
-                    child: bottomChild,
-                  ),
-                  Positioned.fill(
-                    key: topChildKey,
-                    child: topChild,
-                  ),
-                ],
-              );
-            },
-          );
-        },
-    );
-
     if (embedded) {
-      return body;
+      return SizedBox.expand(
+        child: _buildBody(horizontalPadding: 0),
+      );
     }
 
     return Scaffold(
@@ -104,7 +49,49 @@ class MySshKeysView extends StatelessWidget {
           ],
         )
       ),
-      body: body,
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody({double horizontalPadding = 16}) {
+    return LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = ScreenFormatHelper.isNarrow(constraints);
+
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                child: Column(
+                  spacing: 16,
+                  children: [
+                    Expanded(
+                      child: state.keys.isNotEmpty
+                        ? _KeyList(
+                          state: state,
+                          onEvent: onEvent,
+                          isShrink: isNarrow,
+                          isBottomSheet: isNarrow,
+                        ) : EmptyList(message: "No profile found", onAction: null)
+                    ),
+
+                    _ModalBottomActions(
+                        state: state,
+                        onEvent: onEvent,
+                        isShrink: isNarrow,
+                        onKeySelect: onSelect
+                    ),
+
+                    SizedBox(height: 8)
+                  ],
+                ),
+              ),
+              if (state.loading)
+                const Center(child: CircularProgressIndicator()),
+            ],
+          );
+        },
     );
   }
 }

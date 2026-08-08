@@ -22,6 +22,9 @@ class SshKeyManagerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showRemoteLoadingOverlay =
+        state.selectedTab == 1 && (state.remoteLoading || state.applying);
+
     return Column(
       children: [
         Padding(
@@ -44,31 +47,39 @@ class SshKeyManagerScreen extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: AnimatedCrossFade(
-            duration: const Duration(milliseconds: 300),
-            crossFadeState: state.loading || state.applying
-                ? CrossFadeState.showFirst
-                : CrossFadeState.showSecond,
-            firstChild: const Center(child: CircularProgressIndicator()),
-            secondChild: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: IndexedStack(
-                index: state.selectedTab,
-                children: [
-                  MySshKeysProvider(
-                    key: ValueKey(state.localKeysRefreshToken),
-                    onKeySelect: null,
-                    embedded: true,
-                  ),
-                  RemoteKeysSection(
-                    remoteKeys: state.remoteKeys,
-                    stagedPublicKeyLines: state.stagedPublicKeyLines,
-                    onToggleDeletion: (line) => onEvent(ToggleRemoteKeyDeletion(line: line)),
-                    onGenerateKey: () => _showGenerateKeyDialog(context),
-                  ),
-                ],
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: IndexedStack(
+                  index: state.selectedTab,
+                  sizing: StackFit.expand,
+                  children: [
+                    SizedBox.expand(
+                      child: MySshKeysProvider(
+                        key: ValueKey(state.localKeysRefreshToken),
+                        onKeySelect: null,
+                        embedded: true,
+                      ),
+                    ),
+                    RemoteKeysSection(
+                      remoteKeys: state.remoteKeys,
+                      stagedPublicKeyLines: state.stagedPublicKeyLines,
+                      onToggleDeletion: (line) => onEvent(ToggleRemoteKeyDeletion(line: line)),
+                      onGenerateKey: () => _showGenerateKeyDialog(context),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              if (showRemoteLoadingOverlay)
+                Positioned.fill(
+                  child: ColoredBox(
+                    color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.72),
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+                ),
+            ],
           ),
         ),
         AnimatedGlobalErrorWarning(

@@ -46,20 +46,20 @@ class SshKeyManagerViewModel extends ChangeNotifier {
     }
 
     Future<void> _loadRemoteKeys() async {
-        _state = _state.copyWith(loading: true, error: '');
+        _state = _state.copyWith(remoteLoading: true, error: '');
         notifyListeners();
 
         final result = await _useCases.getRemoteAuthorizedKeysUseCase.execute();
         switch (result) {
             case ResponseSucceed():
                 _state = _state.copyWith(
-                    loading: false,
+                    remoteLoading: false,
                     authorizedKeysPath: result.data.authorizedKeysPath,
                     remoteKeys: result.data.entries,
                 );
             case ResponseFailed():
                 _state = _state.copyWith(
-                    loading: false,
+                    remoteLoading: false,
                     error: result.error,
                 );
         }
@@ -85,13 +85,13 @@ class SshKeyManagerViewModel extends ChangeNotifier {
             return;
         }
 
-        _state = _state.copyWith(loading: true, error: '');
+        _state = _state.copyWith(remoteLoading: true, error: '');
         notifyListeners();
 
         try {
             final pendingKey = await _useCases.generateSshKeyPairUseCase.execute(name: name);
             _state = _state.copyWith(
-                loading: false,
+                remoteLoading: false,
                 stagedPublicKeyLines: [
                     ..._state.stagedPublicKeyLines,
                     pendingKey.publicKeyLine,
@@ -106,7 +106,7 @@ class SshKeyManagerViewModel extends ChangeNotifier {
                 print('[SshKeyManagerViewModel] generate key failed: $error');
             }
             _state = _state.copyWith(
-                loading: false,
+                remoteLoading: false,
                 error: 'Could not generate SSH key pair',
             );
         }

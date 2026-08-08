@@ -23,7 +23,8 @@ class RemoteKeysSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasEntries = remoteKeys.isNotEmpty || stagedPublicKeyLines.isNotEmpty;
 
-    return Column(
+    return SizedBox.expand(
+      child: Column(
       spacing: 16,
       children: [
         Align(
@@ -69,6 +70,7 @@ class RemoteKeysSection extends StatelessWidget {
           stretch: true,
         ),
       ],
+      ),
     );
   }
 

@@ -3,7 +3,7 @@ import 'package:ui/state/omit.dart';
 import '../model/authorized_key_entry.dart';
 
 class SshKeyManagerState {
-    final bool loading;
+    final bool remoteLoading;
     final bool applying;
     final String error;
     final int selectedTab;
@@ -14,7 +14,7 @@ class SshKeyManagerState {
     final int localKeysRefreshToken;
 
     const SshKeyManagerState({
-        this.loading = true,
+        this.remoteLoading = false,
         this.applying = false,
         this.error = '',
         this.selectedTab = 0,
@@ -34,7 +34,7 @@ class SshKeyManagerState {
         stagedPublicKeyLines.length;
 
     SshKeyManagerState copyWith({
-        Defaulted<bool>? loading = const Omit(),
+        Defaulted<bool>? remoteLoading = const Omit(),
         Defaulted<bool>? applying = const Omit(),
         Defaulted<String>? error = const Omit(),
         Defaulted<int>? selectedTab = const Omit(),
@@ -45,7 +45,7 @@ class SshKeyManagerState {
         Defaulted<int>? localKeysRefreshToken = const Omit(),
     }) {
         return SshKeyManagerState(
-            loading: loading is Omit ? this.loading : loading as bool,
+            remoteLoading: remoteLoading is Omit ? this.remoteLoading : remoteLoading as bool,
             applying: applying is Omit ? this.applying : applying as bool,
             error: error is Omit ? this.error : error as String,
             selectedTab: selectedTab is Omit ? this.selectedTab : selectedTab as int,
