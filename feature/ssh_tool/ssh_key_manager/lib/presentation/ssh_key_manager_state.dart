@@ -17,7 +17,7 @@ class SshKeyManagerState {
         this.remoteLoading = false,
         this.applying = false,
         this.error = '',
-        this.selectedTab = 1,
+        this.selectedTab = 0,
         this.authorizedKeysPath,
         this.remoteKeys = const [],
         this.stagedPublicKeyLines = const [],
