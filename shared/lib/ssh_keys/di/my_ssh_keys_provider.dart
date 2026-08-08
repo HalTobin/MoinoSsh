@@ -37,7 +37,8 @@ class MySshKeysProvider extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (context) => MySshKeysViewModel(
-            mySshKeysUseCases: context.read()
+            mySshKeysUseCases: context.read(),
+            selectionEnable: onKeySelect != null,
           )
         )
       ],
@@ -46,11 +47,10 @@ class MySshKeysProvider extends StatelessWidget {
           return MySshKeysView(
             state: viewmodel.state,
             onEvent: viewmodel.onEvent,
-            selectionEnable: true,
             embedded: embedded,
-            onSelect: (onKeySelect != null)
-              ? (String? keyPath) { onKeySelect?.call(keyPath ?? ""); }
-              : null,
+            onSelect: onKeySelect == null
+              ? null
+              : (String? keyPath) { onKeySelect?.call(keyPath ?? ""); },
             onDismiss: () => Navigator.pop(context),
           );
         }

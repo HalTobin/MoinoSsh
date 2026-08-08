@@ -7,14 +7,16 @@ import 'delete_ssh_key_dialog.dart';
 
 class SshKeyItem extends StatelessWidget {
   final SshKeyFile sshKeyFile;
+  final bool selectionEnable;
   final bool selected;
-  final Function() onClick;
+  final Function()? onClick;
   final Function(String newName) onEdit;
   final Function() onDelete;
 
   const SshKeyItem({
     super.key,
     required this.sshKeyFile,
+    required this.selectionEnable,
     required this.selected,
     required this.onClick,
     required this.onEdit,
@@ -39,37 +41,47 @@ class SshKeyItem extends StatelessWidget {
         margin: EdgeInsets.zero,
         color: selected ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest,
         clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onClick,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              children: [
-                Expanded(child: _BaseKeyItem(sshKeyFile: sshKeyFile)),
-                Builder(
-                  builder: (buttonContext) {
-                    return IconButton(
-                      icon: const Icon(LucideIcons.ellipsisVertical),
-                      onPressed: () {
-                        final RenderBox button =
-                            buttonContext.findRenderObject() as RenderBox;
-                        final Offset position = button.localToGlobal(Offset.zero);
-                        _showMenu(
-                          context,
-                          Offset(
-                            position.dx + button.size.width,
-                            position.dy + button.size.height,
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
+        child: _buildCardContent(context),
       ),
+    );
+  }
+
+  Widget _buildCardContent(BuildContext context) {
+    final content = Padding(
+      padding: const EdgeInsets.only(left: 16, right: 8, top: 12, bottom: 12),
+      child: Row(
+        children: [
+          Expanded(child: _BaseKeyItem(sshKeyFile: sshKeyFile)),
+          Builder(
+            builder: (buttonContext) {
+              return IconButton(
+                icon: const Icon(LucideIcons.ellipsisVertical),
+                onPressed: () {
+                  final RenderBox button =
+                      buttonContext.findRenderObject() as RenderBox;
+                  final Offset position = button.localToGlobal(Offset.zero);
+                  _showMenu(
+                    context,
+                    Offset(
+                      position.dx + button.size.width,
+                      position.dy + button.size.height,
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+
+    if (!selectionEnable) {
+      return content;
+    }
+
+    return InkWell(
+      onTap: onClick,
+      child: content,
     );
   }
 
@@ -175,6 +187,7 @@ class _BaseKeyItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      spacing: 4,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(

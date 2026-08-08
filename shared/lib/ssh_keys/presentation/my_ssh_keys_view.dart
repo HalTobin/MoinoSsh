@@ -12,7 +12,6 @@ import 'my_ssh_keys_state.dart';
 class MySshKeysView extends StatelessWidget {
   final MySshKeysState state;
   final Function(MySshKeysEvent) onEvent;
-  final bool selectionEnable;
 
   final Function(String?)? onSelect;
   final Function() onDismiss;
@@ -22,11 +21,12 @@ class MySshKeysView extends StatelessWidget {
     super.key,
     required this.state,
     required this.onEvent,
-    required this.selectionEnable,
     required this.onSelect,
     required this.onDismiss,
     this.embedded = false,
   });
+
+  bool get _selectionEnable => onSelect != null;
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +71,7 @@ class MySshKeysView extends StatelessWidget {
                         ? _KeyList(
                           state: state,
                           onEvent: onEvent,
+                          selectionEnable: _selectionEnable,
                         ) : EmptyList(message: "No profile found", onAction: null)
                     ),
 
@@ -97,10 +98,12 @@ class MySshKeysView extends StatelessWidget {
 class _KeyList extends StatelessWidget {
   final MySshKeysState state;
   final Function(MySshKeysEvent) onEvent;
+  final bool selectionEnable;
 
   const _KeyList({
     required this.state,
     required this.onEvent,
+    required this.selectionEnable,
   });
 
   @override
@@ -113,8 +116,11 @@ class _KeyList extends StatelessWidget {
 
         return SshKeyItem(
           sshKeyFile: key,
-          selected: state.selectedKeyPath == key.path,
-          onClick: () => onEvent(SelectKey(keyPath: key.path)),
+          selectionEnable: selectionEnable,
+          selected: selectionEnable && state.selectedKeyPath == key.path,
+          onClick: selectionEnable
+            ? () => onEvent(SelectKey(keyPath: key.path))
+            : null,
           onEdit: (newName) {
             onEvent(RenameKey(keyPath: key.path, newName: newName));
           },

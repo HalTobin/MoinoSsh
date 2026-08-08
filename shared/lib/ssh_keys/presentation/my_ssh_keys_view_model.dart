@@ -6,13 +6,17 @@ import 'my_ssh_keys_state.dart';
 
 class MySshKeysViewModel extends ChangeNotifier {
 
-    MySshKeysViewModel({required MySshKeysUseCases mySshKeysUseCases})
-        : _useCases = mySshKeysUseCases
+    MySshKeysViewModel({
+        required MySshKeysUseCases mySshKeysUseCases,
+        required bool selectionEnable,
+    }) : _useCases = mySshKeysUseCases,
+         _selectionEnable = selectionEnable
         {
             _init();
         }
 
     final MySshKeysUseCases _useCases;
+    final bool _selectionEnable;
     MySshKeysState _state = MySshKeysState();
     MySshKeysState get state => _state;
 
@@ -23,7 +27,10 @@ class MySshKeysViewModel extends ChangeNotifier {
 
     Future<void> onEvent(MySshKeysEvent event) async {
         switch (event) {
-            case SelectKey(): _selectKey(event.keyPath);
+            case SelectKey():
+                if (_selectionEnable) {
+                    _selectKey(event.keyPath);
+                }
             case AddKey(): _addKey(event.keyPath);
             case RenameKey(): _renameKey(event.keyPath, event.newName);
             case DeleteKey(): _deleteKey(event.keyPath);
@@ -33,8 +40,10 @@ class MySshKeysViewModel extends ChangeNotifier {
     Future<void> _addKey(String keyPath) async {
         _setLoadingState(true);
         final newFile = await _useCases.addKeyUseCase.execute(keyPath);
-        _loadSshKeys();
-        _selectKey(newFile);
+        await _loadSshKeys();
+        if (_selectionEnable) {
+            _selectKey(newFile);
+        }
     }
 
     Future<void> _loadSshKeys() async {
@@ -49,13 +58,17 @@ class MySshKeysViewModel extends ChangeNotifier {
     Future<void> _renameKey(String keyPath, String newName) async {
         _setLoadingState(true);
         final newFile = await _useCases.renameKeyUseCase.execute(keyPath, newName);
-        _loadSshKeys();
-        _selectKey(newFile);
+        await _loadSshKeys();
+        if (_selectionEnable) {
+            _selectKey(newFile);
+        }
     }
 
     Future<void> _deleteKey(String keyPath) async {
         _setLoadingState(true);
-        _selectKey(null);
+        if (_selectionEnable) {
+            _selectKey(null);
+        }
         await _useCases.deleteKeyUseCase.execute(keyPath);
         _loadSshKeys();
     }
