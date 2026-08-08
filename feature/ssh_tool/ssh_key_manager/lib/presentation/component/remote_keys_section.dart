@@ -4,19 +4,30 @@ import 'package:ui/component/app_button.dart';
 import 'package:ui/component/empty_list.dart';
 
 import '../../model/authorized_key_entry.dart';
+import 'pending_changes_bar.dart';
 
 class RemoteKeysSection extends StatelessWidget {
   final List<AuthorizedKeyEntry> remoteKeys;
   final List<String> stagedPublicKeyLines;
+  final int pendingChangeCount;
+  final bool hasPendingRemoteChanges;
+  final bool applying;
   final Function(String line) onToggleDeletion;
   final Function() onGenerateKey;
+  final Function() onApply;
+  final Function() onDiscard;
 
   const RemoteKeysSection({
     super.key,
     required this.remoteKeys,
     required this.stagedPublicKeyLines,
+    required this.pendingChangeCount,
+    required this.hasPendingRemoteChanges,
+    required this.applying,
     required this.onToggleDeletion,
     required this.onGenerateKey,
+    required this.onApply,
+    required this.onDiscard,
   });
 
   @override
@@ -62,6 +73,13 @@ class RemoteKeysSection extends StatelessWidget {
           text: 'GENERATE KEY PAIR',
           stretch: true,
         ),
+        if (hasPendingRemoteChanges)
+          PendingChangesBar(
+            pendingChangeCount: pendingChangeCount,
+            applying: applying,
+            onApply: onApply,
+            onDiscard: onDiscard,
+          ),
       ],
       ),
     );

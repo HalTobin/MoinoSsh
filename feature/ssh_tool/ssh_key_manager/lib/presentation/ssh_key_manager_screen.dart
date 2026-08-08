@@ -1,5 +1,4 @@
 import 'package:feature_ssh_key_manager/presentation/component/generate_key_dialog.dart';
-import 'package:feature_ssh_key_manager/presentation/component/pending_changes_bar.dart';
 import 'package:feature_ssh_key_manager/presentation/component/remote_keys_section.dart';
 import 'package:feature_ssh_key_manager/presentation/ssh_key_manager_event.dart';
 import 'package:feature_ssh_key_manager/presentation/ssh_key_manager_state.dart';
@@ -95,8 +94,13 @@ class _SshKeyManagerScreenState extends State<SshKeyManagerScreen> with SingleTi
                     RemoteKeysSection(
                       remoteKeys: widget.state.remoteKeys,
                       stagedPublicKeyLines: widget.state.stagedPublicKeyLines,
+                      pendingChangeCount: widget.state.pendingChangeCount,
+                      hasPendingRemoteChanges: widget.state.hasPendingRemoteChanges,
+                      applying: widget.state.applying,
                       onToggleDeletion: (line) => widget.onEvent(ToggleRemoteKeyDeletion(line: line)),
                       onGenerateKey: () => _showGenerateKeyDialog(context),
+                      onApply: () => widget.onEvent(ApplyRemoteChanges()),
+                      onDiscard: () => widget.onEvent(DiscardRemoteChanges()),
                     ),
                     SizedBox.expand(
                       child: MySshKeysProvider(
@@ -122,13 +126,6 @@ class _SshKeyManagerScreenState extends State<SshKeyManagerScreen> with SingleTi
           error: widget.state.error,
           onClose: () => widget.onEvent(DismissError()),
         ),
-        if (widget.state.selectedTab == 0 && widget.state.hasPendingRemoteChanges)
-          PendingChangesBar(
-            pendingChangeCount: widget.state.pendingChangeCount,
-            applying: widget.state.applying,
-            onApply: () => widget.onEvent(ApplyRemoteChanges()),
-            onDiscard: () => widget.onEvent(DiscardRemoteChanges()),
-          ),
       ],
     );
   }
