@@ -21,7 +21,6 @@ class DirectAuthViewModel extends ChangeNotifier {
             case LoadSshFile():
                 _loadSshFile(event.sshFilePath);
             case Connect(): {
-                _setLoadingState(true);
                 final bool fieldsValid = _checkFields(
                     user: event.user,
                     url: event.serverUrl,
@@ -30,7 +29,7 @@ class DirectAuthViewModel extends ChangeNotifier {
                     password: event.password
                 );
                 if (fieldsValid) {
-                    _connect(
+                    await _connect(
                         user: event.user,
                         url: event.serverUrl,
                         port: event.serverPort,
@@ -38,7 +37,6 @@ class DirectAuthViewModel extends ChangeNotifier {
                         password: event.password
                     );
                 }
-                _setLoadingState(false);
             }
             case ClearError():
               _clearError();

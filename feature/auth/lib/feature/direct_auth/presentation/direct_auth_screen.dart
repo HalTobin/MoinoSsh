@@ -32,54 +32,72 @@ class _DirectAuthScreenState extends State<DirectAuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          final event = Connect(
-              user: userController.text,
-              serverUrl: urlController.text,
-              serverPort: portController.text,
-              sshFilePath: sshController.text,
-              password: widget.state.passwordRequired ? passwordController.text : null
-          );
-          widget.onEvent(event);
-        },
-        icon: const Icon(LucideIcons.earthLock),
-        label: const Text("Connect"),
-      ),
-      body: Padding(
-        padding: EdgeInsetsGeometry.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: 16,
-          children: [
+    final connecting = widget.state.loading;
 
-            SshAuthFields(
-              enabled: !widget.state.loading,
-              userController: userController,
-              urlController: urlController,
-              portController: portController,
-              sshController: sshController,
-              disableLocalSshKey: true,
-              loadSshFile: (path) => widget.onEvent(LoadSshFile(sshFilePath: path)),
-              wrongFields: widget.state.wrongFields,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Scaffold(
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: connecting
+                ? null
+                : () {
+                    final event = Connect(
+                        user: userController.text,
+                        serverUrl: urlController.text,
+                        serverPort: portController.text,
+                        sshFilePath: sshController.text,
+                        password: widget.state.passwordRequired
+                            ? passwordController.text
+                            : null
+                    );
+                    widget.onEvent(event);
+                  },
+            icon: const Icon(LucideIcons.earthLock),
+            label: const Text("Connect"),
+          ),
+          body: Padding(
+            padding: EdgeInsetsGeometry.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 16,
+              children: [
+
+                SshAuthFields(
+                  enabled: !connecting,
+                  userController: userController,
+                  urlController: urlController,
+                  portController: portController,
+                  sshController: sshController,
+                  disableLocalSshKey: true,
+                  loadSshFile: (path) => widget.onEvent(LoadSshFile(sshFilePath: path)),
+                  wrongFields: widget.state.wrongFields,
+                ),
+
+                PasswordTextFormField(
+                    controller: passwordController,
+                    enabled: widget.state.passwordRequired && !connecting
+                ),
+
+                const Spacer(),
+
+                AnimatedGlobalErrorWarning(
+                    error: widget.state.globalError,
+                    onClose: () => widget.onEvent(ClearError())
+                )
+              ],
             ),
-
-            PasswordTextFormField(
-                controller: passwordController,
-                enabled: widget.state.passwordRequired && !widget.state.loading
-            ),
-
-            const Spacer(),
-
-            AnimatedGlobalErrorWarning(
-                error: widget.state.globalError,
-                onClose: () => widget.onEvent(ClearError())
-            )
-          ],
+          ),
         ),
-      ),
+        if (connecting)
+          Positioned.fill(
+            child: ColoredBox(
+              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.72),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+          ),
+      ],
     );
   }
 }

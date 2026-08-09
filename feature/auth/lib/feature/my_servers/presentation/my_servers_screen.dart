@@ -23,46 +23,58 @@ class MyServersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => onAddEditServer(null),
-        icon: const Icon(LucideIcons.plus),
-        label: const Text("Add a server"),
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return AnimatedCrossFade(
-            firstChild: SizedBox.expand(
-              child: Center(
-                child: CircularProgressIndicator()
-              )
-            ),
-            secondChild: state.servers.isNotEmpty
-              ? _ServerList(
-                state: state,
-                onConnect: (profile) => _connect(context: context, profile: profile),
-                onAddEditServer: (profile) => onAddEditServer(profile.id)
-              ) : EmptyList(message: "No profile found", onAction: () => onAddEditServer(null)),
-            crossFadeState: state.loading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-            duration: const Duration(milliseconds: 300),
-            layoutBuilder: (Widget topChild, Key topChildKey, Widget bottomChild, Key bottomChildKey) {
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(
-                    key: bottomChildKey,
-                    child: bottomChild,
-                  ),
-                  Positioned.fill(
-                    key: topChildKey,
-                    child: topChild,
-                  ),
-                ],
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Scaffold(
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: state.connecting ? null : () => onAddEditServer(null),
+            icon: const Icon(LucideIcons.plus),
+            label: const Text("Add a server"),
+          ),
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              return AnimatedCrossFade(
+                firstChild: SizedBox.expand(
+                  child: Center(
+                    child: CircularProgressIndicator()
+                  )
+                ),
+                secondChild: state.servers.isNotEmpty
+                  ? _ServerList(
+                    state: state,
+                    onConnect: (profile) => _connect(context: context, profile: profile),
+                    onAddEditServer: (profile) => onAddEditServer(profile.id)
+                  ) : EmptyList(message: "No profile found", onAction: () => onAddEditServer(null)),
+                crossFadeState: state.loading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                duration: const Duration(milliseconds: 300),
+                layoutBuilder: (Widget topChild, Key topChildKey, Widget bottomChild, Key bottomChildKey) {
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned.fill(
+                        key: bottomChildKey,
+                        child: bottomChild,
+                      ),
+                      Positioned.fill(
+                        key: topChildKey,
+                        child: topChild,
+                      ),
+                    ],
+                  );
+                },
               );
-            },
-          );
-        }
-      ),
+            }
+          ),
+        ),
+        if (state.connecting)
+          Positioned.fill(
+            child: ColoredBox(
+              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.72),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+          ),
+      ],
     );
   }
 

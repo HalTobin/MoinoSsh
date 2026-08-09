@@ -58,6 +58,8 @@ class MyServersViewModel extends ChangeNotifier {
         final succeed = await _useCases.authFromProfileUseCase.execute(profile.id, method) is ConnectionSucceed;
         if (succeed) {
             _state = _state.copyWith(sshPasswordRequired: false, connecting: false);
+        } else {
+            _state = _state.copyWith(connecting: false);
         }
         notifyListeners();
     }
