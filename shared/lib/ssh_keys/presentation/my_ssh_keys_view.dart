@@ -114,17 +114,27 @@ class _KeyList extends StatelessWidget {
       itemBuilder: (BuildContext context, int index) {
         final key = state.keys[index];
 
-        return SshKeyItem(
-          sshKeyFile: key,
-          selectionEnable: selectionEnable,
-          selected: selectionEnable && state.selectedKeyPath == key.path,
-          onClick: selectionEnable
-            ? () => onEvent(SelectKey(keyPath: key.path))
-            : null,
-          onEdit: (newName) {
-            onEvent(RenameKey(keyPath: key.path, newName: newName));
-          },
-          onDelete: () => onEvent(DeleteKey(keyPath: key.path)),
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 600,
+            ),
+            child: Padding(
+              padding: EdgeInsetsGeometry.symmetric(vertical: 4),
+              child: SshKeyItem(
+                sshKeyFile: key,
+                selectionEnable: selectionEnable,
+                selected: selectionEnable && state.selectedKeyPath == key.path,
+                onClick: selectionEnable
+                    ? () => onEvent(SelectKey(keyPath: key.path))
+                    : null,
+                onEdit: (newName) {
+                  onEvent(RenameKey(keyPath: key.path, newName: newName));
+                },
+                onDelete: () => onEvent(DeleteKey(keyPath: key.path)),
+              )
+            ),
+          ),
         );
       },
       separatorBuilder: (BuildContext context, int index) => const SizedBox(height: 8),
