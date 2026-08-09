@@ -10,17 +10,14 @@ class MySshKeysViewModel extends ChangeNotifier {
     MySshKeysViewModel({
         required MySshKeysUseCases mySshKeysUseCases,
         required bool selectionEnable,
-        Function(String publicKeyLine)? onPublicKeyGenerated,
     }) : _useCases = mySshKeysUseCases,
-         _selectionEnable = selectionEnable,
-         _onPublicKeyGenerated = onPublicKeyGenerated
+         _selectionEnable = selectionEnable
         {
             _init();
         }
 
     final MySshKeysUseCases _useCases;
     final bool _selectionEnable;
-    final Function(String publicKeyLine)? _onPublicKeyGenerated;
     MySshKeysState _state = MySshKeysState();
     MySshKeysState get state => _state;
 
@@ -94,7 +91,6 @@ class MySshKeysViewModel extends ChangeNotifier {
             if (_selectionEnable) {
                 _selectKey(savedPath);
             }
-            _onPublicKeyGenerated?.call(generatedKey.publicKeyLine);
         } catch (error) {
             if (kDebugMode) {
                 print('[MySshKeysViewModel] generate key failed: $error');

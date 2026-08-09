@@ -135,7 +135,7 @@ class _MainScreenState extends State<MainScreen> {
 
   void _navigateToSshKeyView() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => MySshKeysProvider(onKeySelect: null))
+      MaterialPageRoute(builder: (context) => const MySshKeysProvider())
     );
   }
 

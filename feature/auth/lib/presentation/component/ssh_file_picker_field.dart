@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shared/ssh_keys/di/my_ssh_keys_provider.dart';
+import 'package:shared/ssh_keys/model/my_ssh_keys_select_mode.dart';
 
 class SshFilePickerField extends StatelessWidget {
   final bool enable;
@@ -61,8 +62,9 @@ class SshFilePickerField extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) => MySshKeysProvider(
-          onKeySelect: (String? keyPath) {
-            _select(keyPath ?? "");
+          selectMode: MySshKeysSelectMode.privateKeyPath,
+          onSelect: (String keyPath) {
+            _select(keyPath);
             Navigator.pop(context);
           },
         ),

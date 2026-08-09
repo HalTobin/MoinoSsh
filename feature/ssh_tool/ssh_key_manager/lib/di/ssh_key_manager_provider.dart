@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:ui/screen_format/screen_format_helper.dart';
 
 import '../presentation/ssh_key_manager_screen.dart';
 import '../presentation/ssh_key_manager_view_model.dart';
@@ -32,14 +31,9 @@ class SshKeyManagerProvider extends StatelessWidget {
       ],
       child: Consumer<SshKeyManagerViewModel>(
         builder: (context, viewModel, child) {
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              return SshKeyManagerScreen(
-                state: viewModel.state,
-                onEvent: viewModel.onEvent,
-                isNarrow: ScreenFormatHelper.isNarrow(constraints),
-              );
-            },
+          return SshKeyManagerScreen(
+            state: viewModel.state,
+            onEvent: viewModel.onEvent,
           );
         },
       ),

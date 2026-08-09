@@ -22,9 +22,6 @@ class SshKeyManagerViewModel extends ChangeNotifier {
 
     Future<void> onEvent(SshKeyManagerEvent event) async {
         switch (event) {
-            case SwitchTab():
-                _state = _state.copyWith(selectedTab: event.tabIndex, error: '');
-                notifyListeners();
             case ToggleRemoteKeyDeletion():
                 _toggleRemoteKeyDeletion(event.line);
             case StagePublicKey():

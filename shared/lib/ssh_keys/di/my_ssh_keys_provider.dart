@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../model/my_ssh_keys_select_mode.dart';
 import '../presentation/my_ssh_keys_view.dart';
 import '../presentation/my_ssh_keys_view_model.dart';
 import '../use_case/add_key_use_case.dart';
@@ -13,19 +14,21 @@ import '../use_case/rename_key_use_case.dart';
 import '../use_case/save_ssh_key_content_use_case.dart';
 
 class MySshKeysProvider extends StatelessWidget {
-  final Function(String?)? onKeySelect;
-  final Function(String publicKeyLine)? onPublicKeyGenerated;
+  final MySshKeysSelectMode? selectMode;
+  final void Function(String value)? onSelect;
   final bool embedded;
 
   const MySshKeysProvider({
     super.key,
-    required this.onKeySelect,
-    this.onPublicKeyGenerated,
+    this.selectMode,
+    this.onSelect,
     this.embedded = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final selectionEnable = selectMode != null && onSelect != null;
+
     return MultiProvider(
       providers: [
         Provider(create: (context) => AddKeyUseCase(fileRepository: context.read())),
@@ -49,8 +52,7 @@ class MySshKeysProvider extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => MySshKeysViewModel(
             mySshKeysUseCases: context.read(),
-            selectionEnable: onKeySelect != null,
-            onPublicKeyGenerated: onPublicKeyGenerated,
+            selectionEnable: selectionEnable,
           )
         )
       ],
@@ -61,15 +63,12 @@ class MySshKeysProvider extends StatelessWidget {
             onEvent: viewmodel.onEvent,
             onLoadPublicKey: viewmodel.loadPublicKey,
             embedded: embedded,
-            stagePublicKeyForRemote: onPublicKeyGenerated != null,
-            onSelect: onKeySelect == null
-              ? null
-              : (String? keyPath) { onKeySelect?.call(keyPath ?? ""); },
+            selectMode: selectionEnable ? selectMode : null,
+            onSelect: selectionEnable ? onSelect : null,
             onDismiss: () => Navigator.pop(context),
           );
         }
       ),
     );
   }
-
 }

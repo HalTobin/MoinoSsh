@@ -38,8 +38,9 @@ class RemoteKeysSection extends StatelessWidget {
         Expanded(
           child: hasEntries
               ? ListView.separated(
+                  padding: const EdgeInsets.only(bottom: 88),
                   itemCount: remoteKeys.length + stagedPublicKeyLines.length,
-                  separatorBuilder: (_, __) => const Divider(),
+                  separatorBuilder: (_, _) => const Divider(),
                   itemBuilder: (context, index) {
                     if (index < remoteKeys.length) {
                       final entry = remoteKeys[index];

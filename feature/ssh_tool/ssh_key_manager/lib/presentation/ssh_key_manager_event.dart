@@ -1,10 +1,5 @@
 sealed class SshKeyManagerEvent {}
 
-class SwitchTab extends SshKeyManagerEvent {
-    final int tabIndex;
-    SwitchTab({required this.tabIndex});
-}
-
 class ToggleRemoteKeyDeletion extends SshKeyManagerEvent {
     final String line;
     ToggleRemoteKeyDeletion({required this.line});

@@ -1,9 +1,12 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:shared/ssh_keys/model/my_ssh_keys_select_mode.dart';
 import 'package:ui/component/app_button.dart';
+import 'package:ui/component/app_dialog_layout.dart';
 import 'package:ui/component/empty_list.dart';
 import 'package:ui/component/expandable_fab.dart';
+import 'package:ui/component/password_required_dialog.dart';
 import 'package:util/ssh/ssh_key_details.dart';
 
 import 'component/generate_key_dialog.dart';
@@ -16,23 +19,23 @@ class MySshKeysView extends StatelessWidget {
   final Function(MySshKeysEvent) onEvent;
   final Future<SshKeyDetails> Function(String keyPath, {String? password, String? comment}) onLoadPublicKey;
 
-  final Function(String?)? onSelect;
+  final MySshKeysSelectMode? selectMode;
+  final void Function(String value)? onSelect;
   final Function() onDismiss;
   final bool embedded;
-  final bool stagePublicKeyForRemote;
 
   const MySshKeysView({
     super.key,
     required this.state,
     required this.onEvent,
     required this.onLoadPublicKey,
+    required this.selectMode,
     required this.onSelect,
     required this.onDismiss,
     this.embedded = false,
-    this.stagePublicKeyForRemote = false,
   });
 
-  bool get _selectionEnable => onSelect != null;
+  bool get _selectionEnable => selectMode != null && onSelect != null;
 
   @override
   Widget build(BuildContext context) {
@@ -71,11 +74,11 @@ class MySshKeysView extends StatelessWidget {
         ],
         onAction: (action) => _handleFabAction(context, action),
       ),
-      body: _buildBody(),
+      body: _buildBody(context),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(BuildContext context) {
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -92,18 +95,18 @@ class MySshKeysView extends StatelessWidget {
                         onLoadPublicKey: onLoadPublicKey,
                       )
                     : const EmptyList(
-                        message: "No profile found",
+                        message: "No SSH keys found",
                         onAction: null,
                       ),
               ),
-              if (onSelect != null) ...[
+              if (_selectionEnable) ...[
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Center(
                     child: SizedBox(
                       width: 180,
                       child: AppButton(
-                        onClick: () => onSelect?.call(state.selectedKeyPath),
+                        onClick: () => _confirmSelection(context),
                         icon: LucideIcons.key,
                         text: "SELECT",
                         enabled: state.selectedKeyPath != null,
@@ -119,6 +122,102 @@ class MySshKeysView extends StatelessWidget {
         if (state.loading)
           const Center(child: CircularProgressIndicator()),
       ],
+    );
+  }
+
+  Future<void> _confirmSelection(BuildContext context) async {
+    final selectedPath = state.selectedKeyPath;
+    final mode = selectMode;
+    final select = onSelect;
+    if (selectedPath == null || mode == null || select == null) {
+      return;
+    }
+
+    switch (mode) {
+      case MySshKeysSelectMode.privateKeyPath:
+        select(selectedPath);
+      case MySshKeysSelectMode.publicKeyLine:
+        final publicKeyLine = await _resolvePublicKeyLine(context, selectedPath);
+        if (publicKeyLine != null) {
+          select(publicKeyLine);
+        }
+    }
+  }
+
+  Future<String?> _resolvePublicKeyLine(
+    BuildContext context,
+    String keyPath,
+  ) async {
+    final comment = state.keys
+        .where((key) => key.path == keyPath)
+        .map((key) => key.name)
+        .firstOrNull;
+
+    Future<SshKeyDetails> load([String? password]) {
+      return onLoadPublicKey(
+        keyPath,
+        password: password,
+        comment: comment,
+      );
+    }
+
+    try {
+      final details = await load();
+      return details.publicKeyLine;
+    } on SshKeyDetailsLoadException catch (error) {
+      if (!error.passwordRequired) {
+        if (context.mounted) {
+          _showErrorSnackBar(context, error.message);
+        }
+        return null;
+      }
+    } catch (_) {
+      if (context.mounted) {
+        _showErrorSnackBar(context, 'Could not read public key');
+      }
+      return null;
+    }
+
+    if (!context.mounted) {
+      return null;
+    }
+
+    final password = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return AppDialogLayout(
+          child: PasswordRequiredDialog(
+            confirmText: 'UNLOCK',
+            onDismiss: () => Navigator.of(dialogContext).pop(),
+            onPasswordEntered: (password, _) {
+              Navigator.of(dialogContext).pop(password);
+            },
+          ),
+        );
+      },
+    );
+
+    if (password == null || !context.mounted) {
+      return null;
+    }
+
+    try {
+      final details = await load(password);
+      return details.publicKeyLine;
+    } catch (_) {
+      if (context.mounted) {
+        _showErrorSnackBar(context, 'Could not unlock public key');
+      }
+      return null;
+    }
+  }
+
+  void _showErrorSnackBar(BuildContext context, String message) {
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -142,9 +241,6 @@ class MySshKeysView extends StatelessWidget {
       context: context,
       builder: (dialogContext) {
         return GenerateKeyDialog(
-          description: stagePublicKeyForRemote
-              ? 'A new Ed25519 key pair will be generated. The private key is saved to local storage immediately. The public key is staged for the remote whitelist until you apply.'
-              : 'A new Ed25519 key pair will be generated. The private key is saved to local storage.',
           onDismiss: () => Navigator.of(dialogContext).pop(),
           onGenerate: (name, password) {
             Navigator.of(dialogContext).pop();
