@@ -1,4 +1,5 @@
 import 'package:feature_ssh_key_manager/presentation/component/paste_public_key_dialog.dart';
+import 'package:feature_ssh_key_manager/presentation/component/pending_changes_bar.dart';
 import 'package:feature_ssh_key_manager/presentation/component/remote_keys_section.dart';
 import 'package:feature_ssh_key_manager/presentation/ssh_key_manager_event.dart';
 import 'package:feature_ssh_key_manager/presentation/ssh_key_manager_state.dart';
@@ -41,6 +42,14 @@ class SshKeyManagerScreen extends StatelessWidget {
         ],
         onAction: (action) => _handleFabAction(context, action),
       ),
+      bottomNavigationBar: state.hasPendingRemoteChanges
+          ? PendingChangesBar(
+              pendingChangeCount: state.pendingChangeCount,
+              applying: state.applying,
+              onApply: () => onEvent(ApplyRemoteChanges()),
+              onDiscard: () => onEvent(DiscardRemoteChanges()),
+            )
+          : null,
       body: Column(
         children: [
           Expanded(
@@ -52,14 +61,9 @@ class SshKeyManagerScreen extends StatelessWidget {
                   child: RemoteKeysSection(
                     remoteKeys: state.remoteKeys,
                     stagedPublicKeyLines: state.stagedPublicKeyLines,
-                    pendingChangeCount: state.pendingChangeCount,
-                    hasPendingRemoteChanges: state.hasPendingRemoteChanges,
-                    applying: state.applying,
                     onToggleDeletion: (line) => onEvent(
                       ToggleRemoteKeyDeletion(line: line),
                     ),
-                    onApply: () => onEvent(ApplyRemoteChanges()),
-                    onDiscard: () => onEvent(DiscardRemoteChanges()),
                   ),
                 ),
                 if (showRemoteLoadingOverlay)

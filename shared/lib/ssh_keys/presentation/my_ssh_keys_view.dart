@@ -99,23 +99,25 @@ class MySshKeysView extends StatelessWidget {
                         onAction: null,
                       ),
               ),
-              if (_selectionEnable) ...[
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Center(
-                    child: SizedBox(
-                      width: 180,
-                      child: AppButton(
-                        onClick: () => _confirmSelection(context),
-                        icon: LucideIcons.key,
-                        text: "SELECT",
-                        enabled: state.selectedKeyPath != null,
-                        stretch: true,
+              if (_selectionEnable)
+                SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: Center(
+                      child: SizedBox(
+                        width: 180,
+                        child: AppButton(
+                          onClick: () => _confirmSelection(context),
+                          icon: LucideIcons.key,
+                          text: "SELECT",
+                          enabled: state.selectedKeyPath != null,
+                          stretch: true,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ],
             ],
           ),
         ),

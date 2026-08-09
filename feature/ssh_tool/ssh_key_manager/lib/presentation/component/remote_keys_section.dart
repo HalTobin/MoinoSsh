@@ -3,77 +3,55 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:ui/component/empty_list.dart';
 
 import '../../model/authorized_key_entry.dart';
-import 'pending_changes_bar.dart';
 
 class RemoteKeysSection extends StatelessWidget {
   final List<AuthorizedKeyEntry> remoteKeys;
   final List<String> stagedPublicKeyLines;
-  final int pendingChangeCount;
-  final bool hasPendingRemoteChanges;
-  final bool applying;
   final Function(String line) onToggleDeletion;
-  final Function() onApply;
-  final Function() onDiscard;
 
   const RemoteKeysSection({
     super.key,
     required this.remoteKeys,
     required this.stagedPublicKeyLines,
-    required this.pendingChangeCount,
-    required this.hasPendingRemoteChanges,
-    required this.applying,
     required this.onToggleDeletion,
-    required this.onApply,
-    required this.onDiscard,
   });
 
   @override
   Widget build(BuildContext context) {
     final hasEntries = remoteKeys.isNotEmpty || stagedPublicKeyLines.isNotEmpty;
 
-    return SizedBox.expand(
-      child: Column(
-      spacing: 16,
-      children: [
-        Expanded(
-          child: hasEntries
-              ? ListView.separated(
-                  padding: const EdgeInsets.only(bottom: 88),
-                  itemCount: remoteKeys.length + stagedPublicKeyLines.length,
-                  separatorBuilder: (_, _) => const Divider(),
-                  itemBuilder: (context, index) {
-                    if (index < remoteKeys.length) {
-                      final entry = remoteKeys[index];
-                      return _RemoteKeyItem(
-                        title: entry.comment ?? _shortKey(entry.line),
-                        subtitle: entry.line,
-                        markedForDeletion: entry.markedForDeletion,
-                        isPendingAddition: false,
-                        onToggleDeletion: () => onToggleDeletion(entry.line),
-                      );
-                    }
+    if (!hasEntries) {
+      return const EmptyList(
+        message: 'No authorized keys on remote server',
+        onAction: null,
+      );
+    }
 
-                    final stagedLine = stagedPublicKeyLines[index - remoteKeys.length];
-                    return _RemoteKeyItem(
-                      title: _shortKey(stagedLine),
-                      subtitle: stagedLine,
-                      markedForDeletion: false,
-                      isPendingAddition: true,
-                      onToggleDeletion: null,
-                    );
-                  },
-                )
-              : EmptyList(message: 'No authorized keys on remote server', onAction: null),
-        ),
-        if (hasPendingRemoteChanges)
-          PendingChangesBar(
-            pendingChangeCount: pendingChangeCount,
-            applying: applying,
-            onApply: onApply,
-            onDiscard: onDiscard,
-          ),
-      ],
-      ),
+    return ListView.separated(
+      padding: const EdgeInsets.only(top: 8, bottom: 88),
+      itemCount: remoteKeys.length + stagedPublicKeyLines.length,
+      separatorBuilder: (_, _) => const Divider(),
+      itemBuilder: (context, index) {
+        if (index < remoteKeys.length) {
+          final entry = remoteKeys[index];
+          return _RemoteKeyItem(
+            title: entry.comment ?? _shortKey(entry.line),
+            subtitle: entry.line,
+            markedForDeletion: entry.markedForDeletion,
+            isPendingAddition: false,
+            onToggleDeletion: () => onToggleDeletion(entry.line),
+          );
+        }
+
+        final stagedLine = stagedPublicKeyLines[index - remoteKeys.length];
+        return _RemoteKeyItem(
+          title: _shortKey(stagedLine),
+          subtitle: stagedLine,
+          markedForDeletion: false,
+          isPendingAddition: true,
+          onToggleDeletion: null,
+        );
+      },
     );
   }
 

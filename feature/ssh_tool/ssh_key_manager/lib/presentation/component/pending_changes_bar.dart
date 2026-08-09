@@ -24,55 +24,60 @@ class PendingChangesBar extends StatelessWidget {
 
     return Material(
       elevation: 8,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          spacing: 12,
-          children: [
-            Row(
-              spacing: 8,
-              children: [
-                const Icon(LucideIcons.clock),
-                Expanded(
-                  child: Text(
-                    '$pendingChangeCount pending remote change${pendingChangeCount == 1 ? '' : 's'}',
-                    style: Theme.of(context).textTheme.titleSmall,
+      color: Theme.of(context).colorScheme.surface,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 12,
+            children: [
+              Row(
+                spacing: 8,
+                children: [
+                  const Icon(LucideIcons.clock),
+                  Expanded(
+                    child: Text(
+                      '$pendingChangeCount pending remote change${pendingChangeCount == 1 ? '' : 's'}',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            Row(
-              spacing: 12,
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: _buttonHeight,
-                    child: OutlinedButton.icon(
-                      onPressed: applying ? null : onDiscard,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: colorScheme.error,
-                        side: BorderSide(color: colorScheme.error),
+                ],
+              ),
+              Row(
+                spacing: 12,
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: _buttonHeight,
+                      child: OutlinedButton.icon(
+                        onPressed: applying ? null : onDiscard,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.error,
+                          side: BorderSide(color: colorScheme.error),
+                        ),
+                        icon: const Icon(LucideIcons.x),
+                        label: const Text('Discard'),
                       ),
-                      icon: const Icon(LucideIcons.x),
-                      label: const Text('Discard'),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: SizedBox(
-                    height: _buttonHeight,
-                    child: AppButton(
-                      onClick: onApply,
-                      icon: LucideIcons.check,
-                      text: applying ? 'Applying...' : 'Apply',
-                      enabled: !applying,
-                      stretch: true,
+                  Expanded(
+                    child: SizedBox(
+                      height: _buttonHeight,
+                      child: AppButton(
+                        onClick: onApply,
+                        icon: LucideIcons.check,
+                        text: applying ? 'Applying...' : 'Apply',
+                        enabled: !applying,
+                        stretch: true,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
