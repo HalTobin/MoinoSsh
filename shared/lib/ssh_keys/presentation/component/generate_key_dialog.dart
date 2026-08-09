@@ -86,26 +86,43 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
               border: OutlineInputBorder(),
             ),
           ),
-          Row(
-            spacing: 8,
-            children: [
-              Checkbox(
-                value: _passwordEnabled,
-                onChanged: (value) {
-                  setState(() {
-                    _passwordEnabled = value ?? false;
-                    _validationError = null;
-                    if (!_passwordEnabled) {
-                      _passwordController.clear();
-                      _confirmPasswordController.clear();
-                    }
-                  });
-                },
-              ),
-              const Expanded(
-                child: Text('Protect private key with a password'),
-              ),
-            ],
+          TextButton(
+            style: ButtonStyle(
+              foregroundColor: WidgetStateProperty.all<Color>(Theme.of(context).colorScheme.onSurface)
+            ),
+            onPressed: () {
+              {
+                setState(() {
+                  _passwordEnabled = !_passwordEnabled;
+                  _validationError = null;
+                  if (!_passwordEnabled) {
+                    _passwordController.clear();
+                    _confirmPasswordController.clear();
+                  }
+                });
+              }
+            },
+            child: Row(
+              spacing: 8,
+              children: [
+                Checkbox(
+                  value: _passwordEnabled,
+                  onChanged: (value) {
+                    setState(() {
+                      _passwordEnabled = value ?? false;
+                      _validationError = null;
+                      if (!_passwordEnabled) {
+                        _passwordController.clear();
+                        _confirmPasswordController.clear();
+                      }
+                    });
+                  },
+                ),
+                const Expanded(
+                  child: Text('Protect private key with a password'),
+                ),
+              ],
+            )
           ),
           if (_passwordEnabled) ...[
             TextFormField(
