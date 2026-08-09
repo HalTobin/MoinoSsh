@@ -23,6 +23,8 @@ class SshKeyManagerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final showRemoteLoadingOverlay = state.remoteLoading || state.applying;
+    final hasError = state.error.isNotEmpty;
+    final hasPendingRemoteChanges = state.hasPendingRemoteChanges;
 
     return Scaffold(
       floatingActionButton: ExpandableFab(
@@ -42,44 +44,48 @@ class SshKeyManagerScreen extends StatelessWidget {
         ],
         onAction: (action) => _handleFabAction(context, action),
       ),
-      bottomNavigationBar: state.hasPendingRemoteChanges
-          ? PendingChangesBar(
-              pendingChangeCount: state.pendingChangeCount,
-              applying: state.applying,
-              onApply: () => onEvent(ApplyRemoteChanges()),
-              onDiscard: () => onEvent(DiscardRemoteChanges()),
-            )
-          : null,
-      body: Column(
+      bottomNavigationBar: (!hasError && !hasPendingRemoteChanges)
+          ? null
+          : SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (hasError)
+                    AnimatedGlobalErrorWarning(
+                      error: state.error,
+                      onClose: () => onEvent(DismissError()),
+                    ),
+                  if (hasPendingRemoteChanges)
+                    PendingChangesBar(
+                      pendingChangeCount: state.pendingChangeCount,
+                      applying: state.applying,
+                      onApply: () => onEvent(ApplyRemoteChanges()),
+                      onDiscard: () => onEvent(DiscardRemoteChanges()),
+                    ),
+                ],
+              ),
+            ),
+      body: Stack(
+        fit: StackFit.expand,
         children: [
-          Expanded(
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: RemoteKeysSection(
-                    remoteKeys: state.remoteKeys,
-                    stagedPublicKeyLines: state.stagedPublicKeyLines,
-                    onToggleDeletion: (line) => onEvent(
-                      ToggleRemoteKeyDeletion(line: line),
-                    ),
-                  ),
-                ),
-                if (showRemoteLoadingOverlay)
-                  Positioned.fill(
-                    child: ColoredBox(
-                      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.72),
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
-                  ),
-              ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: RemoteKeysSection(
+              remoteKeys: state.remoteKeys,
+              stagedPublicKeyLines: state.stagedPublicKeyLines,
+              onToggleDeletion: (line) => onEvent(
+                ToggleRemoteKeyDeletion(line: line),
+              ),
             ),
           ),
-          AnimatedGlobalErrorWarning(
-            error: state.error,
-            onClose: () => onEvent(DismissError()),
-          ),
+          if (showRemoteLoadingOverlay)
+            Positioned.fill(
+              child: ColoredBox(
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.72),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+            ),
         ],
       ),
     );
