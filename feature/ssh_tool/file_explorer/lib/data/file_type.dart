@@ -64,7 +64,8 @@ enum FileType {
         identifier: "image",
         name: "Image",
         extensions: ["jpg", "jpeg", "png", "gif", "bmp"],
-        icon: LucideIcons.fileImage
+        icon: LucideIcons.fileImage,
+        openable: true
     ),
     video(
         identifier: "video",
@@ -96,7 +97,7 @@ enum FileType {
     static FileType fromExtension(String extension) {
         return FileType.values.firstWhereOrNull(
             (element) => element.extensions.contains(extension)
-        ) ?? FileType.file;;
+        ) ?? FileType.file;
     }
 
     static FileType fromPath(String path) {

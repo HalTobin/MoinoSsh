@@ -1,3 +1,4 @@
+import 'package:domain/model/image_file.dart';
 import 'package:domain/model/sftp/remote_file_item.dart';
 import 'package:domain/model/text_file.dart';
 
@@ -29,6 +30,8 @@ abstract interface class SftpService {
     Future<void> cancelDownload(int downloadSessionId);
 
     Future<TextFile?> readFileAsString(String filePath);
+
+    Future<ImageFile?> readFileAsBytes(String filePath);
 
     Future<bool> writeStringFile(String filePath, String content);
 

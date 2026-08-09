@@ -1,4 +1,4 @@
-import 'package:domain/model/text_file.dart';
+import 'package:domain/model/image_file.dart';
 import 'package:domain/service/sftp_service.dart';
 import 'package:flutter/foundation.dart';
 
@@ -7,8 +7,8 @@ class LoadImageBytesUseCase {
 
     const LoadImageBytesUseCase({required this.sftpService});
 
-    Future<TextFile?> execute(String filePath) async {
-        final file = await sftpService.readFileAsString(filePath);
+    Future<ImageFile?> execute(String filePath) async {
+        final file = await sftpService.readFileAsBytes(filePath);
         if (file == null) {
             if (kDebugMode) {
                 print("[$_tag] file is null at: $filePath");
@@ -19,6 +19,5 @@ class LoadImageBytesUseCase {
         return file;
     }
 
-    static final String _tag = "GetFileUseCase";
-
+    static final String _tag = "LoadImageBytesUseCase";
 }

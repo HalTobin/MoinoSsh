@@ -7,19 +7,19 @@ import '../../util/size_helper.dart';
 
 class FileDetailsModal extends StatelessWidget {
   final File file;
-  final Function()? openAsText;
-  final Function() onDismiss;
-  final Function()? openFile;
+  final VoidCallback onDismiss;
+  final VoidCallback? openFile;
+  final String openLabel;
+  final IconData openIcon;
 
   const FileDetailsModal({
     super.key,
     required this.file,
-    this.openAsText = null,
     required this.onDismiss,
-    required this.openFile
+    this.openFile,
+    this.openLabel = "Open as text",
+    this.openIcon = LucideIcons.fileText,
   });
-
-  bool get isOpenable => openAsText != null;
 
   @override
   Widget build(BuildContext context) {
@@ -44,16 +44,16 @@ class FileDetailsModal extends StatelessWidget {
 
         const SizedBox(height: 24),
 
-        if (isOpenable)
+        if (openFile != null)
           ElevatedButton.icon(
-            onPressed: openAsText,
-            icon: const Icon(LucideIcons.fileText),
-            label: const Text("Open as Text"),
+            onPressed: openFile,
+            icon: Icon(openIcon),
+            label: Text(openLabel),
           )
         else
-          ElevatedButton(
-            onPressed: openFile,
-            child: Text((openFile != null) ? "Open as text" : "Can't open this file"),
+          const ElevatedButton(
+            onPressed: null,
+            child: Text("Can't open this file"),
           ),
       ],
     );

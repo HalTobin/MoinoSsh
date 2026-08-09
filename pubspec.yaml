@@ -47,6 +47,7 @@ dependencies:
   biometric_storage: ^5.0.1
   collection: ^1.19.1
   url_launcher: ^6.3.2
+  exif: ^3.3.0
 
   domain:
     path: domain

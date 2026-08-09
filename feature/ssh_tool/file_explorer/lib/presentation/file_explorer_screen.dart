@@ -1,5 +1,7 @@
 import 'package:domain/model/preferences/file_view_mode.dart';
+import 'package:feature_file_explorer/data/file_type.dart';
 import 'package:feature_file_explorer/feature/file_content/di/file_content_provider.dart';
+import 'package:feature_file_explorer/feature/image_viewer/di/image_viewer_provider.dart';
 import 'package:feature_file_explorer/presentation/component/file_details_modal.dart';
 import 'package:feature_file_explorer/presentation/component/file_fab.dart';
 import 'package:feature_file_explorer/presentation/component/folder_warning.dart';
@@ -7,7 +9,7 @@ import 'package:feature_file_explorer/presentation/component/new_element_name_di
 import 'package:feature_file_explorer/presentation/component/pinned_folder/pinned_folders_menu.dart';
 import 'package:feature_file_explorer/presentation/file_explorer_event.dart';
 import 'package:feature_file_explorer/util/path_helper.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:file_picker/file_picker.dart' hide FileType;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -249,22 +251,19 @@ class FileExplorerScreenState extends State<FileExplorerScreen> {
     required BoxConstraints constraints,
     required File file
   }) {
+    final isImage = file.type == FileType.image;
+
     autoModal(
       context: context,
       constraints: constraints,
       child: FileDetailsModal(
         file: file,
         onDismiss: () => Navigator.pop(context),
+        openLabel: isImage ? "Open image" : "Open as text",
+        openIcon: isImage ? LucideIcons.fileImage : LucideIcons.fileText,
         openFile: () {
           Navigator.pop(context);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FileContentProvider(
-                filePath: file.path,
-              ),
-            ),
-          );
+          _navigateToFile(file);
         },
       )
     );
@@ -275,15 +274,21 @@ class FileExplorerScreenState extends State<FileExplorerScreen> {
       case Folder():
         widget.onEvent(OpenFolder(folderPath: file.path));
       case File():
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FileContentProvider(
-              filePath: file.path,
-            ),
-          ),
-        );
+        if (!file.openable) return;
+        _navigateToFile(file);
     }
+  }
+
+  void _navigateToFile(File file) {
+    final Widget destination = switch (file.type) {
+      FileType.image => ImageViewerProvider(filePath: file.path),
+      _ => FileContentProvider(filePath: file.path),
+    };
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => destination),
+    );
   }
 
   void _showPermissionDeniedWarningDialog(BuildContext context) {

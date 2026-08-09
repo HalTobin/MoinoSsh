@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:dartssh2/dartssh2.dart';
 import 'package:data/service/ssh_client_service_impl.dart';
+import 'package:domain/model/image_file.dart';
 import 'package:domain/model/sftp/download_item.dart';
 import 'package:domain/model/sftp/remote_file_item.dart';
 import 'package:domain/model/text_file.dart';
@@ -372,6 +373,48 @@ class SftpServiceImpl implements SftpService {
         } catch (e) {
             if (kDebugMode) {
                 print("[$tag] Error reading file at $filePath: $e");
+            }
+            rethrow;
+        } finally {
+            await file.close();
+        }
+    }
+
+    @override
+    Future<ImageFile?> readFileAsBytes(String filePath) async {
+        final sftp = await getSftpClient();
+
+        if (sftp == null) {
+            if (kDebugMode) {
+                print("[$tag] SFTP client is null");
+            }
+            return null;
+        }
+
+        final file = await sftp.open(filePath);
+
+        try {
+            final List<int> bytes = [];
+            await for (final chunk in file.read()) {
+                bytes.addAll(chunk);
+            }
+
+            final attrs = await sftp.stat(filePath);
+            final name = p.basename(filePath);
+            final lastModified = attrs.modifyTime != null
+                ? DateTime.fromMillisecondsSinceEpoch(attrs.modifyTime! * 1000)
+                : null;
+
+            return ImageFile(
+                name: name,
+                path: filePath,
+                bytes: Uint8List.fromList(bytes),
+                lastModified: lastModified,
+                size: attrs.size ?? bytes.length,
+            );
+        } catch (e) {
+            if (kDebugMode) {
+                print("[$tag] Error reading file bytes at $filePath: $e");
             }
             rethrow;
         } finally {

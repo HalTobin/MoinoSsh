@@ -13,6 +13,7 @@ dependencies:
   collection:
   file_picker:
   path:
+  exif:
   domain:
     path: ../../../domain
   ui:
