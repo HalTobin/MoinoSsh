@@ -1,5 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
+
+import 'package:dartssh2/dartssh2.dart';
 
 class LoadSshFile {
 
@@ -11,34 +12,30 @@ class LoadSshFile {
         }
 
         final content = file.readAsStringSync();
+        return isKeyContentProtected(content);
+    }
 
-        if (content.contains('ENCRYPTED') || content.contains('Proc-Type: 4,ENCRYPTED')) {
+    static bool isKeyContentProtected(String content) {
+        if (content.contains('Proc-Type: 4,ENCRYPTED')) {
             return true;
         }
 
-        // Detect OpenSSH new format
-        const beginMarker = '-----BEGIN OPENSSH PRIVATE KEY-----';
-        const endMarker = '-----END OPENSSH PRIVATE KEY-----';
-
-        if (content.contains(beginMarker)) {
-            try {
-                final base64Content = content
-                    .split(beginMarker)[1]
-                    .split(endMarker)[0]
-                    .replaceAll(RegExp(r'\s+'), '');
-
-                final decodedBytes = base64.decode(base64Content);
-
-                // Check for "bcrypt" indicating encryption
-                return utf8.decode(decodedBytes).contains('bcrypt');
-            } catch (_) {
-                // If decoding fails, assume encrypted as a precaution
-                return true;
+        try {
+            final pem = SSHPem.decode(content);
+            switch (pem.type) {
+                case 'OPENSSH PRIVATE KEY':
+                    return OpenSSHKeyPairs.decode(pem.content).isEncrypted;
+                case 'RSA PRIVATE KEY':
+                    return RsaKeyPair.decode(pem).isEncrypted ||
+                        content.contains('ENCRYPTED');
+                default:
+                    return content.contains('ENCRYPTED');
             }
+        } catch (_) {
+            // Keep the legacy markers as a last resort for unusual formats.
+            return content.contains('ENCRYPTED') ||
+                content.contains('Proc-Type: 4,ENCRYPTED');
         }
-
-        // Default: assume unencrypted if nothing matches
-        return false;
     }
 
 }

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:ui/component/app_button.dart';
 import 'package:ui/component/empty_list.dart';
-import 'package:ui/screen_format/screen_format_helper.dart';
+import 'package:ui/component/expandable_fab.dart';
 import 'package:util/ssh/ssh_key_details.dart';
 
 import 'component/generate_key_dialog.dart';
@@ -36,69 +36,122 @@ class MySshKeysView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (embedded) {
-      return SizedBox.expand(
-        child: _buildBody(horizontalPadding: 0),
-      );
-    }
-
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(onPressed: onDismiss, icon: const Icon(LucideIcons.arrowLeft)),
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 12,
-          children: [
-            Icon(LucideIcons.folderKey),
-            Text("My SSH keys"),
-          ],
-        )
+      appBar: embedded
+          ? null
+          : AppBar(
+              leading: IconButton(
+                onPressed: onDismiss,
+                icon: const Icon(LucideIcons.arrowLeft),
+              ),
+              title: const Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 12,
+                children: [
+                  Icon(LucideIcons.folderKey),
+                  Text("My SSH keys"),
+                ],
+              ),
+            ),
+      floatingActionButton: ExpandableFab(
+        heroTagPrefix: 'ssh_keys',
+        label: 'Add',
+        actions: const [
+          ExpandableFabAction(
+            id: 'generate',
+            label: 'Generate',
+            icon: LucideIcons.bookKey,
+          ),
+          ExpandableFabAction(
+            id: 'import',
+            label: 'Import key',
+            icon: LucideIcons.filePlus,
+          ),
+        ],
+        onAction: (action) => _handleFabAction(context, action),
       ),
       body: _buildBody(),
     );
   }
 
-  Widget _buildBody({double horizontalPadding = 16}) {
-    return LayoutBuilder(
-        builder: (context, constraints) {
-          final isNarrow = ScreenFormatHelper.isNarrow(constraints);
-
-          return Stack(
-            fit: StackFit.expand,
+  Widget _buildBody() {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: embedded ? 0 : 16),
+          child: Column(
             children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                child: Column(
-                  spacing: 16,
-                  children: [
-                    Expanded(
-                      child: state.keys.isNotEmpty
-                        ? _KeyList(
-                          state: state,
-                          onEvent: onEvent,
-                          selectionEnable: _selectionEnable,
-                          onLoadPublicKey: onLoadPublicKey,
-                        ) : EmptyList(message: "No profile found", onAction: null)
-                    ),
-
-                    _ModalBottomActions(
+              Expanded(
+                child: state.keys.isNotEmpty
+                    ? _KeyList(
                         state: state,
                         onEvent: onEvent,
-                        isShrink: isNarrow,
-                        onKeySelect: onSelect,
-                        stagePublicKeyForRemote: stagePublicKeyForRemote,
-                    ),
-
-                    SizedBox(height: 8)
-                  ],
-                ),
+                        selectionEnable: _selectionEnable,
+                        onLoadPublicKey: onLoadPublicKey,
+                      )
+                    : const EmptyList(
+                        message: "No profile found",
+                        onAction: null,
+                      ),
               ),
-              if (state.loading)
-                const Center(child: CircularProgressIndicator()),
+              if (onSelect != null) ...[
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Center(
+                    child: SizedBox(
+                      width: 180,
+                      child: AppButton(
+                        onClick: () => onSelect?.call(state.selectedKeyPath),
+                        icon: LucideIcons.key,
+                        text: "SELECT",
+                        enabled: state.selectedKeyPath != null,
+                        stretch: true,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
-          );
-        },
+          ),
+        ),
+        if (state.loading)
+          const Center(child: CircularProgressIndicator()),
+      ],
+    );
+  }
+
+  Future<void> _handleFabAction(
+    BuildContext context,
+    ExpandableFabAction action,
+  ) async {
+    switch (action.id) {
+      case 'generate':
+        _showGenerateKeyDialog(context);
+      case 'import':
+        final FilePickerResult? result = await FilePicker.pickFiles();
+        if (result != null && result.files.single.path != null) {
+          onEvent(AddKey(keyPath: result.files.single.path!));
+        }
+    }
+  }
+
+  void _showGenerateKeyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return GenerateKeyDialog(
+          description: stagePublicKeyForRemote
+              ? 'A new Ed25519 key pair will be generated. The private key is saved to local storage immediately. The public key is staged for the remote whitelist until you apply.'
+              : 'A new Ed25519 key pair will be generated. The private key is saved to local storage.',
+          onDismiss: () => Navigator.of(dialogContext).pop(),
+          onGenerate: (name, password) {
+            Navigator.of(dialogContext).pop();
+            onEvent(GenerateKey(name: name, password: password));
+          },
+        );
+      },
     );
   }
 }
@@ -119,7 +172,7 @@ class _KeyList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.fromLTRB(0, 16, 0, 88),
       itemCount: state.keys.length,
       itemBuilder: (BuildContext context, int index) {
         final key = state.keys[index];
@@ -130,7 +183,7 @@ class _KeyList extends StatelessWidget {
               maxWidth: 600,
             ),
             child: Padding(
-              padding: EdgeInsetsGeometry.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(vertical: 4),
               child: SshKeyItem(
                 sshKeyFile: key,
                 selectionEnable: selectionEnable,
@@ -147,7 +200,7 @@ class _KeyList extends StatelessWidget {
                   password: password,
                   comment: key.name,
                 ),
-              )
+              ),
             ),
           ),
         );
@@ -155,93 +208,4 @@ class _KeyList extends StatelessWidget {
       separatorBuilder: (BuildContext context, int index) => const SizedBox(height: 8),
     );
   }
-
-}
-
-class _ModalBottomActions extends StatelessWidget {
-  final MySshKeysState state;
-  final Function(MySshKeysEvent) onEvent;
-  final bool isShrink;
-  final bool stagePublicKeyForRemote;
-
-  final Function(String?)? onKeySelect;
-
-  const _ModalBottomActions({
-    required this.state,
-    required this.onEvent,
-    required this.isShrink,
-    required this.onKeySelect,
-    required this.stagePublicKeyForRemote,
-  });
-
-  void _showGenerateKeyDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return GenerateKeyDialog(
-          description: stagePublicKeyForRemote
-              ? 'A new Ed25519 key pair will be generated. The private key is saved to local storage immediately. The public key is staged for the remote whitelist until you apply.'
-              : 'A new Ed25519 key pair will be generated. The private key is saved to local storage.',
-          onDismiss: () => Navigator.of(dialogContext).pop(),
-          onGenerate: (name, password) {
-            Navigator.of(dialogContext).pop();
-            onEvent(GenerateKey(name: name, password: password));
-          },
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-
-    Widget wrapButton(Widget button) {
-      if (isShrink) {
-        return Expanded(child: button);
-      } else {
-        return SizedBox(width: 180, child: button);
-      }
-    }
-
-    return Row(
-      spacing: 16,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        wrapButton(
-          AppButton(
-            onClick: () => _showGenerateKeyDialog(context),
-            icon: LucideIcons.bookKey,
-            text: "GENERATE",
-            stretch: true,
-          )
-        ),
-        wrapButton(
-          AppButton(
-            onClick: () async {
-              FilePickerResult? result = await FilePicker.pickFiles();
-              if (result != null && result.files.single.path != null) {
-                final String sshFile = result.files.single.path!;
-                final event = AddKey(keyPath: sshFile);
-                onEvent(event);
-              }
-            },
-            icon: LucideIcons.plus,
-            text: "ADD",
-            stretch: true
-          )
-        ),
-        if (onKeySelect != null)
-          wrapButton(
-            AppButton(
-              onClick: () => onKeySelect?.call(state.selectedKeyPath),
-              icon: LucideIcons.key,
-              text: "SELECT",
-              enabled: state.selectedKeyPath != null,
-              stretch: true
-            )
-          )
-      ],
-    );
-  }
-
 }
