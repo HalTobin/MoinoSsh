@@ -6,11 +6,14 @@ import 'package:ui/component/title_header.dart';
 class GenerateKeyDialog extends StatefulWidget {
   final Function(String name, String? password) onGenerate;
   final Function() onDismiss;
+  final String description;
 
   const GenerateKeyDialog({
     super.key,
     required this.onGenerate,
     required this.onDismiss,
+    this.description =
+        'A new Ed25519 key pair will be generated. The private key is saved to local storage.',
   });
 
   @override
@@ -75,9 +78,7 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
             title: 'Generate SSH key pair',
             trailingContent: TitleHeaderTrailingContent.dismissable(onDismiss: widget.onDismiss),
           ),
-          const Text(
-            'A new Ed25519 key pair will be generated. The private key is saved to local storage immediately. The public key is staged for the remote whitelist until you apply.',
-          ),
+          Text(widget.description),
           TextFormField(
             controller: _nameController,
             decoration: const InputDecoration(

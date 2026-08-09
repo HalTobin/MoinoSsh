@@ -10,6 +10,15 @@ class AddKey extends MySshKeysEvent {
     AddKey({required this.keyPath});
 }
 
+class GenerateKey extends MySshKeysEvent {
+    final String name;
+    final String? password;
+    GenerateKey({
+        required this.name,
+        this.password,
+    });
+}
+
 class RenameKey extends MySshKeysEvent {
     final String keyPath;
     final String newName;

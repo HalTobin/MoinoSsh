@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shared/ssh_keys/model/ssh_key_file.dart';
+import 'package:shared/ssh_keys/presentation/component/public_key_dialog.dart';
 import 'package:shared/ssh_keys/presentation/component/rename_ssh_key_dialog.dart';
+import 'package:util/ssh/ssh_key_details.dart';
 
 import 'delete_ssh_key_dialog.dart';
 
@@ -12,6 +14,7 @@ class SshKeyItem extends StatelessWidget {
   final Function()? onClick;
   final Function(String newName) onEdit;
   final Function() onDelete;
+  final Future<SshKeyDetails> Function(String? password) onLoadPublicKey;
 
   const SshKeyItem({
     super.key,
@@ -21,6 +24,7 @@ class SshKeyItem extends StatelessWidget {
     required this.onClick,
     required this.onEdit,
     required this.onDelete,
+    required this.onLoadPublicKey,
   });
 
   @override
@@ -98,6 +102,16 @@ class SshKeyItem extends StatelessWidget {
       position: position,
       items: [
         const PopupMenuItem<_SshKeyAction>(
+          value: _SshKeyAction.publicKey,
+          child: Row(
+            children: [
+              Icon(LucideIcons.keyRound, size: 18),
+              SizedBox(width: 12),
+              Text('Public key'),
+            ],
+          ),
+        ),
+        const PopupMenuItem<_SshKeyAction>(
           value: _SshKeyAction.rename,
           child: Row(
             children: [
@@ -129,6 +143,8 @@ class SshKeyItem extends StatelessWidget {
       if (!context.mounted) return;
 
       switch (value) {
+        case _SshKeyAction.publicKey:
+          _showPublicKeyDialog(context);
         case _SshKeyAction.rename:
           _showRenameDialog(context, sshKeyFile.name);
         case _SshKeyAction.delete:
@@ -137,6 +153,19 @@ class SshKeyItem extends StatelessWidget {
           break;
       }
     });
+  }
+
+  void _showPublicKeyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return PublicKeyDialog(
+          keyName: sshKeyFile.name,
+          loadDetails: onLoadPublicKey,
+          onDismiss: () => Navigator.of(dialogContext).pop(),
+        );
+      },
+    );
   }
 
   void _showRenameDialog(BuildContext context, String textStartState) {
@@ -173,6 +202,7 @@ class SshKeyItem extends StatelessWidget {
 }
 
 enum _SshKeyAction {
+  publicKey,
   rename,
   delete,
 }
@@ -186,6 +216,8 @@ class _BaseKeyItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hintColor = Theme.of(context).hintColor;
+
     return Column(
       spacing: 4,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,26 +231,51 @@ class _BaseKeyItem extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
-        if (sshKeyFile.secured)
-          const Row(
-            spacing: 4,
-            children: [
-              Icon(
-                LucideIcons.lock,
-                color: Colors.green,
-                size: 16,
+        Row(
+          spacing: 8,
+          children: [
+            if (sshKeyFile.algorithm != null)
+              Row(
+                spacing: 4,
+                children: [
+                  Icon(
+                    LucideIcons.binary,
+                    size: 14,
+                    color: hintColor,
+                  ),
+                  Text(
+                    sshKeyFile.algorithm!,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: hintColor,
+                    ),
+                  ),
+                ],
               ),
-              Text(
-                "Requires a password",
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.green,
-                ),
+            if (sshKeyFile.secured)
+              const Row(
+                spacing: 4,
+                children: [
+                  Icon(
+                    LucideIcons.lock,
+                    color: Colors.green,
+                    size: 14,
+                  ),
+                  Text(
+                    "Password",
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.green,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+          ],
+        ),
       ],
     );
   }

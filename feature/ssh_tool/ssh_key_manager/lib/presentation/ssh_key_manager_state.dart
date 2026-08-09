@@ -10,7 +10,6 @@ class SshKeyManagerState {
     final String? authorizedKeysPath;
     final List<AuthorizedKeyEntry> remoteKeys;
     final List<String> stagedPublicKeyLines;
-    final int localKeysRefreshToken;
 
     const SshKeyManagerState({
         this.remoteLoading = false,
@@ -20,7 +19,6 @@ class SshKeyManagerState {
         this.authorizedKeysPath,
         this.remoteKeys = const [],
         this.stagedPublicKeyLines = const [],
-        this.localKeysRefreshToken = 0,
     });
 
     bool get hasPendingRemoteChanges =>
@@ -39,7 +37,6 @@ class SshKeyManagerState {
         Defaulted<String?>? authorizedKeysPath = const Omit(),
         Defaulted<List<AuthorizedKeyEntry>>? remoteKeys = const Omit(),
         Defaulted<List<String>>? stagedPublicKeyLines = const Omit(),
-        Defaulted<int>? localKeysRefreshToken = const Omit(),
     }) {
         return SshKeyManagerState(
             remoteLoading: remoteLoading is Omit ? this.remoteLoading : remoteLoading as bool,
@@ -49,7 +46,6 @@ class SshKeyManagerState {
             authorizedKeysPath: authorizedKeysPath is Omit ? this.authorizedKeysPath : authorizedKeysPath as String?,
             remoteKeys: remoteKeys is Omit ? this.remoteKeys : remoteKeys as List<AuthorizedKeyEntry>,
             stagedPublicKeyLines: stagedPublicKeyLines is Omit ? this.stagedPublicKeyLines : stagedPublicKeyLines as List<String>,
-            localKeysRefreshToken: localKeysRefreshToken is Omit ? this.localKeysRefreshToken : localKeysRefreshToken as int,
         );
     }
 }

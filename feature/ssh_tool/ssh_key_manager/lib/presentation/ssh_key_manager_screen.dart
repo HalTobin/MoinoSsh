@@ -1,4 +1,3 @@
-import 'package:feature_ssh_key_manager/presentation/component/generate_key_dialog.dart';
 import 'package:feature_ssh_key_manager/presentation/component/remote_keys_section.dart';
 import 'package:feature_ssh_key_manager/presentation/ssh_key_manager_event.dart';
 import 'package:feature_ssh_key_manager/presentation/ssh_key_manager_state.dart';
@@ -98,15 +97,18 @@ class _SshKeyManagerScreenState extends State<SshKeyManagerScreen> with SingleTi
                       hasPendingRemoteChanges: widget.state.hasPendingRemoteChanges,
                       applying: widget.state.applying,
                       onToggleDeletion: (line) => widget.onEvent(ToggleRemoteKeyDeletion(line: line)),
-                      onGenerateKey: () => _showGenerateKeyDialog(context),
                       onApply: () => widget.onEvent(ApplyRemoteChanges()),
                       onDiscard: () => widget.onEvent(DiscardRemoteChanges()),
                     ),
                     SizedBox.expand(
                       child: MySshKeysProvider(
-                        key: ValueKey(widget.state.localKeysRefreshToken),
                         onKeySelect: null,
                         embedded: true,
+                        onPublicKeyGenerated: (publicKeyLine) {
+                          widget.onEvent(
+                            StagePublicKey(publicKeyLine: publicKeyLine),
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -127,21 +129,6 @@ class _SshKeyManagerScreenState extends State<SshKeyManagerScreen> with SingleTi
           onClose: () => widget.onEvent(DismissError()),
         ),
       ],
-    );
-  }
-
-  void _showGenerateKeyDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return GenerateKeyDialog(
-          onDismiss: () => Navigator.of(dialogContext).pop(),
-          onGenerate: (name, password) {
-            Navigator.of(dialogContext).pop();
-            widget.onEvent(GenerateKeyPair(name: name, password: password));
-          },
-        );
-      },
     );
   }
 }

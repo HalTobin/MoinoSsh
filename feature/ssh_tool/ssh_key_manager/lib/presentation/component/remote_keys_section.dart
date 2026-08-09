@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:ui/component/app_button.dart';
 import 'package:ui/component/empty_list.dart';
 
 import '../../model/authorized_key_entry.dart';
@@ -13,7 +12,6 @@ class RemoteKeysSection extends StatelessWidget {
   final bool hasPendingRemoteChanges;
   final bool applying;
   final Function(String line) onToggleDeletion;
-  final Function() onGenerateKey;
   final Function() onApply;
   final Function() onDiscard;
 
@@ -25,7 +23,6 @@ class RemoteKeysSection extends StatelessWidget {
     required this.hasPendingRemoteChanges,
     required this.applying,
     required this.onToggleDeletion,
-    required this.onGenerateKey,
     required this.onApply,
     required this.onDiscard,
   });
@@ -66,12 +63,6 @@ class RemoteKeysSection extends StatelessWidget {
                   },
                 )
               : EmptyList(message: 'No authorized keys on remote server', onAction: null),
-        ),
-        AppButton(
-          onClick: onGenerateKey,
-          icon: LucideIcons.bookKey,
-          text: 'GENERATE KEY PAIR',
-          stretch: true,
         ),
         if (hasPendingRemoteChanges)
           PendingChangesBar(

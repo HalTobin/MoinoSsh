@@ -1,6 +1,7 @@
 import 'package:domain/repository/file_repository.dart';
 import 'package:shared/ssh_keys/model/ssh_key_file.dart';
 import 'package:util/ssh/load_ssh_file.dart';
+import 'package:util/ssh/ssh_key_details.dart';
 
 import '../model/ssh_key_folder.dart';
 
@@ -16,12 +17,13 @@ class ListSshKeysUseCase {
         final files = await _fileRepository.listInternalFolderContent(SshKeyFolder.path);
 
         return files
-            .where((file) => !file.isDirectory)
+            .where((file) => !file.isDirectory && file.extension != '.pub')
             .map((file) =>
                 SshKeyFile(
-                    name: file.name,
+                    name: file.fullName,
                     path: file.path,
-                    secured: LoadSshFile.isKeyProtected(file.path)
+                    secured: LoadSshFile.isKeyProtected(file.path),
+                    algorithm: LoadSshKeyDetails.readAlgorithmLabel(file.path),
                 )
             )
             .toList()

@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:util/ssh/ssh_key_details.dart';
 
 import '../use_case/my_ssh_keys_use_cases.dart';
 import 'my_ssh_keys_event.dart';
@@ -9,14 +10,17 @@ class MySshKeysViewModel extends ChangeNotifier {
     MySshKeysViewModel({
         required MySshKeysUseCases mySshKeysUseCases,
         required bool selectionEnable,
+        Function(String publicKeyLine)? onPublicKeyGenerated,
     }) : _useCases = mySshKeysUseCases,
-         _selectionEnable = selectionEnable
+         _selectionEnable = selectionEnable,
+         _onPublicKeyGenerated = onPublicKeyGenerated
         {
             _init();
         }
 
     final MySshKeysUseCases _useCases;
     final bool _selectionEnable;
+    final Function(String publicKeyLine)? _onPublicKeyGenerated;
     MySshKeysState _state = MySshKeysState();
     MySshKeysState get state => _state;
 
@@ -32,9 +36,22 @@ class MySshKeysViewModel extends ChangeNotifier {
                     _selectKey(event.keyPath);
                 }
             case AddKey(): _addKey(event.keyPath);
+            case GenerateKey(): _generateKey(event.name, event.password);
             case RenameKey(): _renameKey(event.keyPath, event.newName);
             case DeleteKey(): _deleteKey(event.keyPath);
         }
+    }
+
+    Future<SshKeyDetails> loadPublicKey(
+        String keyPath, {
+        String? password,
+        String? comment,
+    }) {
+        return _useCases.getSshKeyDetailsUseCase.execute(
+            keyPath,
+            password: password,
+            comment: comment,
+        );
     }
 
     Future<void> _addKey(String keyPath) async {
@@ -43,6 +60,46 @@ class MySshKeysViewModel extends ChangeNotifier {
         await _loadSshKeys();
         if (_selectionEnable) {
             _selectKey(newFile);
+        }
+    }
+
+    Future<void> _generateKey(String name, String? password) async {
+        if (name.trim().isEmpty) {
+            return;
+        }
+
+        _setLoadingState(true);
+
+        try {
+            final generatedKey = await _useCases.generateSshKeyPairUseCase.execute(
+                name: name,
+                password: password,
+            );
+            final savedPath = await _useCases.saveSshKeyContentUseCase.execute(
+                fileName: generatedKey.privateKeyFileName,
+                content: generatedKey.privateKeyContent,
+            );
+
+            if (savedPath == null) {
+                _setLoadingState(false);
+                return;
+            }
+
+            await _useCases.saveSshKeyContentUseCase.execute(
+                fileName: '${generatedKey.privateKeyFileName}.pub',
+                content: '${generatedKey.publicKeyLine}\n',
+            );
+
+            await _loadSshKeys();
+            if (_selectionEnable) {
+                _selectKey(savedPath);
+            }
+            _onPublicKeyGenerated?.call(generatedKey.publicKeyLine);
+        } catch (error) {
+            if (kDebugMode) {
+                print('[MySshKeysViewModel] generate key failed: $error');
+            }
+            _setLoadingState(false);
         }
     }
 
@@ -58,6 +115,9 @@ class MySshKeysViewModel extends ChangeNotifier {
     Future<void> _renameKey(String keyPath, String newName) async {
         _setLoadingState(true);
         final newFile = await _useCases.renameKeyUseCase.execute(keyPath, newName);
+        final pubPath = '$keyPath.pub';
+        final newPubName = newName.endsWith('.pub') ? newName : '$newName.pub';
+        await _useCases.renameKeyUseCase.execute(pubPath, newPubName);
         await _loadSshKeys();
         if (_selectionEnable) {
             _selectKey(newFile);
@@ -70,6 +130,7 @@ class MySshKeysViewModel extends ChangeNotifier {
             _selectKey(null);
         }
         await _useCases.deleteKeyUseCase.execute(keyPath);
+        await _useCases.deleteKeyUseCase.execute('$keyPath.pub');
         _loadSshKeys();
     }
 

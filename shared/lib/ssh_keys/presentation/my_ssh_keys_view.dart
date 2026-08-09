@@ -4,7 +4,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:ui/component/app_button.dart';
 import 'package:ui/component/empty_list.dart';
 import 'package:ui/screen_format/screen_format_helper.dart';
+import 'package:util/ssh/ssh_key_details.dart';
 
+import 'component/generate_key_dialog.dart';
 import 'component/ssh_key_item.dart';
 import 'my_ssh_keys_event.dart';
 import 'my_ssh_keys_state.dart';
@@ -12,18 +14,22 @@ import 'my_ssh_keys_state.dart';
 class MySshKeysView extends StatelessWidget {
   final MySshKeysState state;
   final Function(MySshKeysEvent) onEvent;
+  final Future<SshKeyDetails> Function(String keyPath, {String? password, String? comment}) onLoadPublicKey;
 
   final Function(String?)? onSelect;
   final Function() onDismiss;
   final bool embedded;
+  final bool stagePublicKeyForRemote;
 
   const MySshKeysView({
     super.key,
     required this.state,
     required this.onEvent,
+    required this.onLoadPublicKey,
     required this.onSelect,
     required this.onDismiss,
     this.embedded = false,
+    this.stagePublicKeyForRemote = false,
   });
 
   bool get _selectionEnable => onSelect != null;
@@ -72,6 +78,7 @@ class MySshKeysView extends StatelessWidget {
                           state: state,
                           onEvent: onEvent,
                           selectionEnable: _selectionEnable,
+                          onLoadPublicKey: onLoadPublicKey,
                         ) : EmptyList(message: "No profile found", onAction: null)
                     ),
 
@@ -79,7 +86,8 @@ class MySshKeysView extends StatelessWidget {
                         state: state,
                         onEvent: onEvent,
                         isShrink: isNarrow,
-                        onKeySelect: onSelect
+                        onKeySelect: onSelect,
+                        stagePublicKeyForRemote: stagePublicKeyForRemote,
                     ),
 
                     SizedBox(height: 8)
@@ -99,11 +107,13 @@ class _KeyList extends StatelessWidget {
   final MySshKeysState state;
   final Function(MySshKeysEvent) onEvent;
   final bool selectionEnable;
+  final Future<SshKeyDetails> Function(String keyPath, {String? password, String? comment}) onLoadPublicKey;
 
   const _KeyList({
     required this.state,
     required this.onEvent,
     required this.selectionEnable,
+    required this.onLoadPublicKey,
   });
 
   @override
@@ -132,6 +142,11 @@ class _KeyList extends StatelessWidget {
                   onEvent(RenameKey(keyPath: key.path, newName: newName));
                 },
                 onDelete: () => onEvent(DeleteKey(keyPath: key.path)),
+                onLoadPublicKey: (password) => onLoadPublicKey(
+                  key.path,
+                  password: password,
+                  comment: key.name,
+                ),
               )
             ),
           ),
@@ -147,6 +162,7 @@ class _ModalBottomActions extends StatelessWidget {
   final MySshKeysState state;
   final Function(MySshKeysEvent) onEvent;
   final bool isShrink;
+  final bool stagePublicKeyForRemote;
 
   final Function(String?)? onKeySelect;
 
@@ -154,8 +170,27 @@ class _ModalBottomActions extends StatelessWidget {
     required this.state,
     required this.onEvent,
     required this.isShrink,
-    required this.onKeySelect
+    required this.onKeySelect,
+    required this.stagePublicKeyForRemote,
   });
+
+  void _showGenerateKeyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return GenerateKeyDialog(
+          description: stagePublicKeyForRemote
+              ? 'A new Ed25519 key pair will be generated. The private key is saved to local storage immediately. The public key is staged for the remote whitelist until you apply.'
+              : 'A new Ed25519 key pair will be generated. The private key is saved to local storage.',
+          onDismiss: () => Navigator.of(dialogContext).pop(),
+          onGenerate: (name, password) {
+            Navigator.of(dialogContext).pop();
+            onEvent(GenerateKey(name: name, password: password));
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -172,6 +207,14 @@ class _ModalBottomActions extends StatelessWidget {
       spacing: 16,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        wrapButton(
+          AppButton(
+            onClick: () => _showGenerateKeyDialog(context),
+            icon: LucideIcons.bookKey,
+            text: "GENERATE",
+            stretch: true,
+          )
+        ),
         wrapButton(
           AppButton(
             onClick: () async {

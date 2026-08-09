@@ -1,6 +1,5 @@
 import 'package:domain/model/response_result.dart';
-import 'package:flutter/foundation.dart';
-import 'package:shared/ssh_keys/use_case/save_ssh_key_content_use_case.dart';
+import 'package:flutter/material.dart';
 
 import '../use_case/ssh_key_manager_use_cases.dart';
 import 'ssh_key_manager_event.dart';
@@ -9,14 +8,11 @@ import 'ssh_key_manager_state.dart';
 class SshKeyManagerViewModel extends ChangeNotifier {
     SshKeyManagerViewModel({
         required SshKeyManagerUseCases sshKeyManagerUseCases,
-        required SaveSshKeyContentUseCase saveSshKeyContentUseCase,
-    }) : _useCases = sshKeyManagerUseCases,
-         _saveSshKeyContentUseCase = saveSshKeyContentUseCase {
+    }) : _useCases = sshKeyManagerUseCases {
         _init();
     }
 
     final SshKeyManagerUseCases _useCases;
-    final SaveSshKeyContentUseCase _saveSshKeyContentUseCase;
     SshKeyManagerState _state = const SshKeyManagerState();
     SshKeyManagerState get state => _state;
 
@@ -31,8 +27,8 @@ class SshKeyManagerViewModel extends ChangeNotifier {
                 notifyListeners();
             case ToggleRemoteKeyDeletion():
                 _toggleRemoteKeyDeletion(event.line);
-            case GenerateKeyPair():
-                await _generateKeyPair(event.name, event.password);
+            case StagePublicKey():
+                _stagePublicKey(event.publicKeyLine);
             case ApplyRemoteChanges():
                 await _applyRemoteChanges();
             case DiscardRemoteChanges():
@@ -78,52 +74,23 @@ class SshKeyManagerViewModel extends ChangeNotifier {
         notifyListeners();
     }
 
-    Future<void> _generateKeyPair(String name, String? password) async {
-        if (name.trim().isEmpty) {
-            _state = _state.copyWith(error: 'Key name is required');
-            notifyListeners();
+    void _stagePublicKey(String publicKeyLine) {
+        final trimmed = publicKeyLine.trim();
+        if (trimmed.isEmpty) {
             return;
         }
 
-        _state = _state.copyWith(remoteLoading: true, error: '');
-        notifyListeners();
-
-        try {
-            final generatedKey = await _useCases.generateSshKeyPairUseCase.execute(
-                name: name,
-                password: password,
-            );
-            final savedPath = await _saveSshKeyContentUseCase.execute(
-                fileName: generatedKey.privateKeyFileName,
-                content: generatedKey.privateKeyContent,
-            );
-
-            if (savedPath == null) {
-                _state = _state.copyWith(
-                    remoteLoading: false,
-                    error: 'Could not save private key to local storage',
-                );
-                notifyListeners();
-                return;
-            }
-
-            _state = _state.copyWith(
-                remoteLoading: false,
-                stagedPublicKeyLines: [
-                    ..._state.stagedPublicKeyLines,
-                    generatedKey.publicKeyLine,
-                ],
-                localKeysRefreshToken: _state.localKeysRefreshToken + 1,
-            );
-        } catch (error) {
-            if (kDebugMode) {
-                print('[SshKeyManagerViewModel] generate key failed: $error');
-            }
-            _state = _state.copyWith(
-                remoteLoading: false,
-                error: 'Could not generate SSH key pair',
-            );
+        if (_state.stagedPublicKeyLines.contains(trimmed)) {
+            return;
         }
+
+        _state = _state.copyWith(
+            stagedPublicKeyLines: [
+                ..._state.stagedPublicKeyLines,
+                trimmed,
+            ],
+            error: '',
+        );
         notifyListeners();
     }
 
