@@ -8,9 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ui/component/global_error_warning.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:ui/navigation/push_animation.dart';
 
-import 'component/manage_service_modal.dart';
 import 'component/service_controller/service_controller.dart';
+import 'component/service_controller/service_details_screen.dart';
 import 'component/service_manager_loading.dart';
 
 class ServiceManagerScreen extends StatelessWidget {
@@ -54,7 +55,7 @@ class ServiceManagerScreen extends StatelessWidget {
                                 onStop: () => onEvent(RunCtlCommand(command: SystemctlCommand.stop, service: service.title)),
                                 onRestart: () => onEvent(RunCtlCommand(command: SystemctlCommand.restart, service: service.title)),
                                 onEdit: () => _showEditServicePage(context: context, serviceName: service.title),
-                                onTap: () => _showManageServiceModal(context: context, serviceTitle: service.title),
+                                onTap: () => _showServiceDetails(context: context, serviceTitle: service.title),
                                 isNarrow: isNarrow,
                               )),
                           ],
@@ -69,7 +70,7 @@ class ServiceManagerScreen extends StatelessWidget {
                               onStop: () => onEvent(RunCtlCommand(command: SystemctlCommand.stop, service: service.title)),
                               onRestart: () => onEvent(RunCtlCommand(command: SystemctlCommand.restart, service: service.title)),
                               onEdit: () => _showEditServicePage(context: context, serviceName: service.title),
-                              onTap: () => _showManageServiceModal(context: context, serviceTitle: service.title),
+                              onTap: () => _showServiceDetails(context: context, serviceTitle: service.title),
                               isNarrow: isNarrow,
                             )),
                         ]
@@ -111,25 +112,27 @@ class ServiceManagerScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _showManageServiceModal({
+  Future<void> _showServiceDetails({
     required BuildContext context,
     required String serviceTitle
   }) async {
     if (kDebugMode) {
-      print("_showManagerServiceModal()");
+      print("_showServiceDetails()");
     }
     final viewModel = context.read<ServiceManagerViewmodel>();
-    return showModalBottomSheet(
-      context: context,
-      builder: (_) => ChangeNotifierProvider.value(
-        value: viewModel,
-        child: ManageServiceModal(
-          serviceTitle: serviceTitle,
-          onEdit: () =>_showEditServicePage(
-            context: context,
-            serviceName: serviceTitle
+    return Navigator.push<void>(
+      context,
+      routeFromBottom(
+        ChangeNotifierProvider.value(
+          value: viewModel,
+          child: ServiceDetailsScreen(
+            serviceTitle: serviceTitle,
+            onEdit: () => _showEditServicePage(
+              context: context,
+              serviceName: serviceTitle,
+            ),
           ),
-        )
+        ),
       ),
     );
   }
