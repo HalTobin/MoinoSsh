@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:domain/model/preferences/file_view_mode.dart';
 import 'package:domain/model/ssh/pinned_folder.dart';
 import 'package:feature_file_explorer/presentation/component/pinned_folder/pinned_folder_modal.dart';
+import 'package:feature_file_explorer/presentation/file_explorer_view_model.dart';
 import 'package:feature_file_explorer/util/path_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -9,8 +12,6 @@ import 'package:ui/component/title_header.dart';
 import 'package:ui/icons/file_view_mode_icon.dart';
 import 'package:ui/screen_format/screen_format_helper.dart';
 import 'package:ui/texts/file_view_mode_text.dart';
-
-import '../file_explorer_view_model.dart';
 
 class FileExplorerTopBar extends StatelessWidget {
   final String currentPath;
@@ -216,14 +217,45 @@ class FileExplorerTopBar extends StatelessWidget {
 
   void _showMyFolders(BuildContext context) {
     final viewModel = context.read<FileExplorerViewModel>();
-    showModalBottomSheet(
+    final panelWidth = math.min(304.0, MediaQuery.sizeOf(context).width * 0.85);
+
+    showGeneralDialog(
       context: context,
-      builder: (context) {
-        return ChangeNotifierProvider.value(
-          value: viewModel,
-          child: const PinnedFolderModal(),
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (dialogContext, animation, secondaryAnimation) {
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: Material(
+            color: Theme.of(dialogContext).colorScheme.surface,
+            elevation: 16,
+            child: SizedBox(
+              width: panelWidth,
+              height: double.infinity,
+              child: ChangeNotifierProvider.value(
+                value: viewModel,
+                child: const SafeArea(
+                  child: PinnedFolderModal(),
+                ),
+              ),
+            ),
+          ),
         );
-      }
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(-1, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          )),
+          child: child,
+        );
+      },
     );
   }
 

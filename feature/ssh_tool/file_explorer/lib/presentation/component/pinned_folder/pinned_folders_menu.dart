@@ -10,6 +10,7 @@ import 'package:ui/icons/moino_ssh_icon_data.dart';
 class PinnedFoldersMenu extends StatelessWidget {
   final String? currentPath;
   final List<PinnedFolder> folders;
+  final ScrollController? scrollController;
   final Function(String) onFolderTap;
   final Function(String) onUnpin;
   final Function(String, String) onFolderRename;
@@ -19,6 +20,7 @@ class PinnedFoldersMenu extends StatelessWidget {
     super.key,
     required this.currentPath,
     required this.folders,
+    this.scrollController,
     required this.onFolderTap,
     required this.onUnpin,
     required this.onFolderRename,
@@ -110,60 +112,56 @@ class PinnedFoldersMenu extends StatelessWidget {
       );
     }
 
-    return Align(
-      alignment: Alignment.topCenter,
-      child: ListView.builder(
-        shrinkWrap: true,
-        padding: EdgeInsets.zero,
-        itemCount: sortedFolders.length,
-        physics: const ClampingScrollPhysics(),
-        itemBuilder: (context, index) {
-          final folder = sortedFolders[index];
+    return ListView.builder(
+      controller: scrollController,
+      padding: EdgeInsets.zero,
+      itemCount: sortedFolders.length,
+      itemBuilder: (context, index) {
+        final folder = sortedFolders[index];
 
-          final String title = folder.alias ?? folder.path;
-          final String? subtitle = folder.alias != null ? folder.path : null;
-          final bool isSelected = currentPath == folder.path;
-          final IconData icon = folder.iconId != null ? MoinoSshIcon.findById(folder.iconId)?.icon ?? LucideIcons.folder : LucideIcons.folder;
+        final String title = folder.alias ?? folder.path;
+        final String? subtitle = folder.alias != null ? folder.path : null;
+        final bool isSelected = currentPath == folder.path;
+        final IconData icon = folder.iconId != null ? MoinoSshIcon.findById(folder.iconId)?.icon ?? LucideIcons.folder : LucideIcons.folder;
 
-          return MenuAnchor(
-            alignmentOffset: Offset(12, 0),
-            builder: (context, controller, child) {
-              return GestureDetector(
-                onSecondaryTapDown: (details) => controller.open(position: Offset(details.globalPosition.dx, 24)),
-                onLongPress: () => controller.open(position: Offset(64, 24)),
-                child: ListTile(
-                  dense: true,
-                  selected: isSelected,
-                  selectedTileColor: colorScheme.primaryContainer.withValues(alpha: 0.6),
-                  selectedColor: colorScheme.onPrimaryContainer,
-                  leading: Icon(icon, size: 24),
-                  title: Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  subtitle: subtitle != null
-                      ? Text(
-                    subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12),
-                  )
-                      : null,
-                  onTap: () => onFolderTap(folder.path),
+        return MenuAnchor(
+          alignmentOffset: Offset(12, 0),
+          builder: (context, controller, child) {
+            return GestureDetector(
+              onSecondaryTapDown: (details) => controller.open(position: Offset(details.globalPosition.dx, 24)),
+              onLongPress: () => controller.open(position: Offset(64, 24)),
+              child: ListTile(
+                dense: true,
+                selected: isSelected,
+                selectedTileColor: colorScheme.primaryContainer.withValues(alpha: 0.6),
+                selectedColor: colorScheme.onPrimaryContainer,
+                leading: Icon(icon, size: 24),
+                title: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+                subtitle: subtitle != null
+                    ? Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 12),
                 )
-              );
-            },
-            menuChildren: buildMenu(
-              folder: folder,
-              onEdit: (folder) => renameRequest(path: folder.path, alias: folder.alias),
-              onEditIcon: (folder) => editIconRequest(path: folder.path, iconId: folder.iconId),
-              onUnpin: (folder) => unpinRequest(path: folder.path)
-            ),
-          );
-        },
-      )
+                    : null,
+                onTap: () => onFolderTap(folder.path),
+              )
+            );
+          },
+          menuChildren: buildMenu(
+            folder: folder,
+            onEdit: (folder) => renameRequest(path: folder.path, alias: folder.alias),
+            onEditIcon: (folder) => editIconRequest(path: folder.path, iconId: folder.iconId),
+            onUnpin: (folder) => unpinRequest(path: folder.path)
+          ),
+        );
+      },
     );
   }
 
