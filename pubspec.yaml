@@ -41,6 +41,7 @@ dependencies:
   path_provider: ^2.1.5
   dynamic_color: ^1.8.1
   file_picker: ^11.0.2
+  super_drag_and_drop: ^0.9.1
   dartssh2: ^2.14.0
   drift: ^2.32.1
   drift_flutter: ^0.3.0

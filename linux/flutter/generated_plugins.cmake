@@ -5,6 +5,8 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   biometric_storage
   dynamic_color
+  irondash_engine_context
+  super_native_extensions
   url_launcher_linux
 )
 

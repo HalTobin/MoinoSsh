@@ -33,7 +33,7 @@ class DownloadEntryItem extends StatelessWidget {
         progressValue = state.progress;
         statusText = '${(state.progress * 100).toStringAsFixed(1)}% completed';
         trailingAction = IconButton(
-          icon: const Icon(LucideIcons.squareX, color: Colors.grey),
+          icon: const Icon(LucideIcons.x, color: Colors.grey),
           onPressed: onCancel,
           tooltip: 'Cancel Transfer',
         );

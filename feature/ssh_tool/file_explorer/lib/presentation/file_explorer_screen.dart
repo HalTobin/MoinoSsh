@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io' show FileSystemEntity;
+
 import 'package:domain/model/preferences/file_view_mode.dart';
 import 'package:feature_file_explorer/data/file_type.dart';
 import 'package:feature_file_explorer/feature/file_content/di/file_content_provider.dart';
@@ -13,6 +16,7 @@ import 'package:file_picker/file_picker.dart' hide FileType;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 import 'package:ui/navigation/auto_modal.dart';
 
 import '../data/file_entry.dart';
@@ -41,6 +45,8 @@ class FileExplorerScreen extends StatefulWidget {
 }
 
 class FileExplorerScreenState extends State<FileExplorerScreen> {
+  bool _draggingFiles = false;
+
   @override void initState() {
     super.initState();
     widget.uiEvent.listen((event) {
@@ -94,7 +100,24 @@ class FileExplorerScreenState extends State<FileExplorerScreen> {
                     onRefresh: () => widget.onEvent(RefreshContent()),
                   ),
                   Expanded(
-                    child: _buildBody(context: context, constraints: constraints, visibleFiles: visibleFiles),
+                    child: DropRegion(
+                      formats: const [Formats.fileUri],
+                      hitTestBehavior: HitTestBehavior.opaque,
+                      onDropOver: _onDropOver,
+                      onDropEnter: (_) => setState(() => _draggingFiles = true),
+                      onDropLeave: (_) => setState(() => _draggingFiles = false),
+                      onPerformDrop: _onPerformDrop,
+                      child: Stack(
+                        children: [
+                          _buildBody(
+                            context: context,
+                            constraints: constraints,
+                            visibleFiles: visibleFiles,
+                          ),
+                          if (_draggingFiles) _buildDropOverlay(context),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               );
@@ -104,6 +127,124 @@ class FileExplorerScreenState extends State<FileExplorerScreen> {
       ),
     );
 
+  }
+
+  Widget _buildDropOverlay(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withValues(alpha: 0.12),
+            border: Border.all(color: colorScheme.primary, width: 2),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 12,
+              children: [
+                Icon(
+                  LucideIcons.upload,
+                  size: 48,
+                  color: colorScheme.primary,
+                ),
+                Text(
+                  'Drop to upload',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  DropOperation _onDropOver(DropOverEvent event) {
+    final hasFileUri = event.session.items.any(
+      (item) => item.canProvide(Formats.fileUri),
+    );
+    if (!hasFileUri) {
+      return DropOperation.none;
+    }
+    if (event.session.allowedOperations.contains(DropOperation.copy)) {
+      return DropOperation.copy;
+    }
+    return event.session.allowedOperations.firstOrNull ?? DropOperation.none;
+  }
+
+  Future<void> _onPerformDrop(PerformDropEvent event) async {
+    final pathFutures = <Future<String?>>[];
+
+    for (final item in event.session.items) {
+      final reader = item.dataReader;
+      if (reader == null || !reader.canProvide(Formats.fileUri)) {
+        continue;
+      }
+
+      final completer = Completer<String?>();
+      pathFutures.add(completer.future);
+
+      reader.getValue<Uri>(
+        Formats.fileUri,
+        (uri) {
+          if (completer.isCompleted) {
+            return;
+          }
+          if (uri == null) {
+            completer.complete(null);
+            return;
+          }
+
+          try {
+            final path = uri.toFilePath();
+            if (path.isNotEmpty && FileSystemEntity.isFileSync(path)) {
+              completer.complete(path);
+            } else {
+              completer.complete(null);
+            }
+          } catch (error) {
+            if (kDebugMode) {
+              print('Skipping dropped uri "$uri": $error');
+            }
+            completer.complete(null);
+          }
+        },
+        onError: (error) {
+          if (kDebugMode) {
+            print('Error reading dropped file uri: $error');
+          }
+          if (!completer.isCompleted) {
+            completer.complete(null);
+          }
+        },
+      );
+    }
+
+    final filePaths = (await Future.wait(pathFutures))
+        .whereType<String>()
+        .toList(growable: false);
+
+    if (!mounted) {
+      return;
+    }
+
+    if (filePaths.isEmpty) {
+      if (kDebugMode) {
+        print('Drop ignored: no files to upload.');
+      }
+      return;
+    }
+
+    widget.onEvent(
+      UploadFile.multiple(
+        localeFilePaths: filePaths,
+        remoteTargetPath: widget.state.currentPath,
+      ),
+    );
   }
 
   Widget _buildGrid({

@@ -12,6 +12,7 @@ dependencies:
   lucide_icons_flutter:
   collection:
   file_picker:
+  super_drag_and_drop:
   path:
   exif:
   domain:

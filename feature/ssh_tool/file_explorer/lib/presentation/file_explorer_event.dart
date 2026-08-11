@@ -93,11 +93,16 @@ class DownloadFile extends FileExplorerEvent {
 }
 
 class UploadFile extends FileExplorerEvent {
-    final String localeFilePath;
+    final List<String> localeFilePaths;
     final String remoteTargetPath;
 
     UploadFile({
-        required this.localeFilePath,
-        required this.remoteTargetPath
+        required String localeFilePath,
+        required this.remoteTargetPath,
+    }) : localeFilePaths = [localeFilePath];
+
+    UploadFile.multiple({
+        required this.localeFilePaths,
+        required this.remoteTargetPath,
     });
 }

@@ -73,7 +73,10 @@ class FileExplorerViewModel extends ChangeNotifier {
             case DownloadFile():
                 _downloadFile(remoteFilePath: event.remoteFilePath, localeTargetPath: event.localeTargetPath);
             case UploadFile():
-                _uploadFile(localeFilePath: event.localeFilePath, remoteTargetPath: event.remoteTargetPath);
+                _uploadFiles(
+                    localeFilePaths: event.localeFilePaths,
+                    remoteTargetPath: event.remoteTargetPath,
+                );
         }
     }
 
@@ -202,12 +205,33 @@ class FileExplorerViewModel extends ChangeNotifier {
         }
     }
 
-    Future<void> _uploadFile({required String localeFilePath, required String remoteTargetPath}) async {
-        final result = await _useCases.uploadFileUseCase.execute(localeFilePath, remoteTargetPath);
-        if (result) {
-            _refreshContent();
+    Future<void> _uploadFiles({
+        required List<String> localeFilePaths,
+        required String remoteTargetPath,
+    }) async {
+        if (localeFilePaths.isEmpty) {
+            return;
         }
-        else {
+
+        var anySuccess = false;
+        var anyDenied = false;
+
+        for (final localeFilePath in localeFilePaths) {
+            final result = await _useCases.uploadFileUseCase.execute(
+                localeFilePath,
+                remoteTargetPath,
+            );
+            if (result) {
+                anySuccess = true;
+            } else {
+                anyDenied = true;
+            }
+        }
+
+        if (anySuccess) {
+            await _refreshContent();
+        }
+        if (anyDenied) {
             _uiEvent.add(PermissionDenied());
         }
     }
