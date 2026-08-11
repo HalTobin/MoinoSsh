@@ -244,9 +244,13 @@ class MySshKeysView extends StatelessWidget {
       builder: (dialogContext) {
         return GenerateKeyDialog(
           onDismiss: () => Navigator.of(dialogContext).pop(),
-          onGenerate: (name, password) {
+          onGenerate: (name, password, algorithm) {
             Navigator.of(dialogContext).pop();
-            onEvent(GenerateKey(name: name, password: password));
+            onEvent(GenerateKey(
+              name: name,
+              password: password,
+              algorithm: algorithm,
+            ));
           },
         );
       },

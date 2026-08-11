@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:ui/component/app_dialog_layout.dart';
 import 'package:ui/component/title_header.dart';
+import 'package:util/ssh/ssh_key_algorithm.dart';
 
 class GenerateKeyDialog extends StatefulWidget {
-  final Function(String name, String? password) onGenerate;
+  final Function(String name, String? password, SshKeyAlgorithm algorithm) onGenerate;
   final Function() onDismiss;
   final String description;
 
@@ -13,7 +14,7 @@ class GenerateKeyDialog extends StatefulWidget {
     required this.onGenerate,
     required this.onDismiss,
     this.description =
-        'A new Ed25519 key pair will be generated. The private key is saved to local storage.',
+        'A new key pair will be generated. The private key is saved to local storage.',
   });
 
   @override
@@ -21,7 +22,8 @@ class GenerateKeyDialog extends StatefulWidget {
 }
 
 class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
-  final _nameController = TextEditingController(text: 'id_ed25519');
+  SshKeyAlgorithm _algorithm = SshKeyAlgorithm.ed25519;
+  late final TextEditingController _nameController;
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _passwordEnabled = false;
@@ -30,11 +32,33 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
   String? _validationError;
 
   @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: _algorithm.defaultFileName);
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _onAlgorithmChanged(SshKeyAlgorithm? value) {
+    if (value == null || value == _algorithm) {
+      return;
+    }
+
+    final previousDefault = _algorithm.defaultFileName;
+    final currentName = _nameController.text.trim();
+    setState(() {
+      _algorithm = value;
+      _validationError = null;
+      if (currentName.isEmpty || currentName == previousDefault) {
+        _nameController.text = value.defaultFileName;
+      }
+    });
   }
 
   void _submit() {
@@ -63,6 +87,7 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
     widget.onGenerate(
       name,
       _passwordEnabled ? _passwordController.text : null,
+      _algorithm,
     );
   }
 
@@ -79,6 +104,21 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
             trailingContent: TitleHeaderTrailingContent.dismissable(onDismiss: widget.onDismiss),
           ),
           Text(widget.description),
+          DropdownButtonFormField<SshKeyAlgorithm>(
+            initialValue: _algorithm,
+            decoration: const InputDecoration(
+              labelText: 'Algorithm',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              for (final algorithm in SshKeyAlgorithm.values)
+                DropdownMenuItem(
+                  value: algorithm,
+                  child: Text(algorithm.label),
+                ),
+            ],
+            onChanged: _onAlgorithmChanged,
+          ),
           TextFormField(
             controller: _nameController,
             decoration: const InputDecoration(

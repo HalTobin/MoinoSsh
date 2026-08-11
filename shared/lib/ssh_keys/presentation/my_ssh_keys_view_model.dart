@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:util/ssh/ssh_key_algorithm.dart';
 import 'package:util/ssh/ssh_key_details.dart';
 
 import '../use_case/my_ssh_keys_use_cases.dart';
@@ -33,7 +34,8 @@ class MySshKeysViewModel extends ChangeNotifier {
                     _selectKey(event.keyPath);
                 }
             case AddKey(): _addKey(event.keyPath);
-            case GenerateKey(): _generateKey(event.name, event.password);
+            case GenerateKey():
+                _generateKey(event.name, event.password, event.algorithm);
             case RenameKey(): _renameKey(event.keyPath, event.newName);
             case DeleteKey(): _deleteKey(event.keyPath);
         }
@@ -60,7 +62,11 @@ class MySshKeysViewModel extends ChangeNotifier {
         }
     }
 
-    Future<void> _generateKey(String name, String? password) async {
+    Future<void> _generateKey(
+        String name,
+        String? password,
+        SshKeyAlgorithm algorithm,
+    ) async {
         if (name.trim().isEmpty) {
             return;
         }
@@ -71,6 +77,7 @@ class MySshKeysViewModel extends ChangeNotifier {
             final generatedKey = await _useCases.generateSshKeyPairUseCase.execute(
                 name: name,
                 password: password,
+                algorithm: algorithm,
             );
             final savedPath = await _useCases.saveSshKeyContentUseCase.execute(
                 fileName: generatedKey.privateKeyFileName,

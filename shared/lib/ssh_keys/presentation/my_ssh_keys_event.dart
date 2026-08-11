@@ -1,3 +1,5 @@
+import 'package:util/ssh/ssh_key_algorithm.dart';
+
 sealed class MySshKeysEvent {}
 
 class SelectKey extends MySshKeysEvent {
@@ -13,9 +15,11 @@ class AddKey extends MySshKeysEvent {
 class GenerateKey extends MySshKeysEvent {
     final String name;
     final String? password;
+    final SshKeyAlgorithm algorithm;
     GenerateKey({
         required this.name,
         this.password,
+        this.algorithm = SshKeyAlgorithm.ed25519,
     });
 }
 

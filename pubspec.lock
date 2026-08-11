@@ -527,14 +527,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.4.1"
-  openssh_ed25519:
-    dependency: transitive
-    description:
-      name: openssh_ed25519
-      sha256: eb65bfb9158c05c294d653f639bb9b4b18aca6dfd010986e4f325e439a93655f
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.0"
   package_config:
     dependency: transitive
     description:
