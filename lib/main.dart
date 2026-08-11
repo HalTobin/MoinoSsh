@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
                 theme: ThemeData(
                   useMaterial3: true,
                   colorScheme: finalColorScheme,
-                  inputDecorationTheme: MoinoTheme.inputDecoration(),
+                  inputDecorationTheme: MoinoTheme.inputDecoration(finalColorScheme),
                 ),
                 home: Scaffold(
                   body: MainScreen(

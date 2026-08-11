@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class MoinoTheme {
 
-    static InputDecorationTheme inputDecoration() {
+    static InputDecorationTheme inputDecoration(ColorScheme colorScheme) {
         const circular = 12.0;
         const offWidth = 1.5;
 
@@ -23,12 +23,17 @@ class MoinoTheme {
 
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(circular),
-            borderSide: const BorderSide(width: 2.0),
+            borderSide: BorderSide(width: 2.0, color: colorScheme.primary),
           ),
 
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(circular),
-            borderSide: const BorderSide(width: offWidth),
+            borderSide: BorderSide(width: offWidth, color: colorScheme.error),
+          ),
+
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(circular),
+            borderSide: BorderSide(width: 2.0, color: colorScheme.error),
           ),
         );
     }

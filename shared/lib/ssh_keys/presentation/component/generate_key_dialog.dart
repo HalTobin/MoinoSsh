@@ -30,6 +30,7 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   String? _validationError;
+  bool _passwordDontMatch = false;
 
   @override
   void initState() {
@@ -55,6 +56,7 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
     setState(() {
       _algorithm = value;
       _validationError = null;
+      _passwordDontMatch = false;
       if (currentName.isEmpty || currentName == previousDefault) {
         _nameController.text = value.defaultFileName;
       }
@@ -64,7 +66,9 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
   void _submit() {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      setState(() => _validationError = 'Key name is required');
+      setState(() {
+        _validationError = 'Key name is required';
+      });
       return;
     }
 
@@ -73,12 +77,18 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
       final confirmPassword = _confirmPasswordController.text;
 
       if (password.isEmpty) {
-        setState(() => _validationError = 'Password is required');
+        setState(() {
+          _validationError = 'Password is required';
+          _passwordDontMatch = true;
+        });
         return;
       }
 
       if (password != confirmPassword) {
-        setState(() => _validationError = 'Passwords do not match');
+        setState(() {
+          _validationError = 'Passwords do not match';
+          _passwordDontMatch = true;
+        });
         return;
       }
     }
@@ -135,6 +145,7 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
                 setState(() {
                   _passwordEnabled = !_passwordEnabled;
                   _validationError = null;
+                  _passwordDontMatch = false;
                   if (!_passwordEnabled) {
                     _passwordController.clear();
                     _confirmPasswordController.clear();
@@ -184,6 +195,7 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
               obscureText: _obscureConfirmPassword,
               decoration: InputDecoration(
                 labelText: 'Confirm password',
+                errorText: _passwordDontMatch ? "Don't match" : null,
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: Icon(_obscureConfirmPassword ? LucideIcons.eye : LucideIcons.eyeOff),
