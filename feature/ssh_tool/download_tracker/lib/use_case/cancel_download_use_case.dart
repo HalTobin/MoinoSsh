@@ -1,4 +1,3 @@
-import 'package:domain/model/sftp/download_item.dart';
 import 'package:domain/service/sftp_service.dart';
 
 class CancelDownloadUseCase {

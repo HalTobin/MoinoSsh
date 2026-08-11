@@ -32,17 +32,46 @@ class DownloadItem {
 
 enum DownloadOrigin { local, remote }
 
-sealed class DownloadState {}
+sealed class DownloadState {
+  const DownloadState();
 
-class DownloadFailed extends DownloadState {}
+  int get transferredBytes;
+  double get bytesPerSecond => 0;
+}
 
-class DownloadCanceled extends DownloadState {}
+class DownloadFailed extends DownloadState {
+  @override
+  final int transferredBytes;
 
-class DownloadCompleted extends DownloadState {}
+  const DownloadFailed({this.transferredBytes = 0});
+}
+
+class DownloadCanceled extends DownloadState {
+  @override
+  final int transferredBytes;
+
+  const DownloadCanceled({this.transferredBytes = 0});
+}
+
+class DownloadCompleted extends DownloadState {
+  @override
+  final int transferredBytes;
+
+  const DownloadCompleted({this.transferredBytes = 0});
+}
 
 class Downloading extends DownloadState {
   final double progress;
   final int downloadedBytes;
+  @override
+  final double bytesPerSecond;
 
-  Downloading({required this.progress, required this.downloadedBytes});
+  const Downloading({
+    required this.progress,
+    required this.downloadedBytes,
+    this.bytesPerSecond = 0,
+  });
+
+  @override
+  int get transferredBytes => downloadedBytes;
 }

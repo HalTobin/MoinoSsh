@@ -57,6 +57,13 @@ class _DownloadTrackerScreenState extends State<DownloadTrackerScreen> {
     switch (event) {
       case OpenRemoteFileLocation():
         _openRemoteFileLocation(event.folderPath);
+      case ShowFileFailed():
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(event.message)),
+        );
     }
   }
 

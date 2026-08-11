@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:domain/model/sftp/download_item.dart';
+import 'package:feature_file_explorer/util/size_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-class DownloadEntryItem extends StatelessWidget {
+class DownloadEntryItem extends StatefulWidget {
   final DownloadItem item;
   final VoidCallback onCancel;
   final VoidCallback onRetry;
@@ -17,7 +20,53 @@ class DownloadEntryItem extends StatelessWidget {
   });
 
   @override
+  State<DownloadEntryItem> createState() => _DownloadEntryItemState();
+}
+
+class _DownloadEntryItemState extends State<DownloadEntryItem> {
+  bool _canShowFile = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshShowFileAvailability();
+  }
+
+  @override
+  void didUpdateWidget(covariant DownloadEntryItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item.downloadSessionId != widget.item.downloadSessionId ||
+        oldWidget.item.targetPath != widget.item.targetPath ||
+        oldWidget.item.state.runtimeType != widget.item.state.runtimeType) {
+      _refreshShowFileAvailability();
+    }
+  }
+
+  Future<void> _refreshShowFileAvailability() async {
+    final item = widget.item;
+    if (item.state is! DownloadCompleted) {
+      if (mounted) {
+        setState(() => _canShowFile = false);
+      }
+      return;
+    }
+
+    if (item.origin == DownloadOrigin.local) {
+      if (mounted) {
+        setState(() => _canShowFile = true);
+      }
+      return;
+    }
+
+    final exists = await File(item.targetPath).exists();
+    if (mounted) {
+      setState(() => _canShowFile = exists);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final item = widget.item;
     final state = item.state;
 
     final IconData originIcon = item.origin == DownloadOrigin.local
@@ -26,48 +75,60 @@ class DownloadEntryItem extends StatelessWidget {
 
     double progressValue = 0.0;
     String statusText = '';
-    Widget? trailingAction;
+    final isCanceled = state is DownloadCanceled;
+
+    final Widget trailingAction = switch (state) {
+      Downloading() => IconButton(
+        icon: const Icon(LucideIcons.x, color: Colors.grey),
+        onPressed: widget.onCancel,
+        tooltip: 'Cancel Transfer',
+      ),
+      DownloadCompleted() => IconButton(
+        icon: Icon(
+          LucideIcons.folderOpen,
+          color: _canShowFile
+              ? Theme.of(context).colorScheme.primary
+              : Colors.grey,
+        ),
+        onPressed: _canShowFile ? widget.onShowFile : null,
+        tooltip: _canShowFile ? 'Show File' : 'File no longer available',
+      ),
+      DownloadFailed() => IconButton(
+        icon: Icon(LucideIcons.refreshCw, color: Theme.of(context).colorScheme.error),
+        onPressed: widget.onRetry,
+        tooltip: 'Retry Transfer',
+      ),
+      DownloadCanceled() => IconButton(
+        icon: const Icon(LucideIcons.refreshCw),
+        onPressed: widget.onRetry,
+        tooltip: 'Restart Transfer',
+      ),
+    };
 
     switch (state) {
       case Downloading():
         progressValue = state.progress;
         statusText = '${(state.progress * 100).toStringAsFixed(1)}%';
-        trailingAction = IconButton(
-          icon: const Icon(LucideIcons.x, color: Colors.grey),
-          onPressed: onCancel,
-          tooltip: 'Cancel Transfer',
-        );
-        break;
       case DownloadCompleted():
         progressValue = 1.0;
         statusText = 'Completed';
-        trailingAction = IconButton(
-          icon: Icon(LucideIcons.folderOpen, color: Theme.of(context).colorScheme.primary),
-          onPressed: onShowFile,
-          tooltip: 'Show File',
-        );
-        break;
       case DownloadFailed():
         progressValue = 0.0;
         statusText = 'Failed';
-        trailingAction = IconButton(
-          icon: Icon(LucideIcons.refreshCw, color: Theme.of(context).colorScheme.error),
-          onPressed: onRetry,
-          tooltip: 'Retry Transfer',
-        );
-        break;
       case DownloadCanceled():
-        progressValue = 0.0;
+        progressValue = state.transferredBytes > 0 && item.size > 0
+            ? state.transferredBytes / item.size
+            : 0.0;
         statusText = 'Canceled';
-        trailingAction = IconButton(
-          icon: const Icon(LucideIcons.refreshCw),
-          onPressed: onRetry,
-          tooltip: 'Restart Transfer',
-        );
-        break;
     }
 
-    return Card(
+    final mutedStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
+      color: isCanceled
+          ? Colors.grey
+          : Theme.of(context).colorScheme.onSurfaceVariant,
+    );
+
+    final card = Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -75,11 +136,12 @@ class DownloadEntryItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Transfer status/direction icon indicator
-            Icon(originIcon, size: 28, color: _getStatusColor(context, state)),
+            Icon(
+              originIcon,
+              size: 28,
+              color: _getStatusColor(context, state),
+            ),
             const SizedBox(width: 16),
-
-            // Core details area
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,27 +149,23 @@ class DownloadEntryItem extends StatelessWidget {
                 children: [
                   Text(
                     item.fileName,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: isCanceled ? Colors.grey : null,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 6),
-
                   Text(
-                    "From: ${item.filePath}",
-                    style: TextStyle(
-                      fontStyle: FontStyle.italic
-                    ),
+                    'From: ${item.filePath}',
+                    style: mutedStyle?.copyWith(fontStyle: FontStyle.italic),
                   ),
                   Text(
-                    "To: ${item.targetPath}",
-                    style: TextStyle(
-                      fontStyle: FontStyle.italic
-                    ),
+                    'To: ${item.targetPath}',
+                    style: mutedStyle?.copyWith(fontStyle: FontStyle.italic),
                   ),
-
                   const SizedBox(height: 6),
-
                   Row(
                     children: [
                       Expanded(
@@ -120,7 +178,9 @@ class DownloadEntryItem extends StatelessWidget {
                             builder: (context, value, _) {
                               return LinearProgressIndicator(
                                 value: value,
-                                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest,
                                 color: _getStatusColor(context, state),
                               );
                             },
@@ -138,6 +198,20 @@ class DownloadEntryItem extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _transferDetails(item),
+                    style: mutedStyle?.copyWith(fontFamily: 'monospace'),
+                  ),
+                  if (state is DownloadCompleted && !_canShowFile) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'File no longer available',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -147,6 +221,28 @@ class DownloadEntryItem extends StatelessWidget {
         ),
       ),
     );
+
+    if (!isCanceled) {
+      return card;
+    }
+
+    return Opacity(
+      opacity: 0.55,
+      child: card,
+    );
+  }
+
+  String _transferDetails(DownloadItem item) {
+    final transferred = SizeHelper.formatSize(item.state.transferredBytes);
+    final total = SizeHelper.formatSize(item.size);
+    final details = '$transferred / $total';
+
+    final state = item.state;
+    if (state is Downloading && state.bytesPerSecond > 0) {
+      final speed = SizeHelper.formatSize(state.bytesPerSecond.round());
+      return '$details · $speed/s';
+    }
+    return details;
   }
 
   Color _getStatusColor(BuildContext context, DownloadState state) {

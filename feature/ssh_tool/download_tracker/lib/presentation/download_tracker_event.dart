@@ -21,3 +21,9 @@ class OpenRemoteFileLocation extends DownloadTrackerUiEvent {
 
     OpenRemoteFileLocation({required this.folderPath});
 }
+
+class ShowFileFailed extends DownloadTrackerUiEvent {
+    final String message;
+
+    ShowFileFailed({required this.message});
+}

@@ -42,6 +42,7 @@ class SftpServiceImpl implements SftpService {
     }
 
     final Map<int, StreamSubscription<dynamic>> _activeSubscriptions = {};
+    final Map<int, _TransferProgressSample> _progressSamples = {};
     final _tasksController = StreamController<List<DownloadItem>>.broadcast();
     final List<DownloadItem> _tasks = [];
     int _nextSessionId = 0;
@@ -58,6 +59,58 @@ class SftpServiceImpl implements SftpService {
             _tasks[index] = _tasks[index].copyWith(state: newState);
             _tasksController.add(List.from(_tasks));
         }
+    }
+
+    int _currentTransferredBytes(int sessionId) {
+        final index = _tasks.indexWhere((t) => t.downloadSessionId == sessionId);
+        if (index == -1) {
+            return 0;
+        }
+        return _tasks[index].state.transferredBytes;
+    }
+
+    void _updateTransferProgress({
+        required int sessionId,
+        required int transferredBytes,
+        required int totalSize,
+    }) {
+        final now = DateTime.now();
+        final sample = _progressSamples[sessionId];
+        double bytesPerSecond = 0;
+
+        if (sample != null) {
+            final elapsedSeconds =
+                now.difference(sample.timestamp).inMicroseconds / 1e6;
+            if (elapsedSeconds > 0.05) {
+                final instant =
+                    (transferredBytes - sample.transferredBytes) / elapsedSeconds;
+                bytesPerSecond = sample.bytesPerSecond <= 0
+                    ? instant
+                    : (sample.bytesPerSecond * 0.7) + (instant * 0.3);
+            } else {
+                bytesPerSecond = sample.bytesPerSecond;
+            }
+        }
+
+        _progressSamples[sessionId] = _TransferProgressSample(
+            timestamp: now,
+            transferredBytes: transferredBytes,
+            bytesPerSecond: bytesPerSecond < 0 ? 0 : bytesPerSecond,
+        );
+
+        final progress = totalSize > 0 ? transferredBytes / totalSize : 0.0;
+        _updateTaskState(
+            sessionId,
+            Downloading(
+                progress: progress,
+                downloadedBytes: transferredBytes,
+                bytesPerSecond: bytesPerSecond < 0 ? 0 : bytesPerSecond,
+            ),
+        );
+    }
+
+    void _clearProgressSample(int sessionId) {
+        _progressSamples.remove(sessionId);
     }
 
     @override
@@ -210,7 +263,7 @@ class SftpServiceImpl implements SftpService {
             targetPath: remoteTargetPath,
             size: totalSize,
             origin: DownloadOrigin.local,
-            state: Downloading(progress: 0.0, downloadedBytes: 0),
+            state: const Downloading(progress: 0.0, downloadedBytes: 0),
         );
         _tasks.add(task);
         _tasksController.add(List.from(_tasks));
@@ -234,15 +287,24 @@ class SftpServiceImpl implements SftpService {
                         await remoteFile?.writeBytes(Uint8List.fromList(chunk));
 
                         uploadedBytes += chunk.length;
-                        double progress = totalSize > 0 ? uploadedBytes / totalSize : 0.0;
-                        _updateTaskState(sessionId, Downloading(progress: progress, downloadedBytes: uploadedBytes));
+                        _updateTransferProgress(
+                            sessionId: sessionId,
+                            transferredBytes: uploadedBytes,
+                            totalSize: totalSize,
+                        );
 
                         subscription?.resume();
                     },
                     onDone: () async {
                         await remoteFile?.close();
                         _activeSubscriptions.remove(sessionId);
-                        _updateTaskState(sessionId, DownloadCompleted());
+                        _clearProgressSample(sessionId);
+                        _updateTaskState(
+                            sessionId,
+                            DownloadCompleted(
+                                transferredBytes: totalSize > 0 ? totalSize : uploadedBytes,
+                            ),
+                        );
                     },
                     onError: (e) {
                         throw e;
@@ -254,7 +316,11 @@ class SftpServiceImpl implements SftpService {
             } catch (e) {
                 await remoteFile?.close();
                 _activeSubscriptions.remove(sessionId);
-                _updateTaskState(sessionId, DownloadFailed());
+                _clearProgressSample(sessionId);
+                _updateTaskState(
+                    sessionId,
+                    DownloadFailed(transferredBytes: _currentTransferredBytes(sessionId)),
+                );
             }
         }());
 
@@ -278,7 +344,7 @@ class SftpServiceImpl implements SftpService {
                 targetPath: localTargetPath,
                 size: totalSize,
                 origin: DownloadOrigin.remote,
-                state: Downloading(progress: 0.0, downloadedBytes: 0),
+                state: const Downloading(progress: 0.0, downloadedBytes: 0),
             );
             _tasks.add(task);
             _tasksController.add(List.from(_tasks));
@@ -287,6 +353,7 @@ class SftpServiceImpl implements SftpService {
                 SftpFile? remoteFile;
                 StreamSubscription<Uint8List>? subscription;
                 IOSink? localSink;
+                var transferredBytes = 0;
                 try {
                     remoteFile = await sftp.open(remotePath);
                     final localFile = File(localTargetPath);
@@ -294,8 +361,12 @@ class SftpServiceImpl implements SftpService {
 
                     subscription = remoteFile.read(
                         onProgress: (int bytesDownloaded) {
-                            double progress = totalSize > 0 ? bytesDownloaded / totalSize : 0.0;
-                            _updateTaskState(sessionId, Downloading(progress: progress, downloadedBytes: bytesDownloaded));
+                            transferredBytes = bytesDownloaded;
+                            _updateTransferProgress(
+                                sessionId: sessionId,
+                                transferredBytes: bytesDownloaded,
+                                totalSize: totalSize,
+                            );
                         },
                     ).listen(
                             (chunk) {
@@ -305,7 +376,14 @@ class SftpServiceImpl implements SftpService {
                             await localSink?.close();
                             await remoteFile?.close();
                             _activeSubscriptions.remove(sessionId);
-                            _updateTaskState(sessionId, DownloadCompleted());
+                            _clearProgressSample(sessionId);
+                            _updateTaskState(
+                                sessionId,
+                                DownloadCompleted(
+                                    transferredBytes:
+                                        totalSize > 0 ? totalSize : transferredBytes,
+                                ),
+                            );
                         },
                         onError: (e) {
                             throw e;
@@ -318,7 +396,11 @@ class SftpServiceImpl implements SftpService {
                     await localSink?.close();
                     await remoteFile?.close();
                     _activeSubscriptions.remove(sessionId);
-                    _updateTaskState(sessionId, DownloadFailed());
+                    _clearProgressSample(sessionId);
+                    _updateTaskState(
+                        sessionId,
+                        DownloadFailed(transferredBytes: transferredBytes),
+                    );
                 }
             }());
 
@@ -333,9 +415,14 @@ class SftpServiceImpl implements SftpService {
     Future<void> cancelDownload(int downloadSessionId) async {
         final subscription = _activeSubscriptions[downloadSessionId];
         if (subscription != null) {
+            final transferredBytes = _currentTransferredBytes(downloadSessionId);
             await subscription.cancel();
             _activeSubscriptions.remove(downloadSessionId);
-            _updateTaskState(downloadSessionId, DownloadCanceled());
+            _clearProgressSample(downloadSessionId);
+            _updateTaskState(
+                downloadSessionId,
+                DownloadCanceled(transferredBytes: transferredBytes),
+            );
         }
     }
 
@@ -450,4 +537,16 @@ class SftpServiceImpl implements SftpService {
 
     static const String tag = "SftpServiceImpl";
 
+}
+
+class _TransferProgressSample {
+    final DateTime timestamp;
+    final int transferredBytes;
+    final double bytesPerSecond;
+
+    const _TransferProgressSample({
+        required this.timestamp,
+        required this.transferredBytes,
+        required this.bytesPerSecond,
+    });
 }

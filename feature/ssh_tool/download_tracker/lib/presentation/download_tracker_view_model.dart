@@ -56,7 +56,14 @@ class DownloadTrackerViewModel extends ChangeNotifier {
     Future<void> _showFile(DownloadItem item) async {
         switch (item.origin) {
             case DownloadOrigin.remote:
-                await _useCases.revealLocalFileUseCase.execute(item.targetPath);
+                final revealed = await _useCases.revealLocalFileUseCase.execute(
+                    item.targetPath,
+                );
+                if (!revealed) {
+                    _uiEvent.add(
+                        ShowFileFailed(message: 'File no longer available'),
+                    );
+                }
             case DownloadOrigin.local:
                 final folderPath = p.posix.dirname(item.targetPath);
                 _uiEvent.add(OpenRemoteFileLocation(folderPath: folderPath));
