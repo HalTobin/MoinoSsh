@@ -6,8 +6,9 @@ import 'package:ui/screen_format/screen_format_helper.dart';
 import '../presentation/download_tracker_screen.dart';
 import '../presentation/download_tracker_view_model.dart';
 import '../use_case/cancel_download_use_case.dart';
-import '../use_case/watch_download_items_use_case.dart';
 import '../use_case/download_tracker_use_cases.dart';
+import '../use_case/reveal_local_file_use_case.dart';
+import '../use_case/watch_download_items_use_case.dart';
 
 class DownloadTrackerProvider extends StatelessWidget {
   final NavigationType navigationType;
@@ -23,11 +24,13 @@ class DownloadTrackerProvider extends StatelessWidget {
       providers: [
         Provider(create: (context) => (CancelDownloadUseCase(sftpService: context.read()))),
         Provider(create: (context) => (WatchDownloadItemsUseCase(sftpService: context.read()))),
+        Provider(create: (_) => RevealLocalFileUseCase()),
         Provider(
           create: (context) => (
             DownloadTrackerUseCases(
               cancelDownloadUseCase: context.read(),
-              watchDownloadItemsUseCase: context.read()
+              watchDownloadItemsUseCase: context.read(),
+              revealLocalFileUseCase: context.read(),
             )
           )
         ),
@@ -43,6 +46,7 @@ class DownloadTrackerProvider extends StatelessWidget {
                 navigationType: navigationType,
                 state: viewmodel.state,
                 onEvent: viewmodel.onEvent,
+                uiEvent: viewmodel.uiEvent,
                 isNarrow: ScreenFormatHelper.isNarrow(constraints),
               );
             }

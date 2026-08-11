@@ -11,8 +11,11 @@ import 'file_explorer_state.dart';
 
 class FileExplorerViewModel extends ChangeNotifier {
 
-    FileExplorerViewModel({required FileExplorerUseCases fileExplorerUseCases})
-      : _useCases = fileExplorerUseCases
+    FileExplorerViewModel({
+        required FileExplorerUseCases fileExplorerUseCases,
+        String? initialPath,
+    }) : _useCases = fileExplorerUseCases,
+         _initialPath = initialPath
     {
         if (kDebugMode) {
             print("[$tag] init()");
@@ -21,6 +24,7 @@ class FileExplorerViewModel extends ChangeNotifier {
     }
 
     final FileExplorerUseCases _useCases;
+    final String? _initialPath;
     FileExplorerState _state = FileExplorerState();
     FileExplorerState get state => _state;
 
@@ -37,7 +41,13 @@ class FileExplorerViewModel extends ChangeNotifier {
         final viewMode = await _useCases.getDefaultViewModeUseCase.execute();
         _state = _state.copyWith(showHidden: showHidden, viewMode: viewMode);
         notifyListeners();
-        await _navigateRoot();
+
+        final initialPath = _initialPath?.trim();
+        if (initialPath != null && initialPath.isNotEmpty) {
+            await _openFolder(initialPath);
+        } else {
+            await _navigateRoot();
+        }
     }
 
     Future<void> onEvent(FileExplorerEvent event) async {

@@ -23,7 +23,12 @@ import '../use_case/delete_file_use_case.dart';
 import '../use_case/file_explorer_use_cases.dart';
 
 class FileExplorerProvider extends StatelessWidget {
-  const FileExplorerProvider({super.key});
+  final String? initialPath;
+
+  const FileExplorerProvider({
+    super.key,
+    this.initialPath,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +123,10 @@ class FileExplorerProvider extends StatelessWidget {
           )
         ),
         ChangeNotifierProvider(create: (context) => (
-          FileExplorerViewModel(fileExplorerUseCases: context.read())
+          FileExplorerViewModel(
+            fileExplorerUseCases: context.read(),
+            initialPath: initialPath,
+          )
         ))
       ],
       child: Consumer<FileExplorerViewModel>(

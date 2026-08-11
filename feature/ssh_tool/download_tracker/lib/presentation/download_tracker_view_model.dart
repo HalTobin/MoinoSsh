@@ -1,9 +1,12 @@
 import 'dart:async';
+
+import 'package:domain/model/sftp/download_item.dart';
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
 
 import '../use_case/download_tracker_use_cases.dart';
-import 'download_tracker_state.dart';
 import 'download_tracker_event.dart';
+import 'download_tracker_state.dart';
 
 class DownloadTrackerViewModel extends ChangeNotifier {
 
@@ -20,6 +23,9 @@ class DownloadTrackerViewModel extends ChangeNotifier {
     DownloadTrackerState _state = DownloadTrackerState();
     DownloadTrackerState get state => _state;
 
+    final _uiEvent = StreamController<DownloadTrackerUiEvent>.broadcast();
+    Stream<DownloadTrackerUiEvent> get uiEvent => _uiEvent.stream;
+
     StreamSubscription? _folderSubscription;
 
     Future<void> _init() async {
@@ -31,6 +37,8 @@ class DownloadTrackerViewModel extends ChangeNotifier {
         switch (event) {
             case CancelDownload():
                 _cancelDownload(event.downloadSessionId);
+            case ShowFile():
+                await _showFile(event.item);
         }
     }
 
@@ -45,9 +53,20 @@ class DownloadTrackerViewModel extends ChangeNotifier {
         _useCases.cancelDownloadUseCase.execute(downloadSessionId);
     }
 
+    Future<void> _showFile(DownloadItem item) async {
+        switch (item.origin) {
+            case DownloadOrigin.remote:
+                await _useCases.revealLocalFileUseCase.execute(item.targetPath);
+            case DownloadOrigin.local:
+                final folderPath = p.posix.dirname(item.targetPath);
+                _uiEvent.add(OpenRemoteFileLocation(folderPath: folderPath));
+        }
+    }
+
     @override
     void dispose() {
         _folderSubscription?.cancel();
+        _uiEvent.close();
         super.dispose();
     }
 

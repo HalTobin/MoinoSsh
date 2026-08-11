@@ -31,7 +31,7 @@ class DownloadEntryItem extends StatelessWidget {
     switch (state) {
       case Downloading():
         progressValue = state.progress;
-        statusText = '${(state.progress * 100).toStringAsFixed(1)}% completed';
+        statusText = '${(state.progress * 100).toStringAsFixed(1)}%';
         trailingAction = IconButton(
           icon: const Icon(LucideIcons.x, color: Colors.grey),
           onPressed: onCancel,
@@ -72,6 +72,8 @@ class DownloadEntryItem extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Transfer status/direction icon indicator
             Icon(originIcon, size: 28, color: _getStatusColor(context, state)),
@@ -130,6 +132,7 @@ class DownloadEntryItem extends StatelessWidget {
                         statusText,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: _getStatusColor(context, state),
+                          fontFamily: 'monospace',
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -139,7 +142,7 @@ class DownloadEntryItem extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            if (trailingAction != null) trailingAction,
+            trailingAction,
           ],
         ),
       ),

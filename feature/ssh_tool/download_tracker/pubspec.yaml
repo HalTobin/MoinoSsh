@@ -18,6 +18,8 @@ dependencies:
     path: ../../../ui
   util:
     path: ../../../util
+  feature_file_explorer:
+    path: ../file_explorer
 
 dev_dependencies:
   flutter_test:
