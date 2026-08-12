@@ -21,6 +21,8 @@ class ConnectionStatusBar extends StatelessWidget implements PreferredSizeWidget
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isNarrow = ScreenFormatHelper.isNarrow(constraints);
@@ -34,7 +36,7 @@ class ConnectionStatusBar extends StatelessWidget implements PreferredSizeWidget
               SizedBox(width: 8),
               IconButton(
                 onPressed: () { openSettings(); },
-                icon: const Icon(LucideIcons.settings, color: Colors.white, size: 28)
+                icon: Icon(LucideIcons.settings, color: colorScheme.onSurface, size: 28)
               )
             ]
           ),
@@ -77,6 +79,8 @@ class _StatusBarTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       spacing: 16,
       mainAxisSize: MainAxisSize.min,
@@ -88,23 +92,23 @@ class _StatusBarTitle extends StatelessWidget {
             profile.isBlank()
                 ? "Not connected"
                 : profile.getIdentifier(),
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: colorScheme.onSurface),
           )
         ]
         else
           if (profile.isBlank()) Text(
             "Not connected",
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
           )
           else Column(
             children: [
               Text(
                 "${profile.url}:${profile.port}",
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: colorScheme.onSurface),
               ),
               Text(
                   profile.user,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white)
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurface)
               )
             ],
           )

@@ -10,6 +10,7 @@ class StatusBarBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return LayoutBuilder(
       builder: (context, constraints) {
         final fullWidth = constraints.maxWidth;
@@ -19,12 +20,12 @@ class StatusBarBackground extends StatelessWidget {
             SizedBox(
               width: fullWidth,
               height: double.infinity,
-              child: const ColoredBox(color: Colors.red),
+              child: ColoredBox(color: colorScheme.surface),
             ),
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               width: connected ? fullWidth : 0,
-              color: Colors.green
+              color: colorScheme.primaryContainer
             ),
           ],
         );
