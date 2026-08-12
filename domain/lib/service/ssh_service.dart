@@ -1,8 +1,4 @@
-import 'package:flutter/foundation.dart';
-
-import '../model/ssh/connection_status.dart';
 import '../model/response_result.dart';
-import '../model/ssh/ssh_profile.dart';
 import '../model/ssh/systemctl_command.dart';
 
 abstract interface class SshService {
@@ -17,5 +13,10 @@ abstract interface class SshService {
     Future<ResponseResult<List<String>>> getServiceList();
 
     Future<ResponseResult<String>> executeCommand(String command);
+
+    Future<ResponseResult<bool>> writeFileWithSudo({
+        required String filePath,
+        required String content,
+    });
 
 }

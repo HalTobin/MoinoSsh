@@ -106,19 +106,24 @@ class SshKeyManagerViewModel extends ChangeNotifier {
         _state = _state.copyWith(applying: true, error: '');
         notifyListeners();
 
-        final applied = await _useCases.applyRemoteAuthorizedKeysUseCase.execute(
+        final result = await _useCases.applyRemoteAuthorizedKeysUseCase.execute(
             authorizedKeysPath: path,
             currentEntries: _state.remoteKeys,
             stagedPublicKeyLines: _state.stagedPublicKeyLines,
         );
 
-        if (!applied) {
-            _state = _state.copyWith(
-                applying: false,
-                error: 'Could not update remote authorized_keys',
-            );
-            notifyListeners();
-            return;
+        switch (result) {
+            case ResponseFailed(:final error):
+                _state = _state.copyWith(
+                    applying: false,
+                    error: error.isNotEmpty
+                        ? error
+                        : 'Could not update remote authorized_keys',
+                );
+                notifyListeners();
+                return;
+            case ResponseSucceed():
+                break;
         }
 
         _state = _state.copyWith(

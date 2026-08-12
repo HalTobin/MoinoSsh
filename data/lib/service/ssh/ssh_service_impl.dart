@@ -1,17 +1,14 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:data/service/ssh_client_service_impl.dart';
-import 'package:domain/service/ssh_client_service.dart';
 
 import 'utils/byte_decoder.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:domain/model/response_result.dart';
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:domain/service/ssh_service.dart';
-import 'package:domain/model/ssh/connection_status.dart';
-import 'package:domain/model/ssh/ssh_profile.dart';
 import 'package:domain/model/ssh/systemctl_command.dart';
 
 class SshServiceImpl implements SshService {
@@ -89,8 +86,12 @@ class SshServiceImpl implements SshService {
         }
     }
 
-    Future<ResponseResult<bool>> _runSudoCommand(String password, String command, bool remember) async {
-        final client = _sshClientService.getClient();
+    Future<ResponseResult<bool>> _runSudoCommand(
+        String password,
+        String command,
+        bool remember, {
+        List<int>? stdinAfterPassword,
+    }) async {
         final cleanPassword = password.trim();
 
         final sanitizedCommand = command.startsWith('sudo ')
@@ -98,18 +99,34 @@ class SshServiceImpl implements SshService {
             : command;
 
         final sudoCommand = "sudo -S $sanitizedCommand";
+        final stdinBytes = <int>[
+            ...utf8.encode('$cleanPassword\n'),
+            ...?stdinAfterPassword,
+        ];
+
+        final result = await _runCommandWithStdin(sudoCommand, stdinBytes);
+        if (result is ResponseSucceed && remember) {
+            _password = cleanPassword;
+        }
+        return result;
+    }
+
+    Future<ResponseResult<bool>> _runCommandWithStdin(
+        String command,
+        List<int> stdinBytes,
+    ) async {
+        final client = _sshClientService.getClient();
         if (kDebugMode) {
-            print("Running over SSH: $sudoCommand");
+            print("Running over SSH: $command");
         }
 
-        final SSHSession? session = await client?.execute(sudoCommand);
+        final SSHSession? session = await client?.execute(command);
         if (session == null) {
             return ResponseFailed(error: "SSH session is null");
         }
 
-        session.stdin.add(utf8.encode('$cleanPassword\n'));
+        session.stdin.add(Uint8List.fromList(stdinBytes));
         await session.stdin.close();
-
         await session.done;
 
         final exitCode = session.exitCode;
@@ -123,12 +140,90 @@ class SshServiceImpl implements SshService {
         }
 
         if (exitCode == 0) {
-            if (remember) {
-                _password = cleanPassword;
-            }
             return ResponseSucceed(true);
-        } else {
-            return ResponseFailed(error: stderrStr);
+        }
+        return ResponseFailed(
+            error: stderrStr.isNotEmpty ? stderrStr : 'Command failed with exit code $exitCode',
+        );
+    }
+
+    Future<ResponseResult<_SudoAuth>> _resolveSudoAuth() async {
+        if (_password != null) {
+            return ResponseSucceed(_SudoAuth(password: _password, remember: true));
+        }
+
+        final passwordless = await _runCommandWithStdin('sudo -n true', const []);
+        if (passwordless is ResponseSucceed) {
+            return ResponseSucceed(const _SudoAuth(password: null, remember: false));
+        }
+
+        if (_sshClientService.onPasswordRequest == null) {
+            if (kDebugMode) {
+                print("Password request callback not defined");
+            }
+            return ResponseFailed(error: "Password request callback not defined");
+        }
+
+        final passwordRequestResponse = await _sshClientService.onPasswordRequest!();
+        if (passwordRequestResponse == null) {
+            return ResponseFailed(error: "Password is required to write the file");
+        }
+
+        return ResponseSucceed(_SudoAuth(
+            password: passwordRequestResponse.password.trim(),
+            remember: passwordRequestResponse.remember,
+        ));
+    }
+
+    String _quoteShellArg(String value) {
+        return "'${value.replaceAll("'", r"'\''")}'";
+    }
+
+    String _privilegedWriteCommand({
+        required String directory,
+        required String filePath,
+        required String? owner,
+    }) {
+        final ownerArg = (owner == null || owner.isEmpty)
+            ? "''"
+            : _quoteShellArg(owner);
+        return 'sh -c \'mkdir -p "\$1" && chmod 700 "\$1" && tee "\$2" >/dev/null && chmod 600 "\$2" && { [ -z "\$3" ] || chown "\$3" "\$1" "\$2"; }\' '
+            'sh ${_quoteShellArg(directory)} ${_quoteShellArg(filePath)} $ownerArg';
+    }
+
+    @override
+    Future<ResponseResult<bool>> writeFileWithSudo({
+        required String filePath,
+        required String content,
+    }) async {
+        final directory = p.posix.dirname(filePath);
+        final owner = _sshClientService.getProfile()?.user;
+        final writeCommand = _privilegedWriteCommand(
+            directory: directory,
+            filePath: filePath,
+            owner: owner,
+        );
+        final contentBytes = utf8.encode(content);
+
+        try {
+            final authResult = await _resolveSudoAuth();
+            switch (authResult) {
+                case ResponseFailed(:final error):
+                    return ResponseFailed(error: error);
+                case ResponseSucceed(:final data):
+                    final password = data.password;
+                    if (password == null) {
+                        return _runCommandWithStdin('sudo $writeCommand', contentBytes);
+                    }
+                    return _runSudoCommand(
+                        password,
+                        writeCommand,
+                        data.remember,
+                        stdinAfterPassword: contentBytes,
+                    );
+            }
+        } catch (error) {
+            return ResponseFailed(error: error.toString());
         }
     }
 
@@ -215,4 +310,14 @@ class SshServiceImpl implements SshService {
         }
     }
 
+}
+
+class _SudoAuth {
+    final String? password;
+    final bool remember;
+
+    const _SudoAuth({
+        required this.password,
+        required this.remember,
+    });
 }

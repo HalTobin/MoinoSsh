@@ -20,6 +20,7 @@ class SshKeyManagerProvider extends StatelessWidget {
         )),
         Provider(create: (context) => ApplyRemoteAuthorizedKeysUseCase(
           sftpService: context.read(),
+          sshService: context.read(),
         )),
         Provider(create: (context) => SshKeyManagerUseCases(
           getRemoteAuthorizedKeysUseCase: context.read(),

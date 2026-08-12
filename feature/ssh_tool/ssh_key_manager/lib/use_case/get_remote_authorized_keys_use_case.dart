@@ -23,7 +23,7 @@ class GetRemoteAuthorizedKeysUseCase {
                 return ResponseFailed(error: error);
         }
 
-        final home = (homeResult as ResponseSucceed<String>).data;
+        final home = homeResult.data;
         if (home.isEmpty) {
             return ResponseFailed(error: 'Could not resolve remote home directory');
         }
