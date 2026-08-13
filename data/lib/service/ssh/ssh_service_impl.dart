@@ -89,22 +89,18 @@ class SshServiceImpl implements SshService {
     Future<ResponseResult<bool>> _runSudoCommand(
         String password,
         String command,
-        bool remember, {
-        List<int>? stdinAfterPassword,
-    }) async {
+        bool remember,
+    ) async {
         final cleanPassword = password.trim();
 
         final sanitizedCommand = command.startsWith('sudo ')
             ? command.substring(5)
             : command;
 
-        final sudoCommand = "sudo -S $sanitizedCommand";
-        final stdinBytes = <int>[
-            ...utf8.encode('$cleanPassword\n'),
-            ...?stdinAfterPassword,
-        ];
-
-        final result = await _runCommandWithStdin(sudoCommand, stdinBytes);
+        final result = await _runCommandWithStdin(
+            "sudo -S $sanitizedCommand",
+            utf8.encode('$cleanPassword\n'),
+        );
         if (result is ResponseSucceed && remember) {
             _password = cleanPassword;
         }
@@ -125,13 +121,18 @@ class SshServiceImpl implements SshService {
             return ResponseFailed(error: "SSH session is null");
         }
 
-        session.stdin.add(Uint8List.fromList(stdinBytes));
+        final stdoutFuture = session.stdout.decodeUtf8();
+        final stderrFuture = session.stderr.decodeUtf8();
+
+        if (stdinBytes.isNotEmpty) {
+            session.stdin.add(Uint8List.fromList(stdinBytes));
+        }
         await session.stdin.close();
         await session.done;
 
         final exitCode = session.exitCode;
-        final stdoutStr = await session.stdout.decodeUtf8();
-        final stderrStr = await session.stderr.decodeUtf8();
+        final stdoutStr = await stdoutFuture;
+        final stderrStr = await stderrFuture;
 
         if (kDebugMode) {
             print("stdout: $stdoutStr");
@@ -179,16 +180,17 @@ class SshServiceImpl implements SshService {
         return "'${value.replaceAll("'", r"'\''")}'";
     }
 
-    String _privilegedWriteCommand({
+    String _privilegedInstallCommand({
         required String directory,
+        required String tempPath,
         required String filePath,
         required String? owner,
     }) {
         final ownerArg = (owner == null || owner.isEmpty)
             ? "''"
             : _quoteShellArg(owner);
-        return 'sh -c \'mkdir -p "\$1" && chmod 700 "\$1" && tee "\$2" >/dev/null && chmod 600 "\$2" && { [ -z "\$3" ] || chown "\$3" "\$1" "\$2"; }\' '
-            'sh ${_quoteShellArg(directory)} ${_quoteShellArg(filePath)} $ownerArg';
+        return 'sh -c \'mkdir -p "\$1" && mv "\$2" "\$3" && chmod 700 "\$1" && chmod 600 "\$3" && { [ -z "\$4" ] || chown "\$4" "\$1" "\$3"; }\' '
+            'sh ${_quoteShellArg(directory)} ${_quoteShellArg(tempPath)} ${_quoteShellArg(filePath)} $ownerArg';
     }
 
     @override
@@ -198,31 +200,52 @@ class SshServiceImpl implements SshService {
     }) async {
         final directory = p.posix.dirname(filePath);
         final owner = _sshClientService.getProfile()?.user;
-        final writeCommand = _privilegedWriteCommand(
+        final tempPath = '/tmp/moino-ak-${DateTime.now().microsecondsSinceEpoch}';
+        final contentBytes = utf8.encode(content);
+        final installCommand = _privilegedInstallCommand(
             directory: directory,
+            tempPath: tempPath,
             filePath: filePath,
             owner: owner,
         );
-        final contentBytes = utf8.encode(content);
 
         try {
+            if (kDebugMode) {
+                print('Staging ${contentBytes.length} bytes at $tempPath');
+            }
+
+            final staged = await _runCommandWithStdin(
+                'umask 077; cat > ${_quoteShellArg(tempPath)}',
+                contentBytes,
+            );
+            if (staged is ResponseFailed) {
+                return staged;
+            }
+
             final authResult = await _resolveSudoAuth();
+            final ResponseResult<bool> installed;
             switch (authResult) {
                 case ResponseFailed(:final error):
-                    return ResponseFailed(error: error);
+                    installed = ResponseFailed(error: error);
                 case ResponseSucceed(:final data):
                     final password = data.password;
                     if (password == null) {
-                        return _runCommandWithStdin('sudo $writeCommand', contentBytes);
+                        installed = await _runCommandWithStdin('sudo $installCommand', const []);
+                    } else {
+                        installed = await _runSudoCommand(
+                            password,
+                            installCommand,
+                            data.remember,
+                        );
                     }
-                    return _runSudoCommand(
-                        password,
-                        writeCommand,
-                        data.remember,
-                        stdinAfterPassword: contentBytes,
-                    );
             }
+
+            if (installed is ResponseFailed) {
+                await _runCommandWithStdin('rm -f ${_quoteShellArg(tempPath)}', const []);
+            }
+            return installed;
         } catch (error) {
+            await _runCommandWithStdin('rm -f ${_quoteShellArg(tempPath)}', const []);
             return ResponseFailed(error: error.toString());
         }
     }

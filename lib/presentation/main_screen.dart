@@ -175,7 +175,7 @@ class _MainScreenState extends State<MainScreen> {
               }
               final password = await onBiometricsRequest();
               if (kDebugMode) {
-                print("password fetched: $password");
+                print("password fetched!");
               }
               Navigator.of(context).pop(password);
             } : null,
