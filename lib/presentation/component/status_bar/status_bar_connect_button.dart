@@ -49,6 +49,8 @@ class ConnectionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     if (!isNarrow) {
       return TextButton(
         onPressed: onPressed,
@@ -57,12 +59,12 @@ class ConnectionButton extends StatelessWidget {
           children: [
             Text(
               connected ? 'DISCONNECT' : 'CONNECT',
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: colorScheme.onSurface),
             ),
             const SizedBox(width: 8),
             Icon(
               connected ? LucideIcons.logOut : LucideIcons.logIn,
-              color: Colors.white,
+              color: colorScheme.onSurface,
             ),
           ],
         ),
@@ -73,7 +75,7 @@ class ConnectionButton extends StatelessWidget {
         onPressed: onPressed,
         icon: Icon(
           connected ? LucideIcons.logOut : LucideIcons.logIn,
-          color: Colors.white,
+          color: colorScheme.onSurface,
         )
       );
     }

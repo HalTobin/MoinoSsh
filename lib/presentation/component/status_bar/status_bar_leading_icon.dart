@@ -11,6 +11,8 @@ class StatusBarLeadingIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.only(left: 16.0),
       child: Center(
@@ -21,8 +23,8 @@ class StatusBarLeadingIcon extends StatelessWidget {
           crossFadeState: connected
               ? CrossFadeState.showSecond
               : CrossFadeState.showFirst,
-          firstChild: const Icon(LucideIcons.plug, color: Colors.white, size: 28),
-          secondChild: const Icon(LucideIcons.unplug, color: Colors.white, size: 28),
+          firstChild: Icon(LucideIcons.plug, color: colorScheme.onSurface, size: 28),
+          secondChild: Icon(LucideIcons.unplug, color: colorScheme.onSurface, size: 28),
           layoutBuilder: (topChild, topKey, bottomChild, bottomKey) {
             return Stack(
               alignment: Alignment.center,
