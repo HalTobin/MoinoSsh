@@ -18,37 +18,67 @@ class ServiceManagerScreen extends StatelessWidget {
   final ServiceManagerState state;
   final bool isNarrow;
   final Function(ServiceManagerEvent event) onEvent;
+  final String title;
+  final VoidCallback onBack;
+  final List<Widget> actions;
 
   const ServiceManagerScreen({
     super.key,
     required this.state,
     required this.isNarrow,
-    required this.onEvent
+    required this.onEvent,
+    required this.title,
+    required this.onBack,
+    required this.actions,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: AnimatedCrossFade(
-        duration: const Duration(milliseconds: 300),
-        crossFadeState: state.loading
-          ? CrossFadeState.showFirst
-          : CrossFadeState.showSecond,
-        firstChild: ServiceManagerLoading(),
-        secondChild: Stack(
-          children: [
-            Flex(
-              direction: Axis.horizontal,
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(bottom: 128),
-                    child: Column(
-                      children: [
-                        if (state.services.any((s) => s.favorite)) ...[
-                          _ServiceSection(icon: LucideIcons.star, text: "Favorites"),
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: onBack,
+          icon: const Icon(LucideIcons.arrowLeft),
+        ),
+        title: Text(title),
+        actions: actions,
+      ),
+      body: SizedBox.expand(
+        child: AnimatedCrossFade(
+          duration: const Duration(milliseconds: 300),
+          crossFadeState: state.loading
+            ? CrossFadeState.showFirst
+            : CrossFadeState.showSecond,
+          firstChild: ServiceManagerLoading(),
+          secondChild: Stack(
+            children: [
+              Flex(
+                direction: Axis.horizontal,
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.only(bottom: 128),
+                      child: Column(
+                        children: [
+                          if (state.services.any((s) => s.favorite)) ...[
+                            _ServiceSection(icon: LucideIcons.star, text: "Favorites"),
+                            ...state.services
+                                .where((s) => s.favorite)
+                                .map((service) => ServiceController(
+                                  service: service,
+                                  onStart: () => onEvent(RunCtlCommand(command: SystemctlCommand.start, service: service.title)),
+                                  onStop: () => onEvent(RunCtlCommand(command: SystemctlCommand.stop, service: service.title)),
+                                  onRestart: () => onEvent(RunCtlCommand(command: SystemctlCommand.restart, service: service.title)),
+                                  onEdit: () => _showEditServicePage(context: context, serviceName: service.title),
+                                  onTap: () => _showServiceDetails(context: context, serviceTitle: service.title),
+                                  isNarrow: isNarrow,
+                                )),
+                            ],
+
+                          if (state.services.any((s) => !s.favorite)) ...[
+                            _ServiceSection(icon: LucideIcons.monitorCog, text: "All services"),
                           ...state.services
-                              .where((s) => s.favorite)
+                              .where((s) => !s.favorite)
                               .map((service) => ServiceController(
                                 service: service,
                                 onStart: () => onEvent(RunCtlCommand(command: SystemctlCommand.start, service: service.title)),
@@ -58,57 +88,43 @@ class ServiceManagerScreen extends StatelessWidget {
                                 onTap: () => _showServiceDetails(context: context, serviceTitle: service.title),
                                 isNarrow: isNarrow,
                               )),
-                          ],
-
-                        if (state.services.any((s) => !s.favorite)) ...[
-                          _ServiceSection(icon: LucideIcons.monitorCog, text: "All services"),
-                        ...state.services
-                            .where((s) => !s.favorite)
-                            .map((service) => ServiceController(
-                              service: service,
-                              onStart: () => onEvent(RunCtlCommand(command: SystemctlCommand.start, service: service.title)),
-                              onStop: () => onEvent(RunCtlCommand(command: SystemctlCommand.stop, service: service.title)),
-                              onRestart: () => onEvent(RunCtlCommand(command: SystemctlCommand.restart, service: service.title)),
-                              onEdit: () => _showEditServicePage(context: context, serviceName: service.title),
-                              onTap: () => _showServiceDetails(context: context, serviceTitle: service.title),
-                              isNarrow: isNarrow,
-                            )),
+                          ]
                         ]
-                      ]
-                    ),
+                      ),
+                    )
                   )
-                )
-              ],
-            ),
-            if (state.error.isNotEmpty)
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-                  child: AnimatedGlobalErrorWarning(
-                    error: state.error,
-                    onClose: () => onEvent(CloseError()),
+                ],
+              ),
+              if (state.error.isNotEmpty)
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                    child: AnimatedGlobalErrorWarning(
+                      error: state.error,
+                      onClose: () => onEvent(CloseError()),
+                    ),
                   ),
                 ),
-              ),
-          ],
-        ),
-        layoutBuilder: (Widget topChild, Key topChildKey, Widget bottomChild, Key bottomChildKey) {
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned.fill(
-                key: bottomChildKey,
-                child: bottomChild,
-              ),
-              Positioned.fill(
-                key: topChildKey,
-                child: topChild,
-              ),
             ],
-          );
-        },
-      )
+          ),
+          layoutBuilder: (Widget topChild, Key topChildKey, Widget bottomChild, Key bottomChildKey) {
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned.fill(
+                  key: bottomChildKey,
+                  child: bottomChild,
+                ),
+                Positioned.fill(
+                  key: topChildKey,
+                  child: topChild,
+                ),
+              ],
+            );
+          },
+        )
+      ),
     );
   }
 

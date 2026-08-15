@@ -15,6 +15,9 @@ class DownloadTrackerScreen extends StatefulWidget {
   final DownloadTrackerState state;
   final Function(DownloadTrackerEvent event) onEvent;
   final Stream<DownloadTrackerUiEvent> uiEvent;
+  final String title;
+  final VoidCallback onBack;
+  final List<Widget> actions;
 
   const DownloadTrackerScreen({
     super.key,
@@ -23,6 +26,9 @@ class DownloadTrackerScreen extends StatefulWidget {
     required this.state,
     required this.onEvent,
     required this.uiEvent,
+    required this.title,
+    required this.onBack,
+    required this.actions,
   });
 
   @override
@@ -70,11 +76,11 @@ class _DownloadTrackerScreenState extends State<DownloadTrackerScreen> {
   void _openRemoteFileLocation(String folderPath) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(
-            title: const Text('File explorer'),
-          ),
-          body: FileExplorerProvider(initialPath: folderPath),
+        builder: (context) => FileExplorerProvider(
+          initialPath: folderPath,
+          title: 'File explorer',
+          onBack: () => Navigator.of(context).pop(),
+          actions: widget.actions,
         ),
       ),
     );
@@ -82,20 +88,28 @@ class _DownloadTrackerScreenState extends State<DownloadTrackerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isVertical = widget.navigationType == NavigationType.vertical;
+
     return Scaffold(
-      appBar: (widget.navigationType == NavigationType.vertical)
-        ? AppBar(
-          title: const Text('Downloads'),
-          automaticallyImplyLeading: false,
-          actions: [
-            IconButton(
-              onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(LucideIcons.x),
-              tooltip: "Close",
-            )
-          ],
-        )
-        : null,
+      appBar: AppBar(
+        leading: isVertical
+            ? null
+            : IconButton(
+                onPressed: widget.onBack,
+                icon: const Icon(LucideIcons.arrowLeft),
+              ),
+        title: Text(isVertical ? 'Downloads' : widget.title),
+        automaticallyImplyLeading: !isVertical,
+        actions: isVertical
+            ? [
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(LucideIcons.x),
+                  tooltip: "Close",
+                )
+              ]
+            : widget.actions,
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(

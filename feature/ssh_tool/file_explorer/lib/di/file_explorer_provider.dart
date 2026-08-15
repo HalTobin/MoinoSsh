@@ -24,10 +24,16 @@ import '../use_case/file_explorer_use_cases.dart';
 
 class FileExplorerProvider extends StatelessWidget {
   final String? initialPath;
+  final String title;
+  final VoidCallback onBack;
+  final List<Widget> actions;
 
   const FileExplorerProvider({
     super.key,
     this.initialPath,
+    required this.title,
+    required this.onBack,
+    required this.actions,
   });
 
   @override
@@ -138,6 +144,9 @@ class FileExplorerProvider extends StatelessWidget {
                 onEvent: viewmodel.onEvent,
                 uiEvent: viewmodel.uiEvent,
                 isNarrow: ScreenFormatHelper.isNarrow(constraints),
+                title: title,
+                onBack: onBack,
+                actions: actions,
               );
             }
           );

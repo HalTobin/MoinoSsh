@@ -15,11 +15,17 @@ import 'package:ui/component/global_error_warning.dart';
 class SshKeyManagerScreen extends StatelessWidget {
   final SshKeyManagerState state;
   final Function(SshKeyManagerEvent) onEvent;
+  final String title;
+  final VoidCallback onBack;
+  final List<Widget> actions;
 
   const SshKeyManagerScreen({
     super.key,
     required this.state,
     required this.onEvent,
+    required this.title,
+    required this.onBack,
+    required this.actions,
   });
 
   @override
@@ -29,6 +35,27 @@ class SshKeyManagerScreen extends StatelessWidget {
     final hasPendingRemoteChanges = state.hasPendingRemoteChanges;
 
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: onBack,
+          icon: const Icon(LucideIcons.arrowLeft),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title),
+            if (state.authorizedKeysPath != null)
+              Text(
+                state.authorizedKeysPath!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontFamily: 'monospace',
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+          ],
+        ),
+        actions: actions,
+      ),
       // Nothing can be staged while a write is in flight or while there is no
       // snapshot to apply against.
       floatingActionButton: (state.applying || state.loadFailed)
@@ -83,30 +110,12 @@ class SshKeyManagerScreen extends StatelessWidget {
                     error: state.error,
                     onRetry: () => onEvent(ReloadRemoteKeys()),
                   )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (state.authorizedKeysPath != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            state.authorizedKeysPath!,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontFamily: 'monospace',
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      Expanded(
-                        child: RemoteKeysSection(
-                          remoteKeys: state.remoteKeys,
-                          stagedKeys: state.stagedKeys,
-                          onToggleDeletion: (id) => onEvent(
-                            ToggleRemoteKeyDeletion(id: id),
-                          ),
-                        ),
-                      ),
-                    ],
+                : RemoteKeysSection(
+                    remoteKeys: state.remoteKeys,
+                    stagedKeys: state.stagedKeys,
+                    onToggleDeletion: (id) => onEvent(
+                      ToggleRemoteKeyDeletion(id: id),
+                    ),
                   ),
           ),
           if (showRemoteLoadingOverlay)

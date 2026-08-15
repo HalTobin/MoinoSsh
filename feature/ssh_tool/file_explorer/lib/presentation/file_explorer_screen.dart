@@ -31,13 +31,19 @@ class FileExplorerScreen extends StatefulWidget {
   final bool isNarrow;
   final Function(FileExplorerEvent event) onEvent;
   final Stream<FileExplorerUiEvent> uiEvent;
+  final String title;
+  final VoidCallback onBack;
+  final List<Widget> actions;
 
   const FileExplorerScreen({
     super.key,
     required this.state,
     required this.isNarrow,
     required this.onEvent,
-    required this.uiEvent
+    required this.uiEvent,
+    required this.title,
+    required this.onBack,
+    required this.actions,
   });
 
   @override
@@ -74,6 +80,14 @@ class FileExplorerScreenState extends State<FileExplorerScreen> {
         }
       },
       child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            onPressed: widget.onBack,
+            icon: const Icon(LucideIcons.arrowLeft),
+          ),
+          title: Text(widget.title),
+          actions: widget.actions,
+        ),
         floatingActionButton: FileFab(
           onAction: (action) => _handleFabAction(context, action),
         ),

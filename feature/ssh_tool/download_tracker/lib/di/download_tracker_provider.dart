@@ -12,10 +12,16 @@ import '../use_case/watch_download_items_use_case.dart';
 
 class DownloadTrackerProvider extends StatelessWidget {
   final NavigationType navigationType;
+  final String title;
+  final VoidCallback onBack;
+  final List<Widget> actions;
 
   const DownloadTrackerProvider({
     super.key,
-    required this.navigationType
+    required this.navigationType,
+    required this.title,
+    required this.onBack,
+    required this.actions,
   });
 
   @override
@@ -48,6 +54,9 @@ class DownloadTrackerProvider extends StatelessWidget {
                 onEvent: viewmodel.onEvent,
                 uiEvent: viewmodel.uiEvent,
                 isNarrow: ScreenFormatHelper.isNarrow(constraints),
+                title: title,
+                onBack: onBack,
+                actions: actions,
               );
             }
           );

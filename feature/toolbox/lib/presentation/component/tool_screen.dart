@@ -23,24 +23,32 @@ class ToolScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: onExit,
-          icon: const Icon(LucideIcons.arrowLeft)
-        ),
-        title: Text(tool.title),
-        actions: _buildDownloadAction(context),
+    final title = tool.title;
+    final actions = _buildDownloadAction(context);
+
+    return switch (tool) {
+      SshTool.systemd => ServiceManagerProvider(
+        title: title,
+        onBack: onExit,
+        actions: actions,
       ),
-      body: switch (tool) {
-        SshTool.systemd => const ServiceManagerProvider(),
-        SshTool.fileExplorer => const FileExplorerProvider(),
-        SshTool.downloadTracker => const DownloadTrackerProvider(
-          navigationType: NavigationType.horizontal,
-        ),
-        SshTool.sshKeyManager => const SshKeyManagerProvider(),
-      }
-    );
+      SshTool.fileExplorer => FileExplorerProvider(
+        title: title,
+        onBack: onExit,
+        actions: actions,
+      ),
+      SshTool.downloadTracker => DownloadTrackerProvider(
+        navigationType: NavigationType.horizontal,
+        title: title,
+        onBack: onExit,
+        actions: actions,
+      ),
+      SshTool.sshKeyManager => SshKeyManagerProvider(
+        title: title,
+        onBack: onExit,
+        actions: actions,
+      ),
+    };
   }
 
   List<Widget> _buildDownloadAction(BuildContext context) {
@@ -78,8 +86,11 @@ class ToolScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   fullscreenDialog: true,
-                  builder: (context) => const DownloadTrackerProvider(
+                  builder: (context) => DownloadTrackerProvider(
                     navigationType: NavigationType.vertical,
+                    title: 'Downloads',
+                    onBack: () => Navigator.of(context).pop(),
+                    actions: const [],
                   ),
                 ),
               );

@@ -9,7 +9,16 @@ import '../use_case/resolve_authorized_keys_path_use_case.dart';
 import '../use_case/ssh_key_manager_use_cases.dart';
 
 class SshKeyManagerProvider extends StatelessWidget {
-  const SshKeyManagerProvider({super.key});
+  final String title;
+  final VoidCallback onBack;
+  final List<Widget> actions;
+
+  const SshKeyManagerProvider({
+    super.key,
+    required this.title,
+    required this.onBack,
+    required this.actions,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +48,9 @@ class SshKeyManagerProvider extends StatelessWidget {
           return SshKeyManagerScreen(
             state: viewModel.state,
             onEvent: viewModel.onEvent,
+            title: title,
+            onBack: onBack,
+            actions: actions,
           );
         },
       ),

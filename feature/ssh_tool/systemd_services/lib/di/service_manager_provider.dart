@@ -9,7 +9,16 @@ import '../use_case/service_manager_use_cases.dart';
 import '../use_case/service_watcher_use_case.dart';
 
 class ServiceManagerProvider extends StatelessWidget {
-  const ServiceManagerProvider({super.key});
+  final String title;
+  final VoidCallback onBack;
+  final List<Widget> actions;
+
+  const ServiceManagerProvider({
+    super.key,
+    required this.title,
+    required this.onBack,
+    required this.actions,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +51,9 @@ class ServiceManagerProvider extends StatelessWidget {
                 state: viewmodel.state,
                 onEvent: viewmodel.onEvent,
                 isNarrow: ScreenFormatHelper.isNarrow(constraints),
+                title: title,
+                onBack: onBack,
+                actions: actions,
               );
             }
           );
