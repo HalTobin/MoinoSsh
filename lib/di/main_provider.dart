@@ -23,7 +23,11 @@ class MainProvider extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider(create: (context) => (ListenSshConnectUseCase(sshClientService: context.read()))),
-        Provider(create: (context) => (SshLogOutUseCase(sshClientService: context.read(), sftpService: context.read()))),
+        Provider(create: (context) => (SshLogOutUseCase(
+          sshClientService: context.read(),
+          sftpService: context.read(),
+          sshService: context.read(),
+        ))),
         Provider(create: (context) => (GetCurrentSshProfileUseCase(sshClientService: context.read()))),
         Provider(create: (context) => (SetOnPasswordRequestUseCase(sshClientService: context.read()))),
         Provider(

@@ -1,8 +1,9 @@
 sealed class SshKeyManagerEvent {}
 
 class ToggleRemoteKeyDeletion extends SshKeyManagerEvent {
-    final String line;
-    ToggleRemoteKeyDeletion({required this.line});
+    /// Line id, so two identical key lines can be toggled independently.
+    final int id;
+    ToggleRemoteKeyDeletion({required this.id});
 }
 
 class StagePublicKey extends SshKeyManagerEvent {

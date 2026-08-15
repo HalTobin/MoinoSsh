@@ -18,7 +18,9 @@ abstract interface class SftpService {
 
     Future<bool> delete(String path);
 
-    Future<bool> createDirectory(String path);
+    /// Creates [path]. [mode] are POSIX permission bits; when omitted the remote
+    /// applies its own default, which may be more permissive than intended.
+    Future<bool> createDirectory(String path, {int? mode});
 
     Future<bool> createFile(String path);
 

@@ -224,14 +224,19 @@ class SftpServiceImpl implements SftpService {
     }
 
     @override
-    Future<bool> createDirectory(String path) async {
+    Future<bool> createDirectory(String path, {int? mode}) async {
         try {
             final sftp = await getSftpClient();
             if (sftp == null) {
                 if (kDebugMode) print("Cannot create directory: SFTP client is null");
                 return false;
             }
-            await sftp.mkdir(path);
+            await sftp.mkdir(
+                path,
+                mode == null
+                    ? null
+                    : SftpFileAttrs(mode: SftpFileMode.value(mode & _permissionMask)),
+            );
             return true;
         } catch (e) {
             if (kDebugMode) print("Couldn't create directory: $path: $e");
@@ -454,43 +459,16 @@ class SftpServiceImpl implements SftpService {
 
     @override
     Future<TextFile?> readFileAsString(String filePath) async {
-        final sftp = await getSftpClient();
-
-        if (sftp == null) {
-            if (kDebugMode) {
-                print("[$tag] SFTP client is null");
-            }
-        }
-
-        final file = await sftp?.open(filePath);
-
-        if (file == null) {
-            if (kDebugMode) {
-                print("[$tag] File at $filePath is null");
-            }
-            return null;
-        }
-
-        try {
-            final List<int> bytes = [];
-            await for (final chunk in file.read()) {
-                bytes.addAll(chunk);
-            }
-            final name = filePath.split("/").last;
-            final content = utf8.decode(bytes);
-
-            final sftpFile = await sftp?.stat(filePath);
-            final isEditable = sftpFile?.mode?.userWrite ?? false;
-
-            return TextFile(name: name, isEditable: isEditable, content: content);
-        } catch (e) {
-            if (kDebugMode) {
-                print("[$tag] Error reading file at $filePath: $e");
-            }
-            rethrow;
-        } finally {
-            await file.close();
-        }
+        final result = await readTextFileIfExists(filePath);
+        return switch (result) {
+            ResponseSucceed(data: final file) => file,
+            ResponseFailed(error: final error) => () {
+                if (kDebugMode) {
+                    print("[$tag] $error");
+                }
+                return null;
+            }(),
+        };
     }
 
     @override

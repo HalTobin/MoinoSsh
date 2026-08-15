@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:ui/component/empty_list.dart';
+import 'package:util/ssh/public_key_line.dart';
 
-import '../../model/authorized_key_entry.dart';
+import '../../model/authorized_keys_file.dart';
 
 class RemoteKeysSection extends StatelessWidget {
   final List<AuthorizedKeyEntry> remoteKeys;
-  final List<String> stagedPublicKeyLines;
-  final Function(String line) onToggleDeletion;
+  final List<SshPublicKeyLine> stagedKeys;
+  final Function(int id) onToggleDeletion;
 
   const RemoteKeysSection({
     super.key,
     required this.remoteKeys,
-    required this.stagedPublicKeyLines,
+    required this.stagedKeys,
     required this.onToggleDeletion,
   });
 
   @override
   Widget build(BuildContext context) {
-    final hasEntries = remoteKeys.isNotEmpty || stagedPublicKeyLines.isNotEmpty;
+    final hasEntries = remoteKeys.isNotEmpty || stagedKeys.isNotEmpty;
 
     if (!hasEntries) {
       return const EmptyList(
@@ -29,24 +30,26 @@ class RemoteKeysSection extends StatelessWidget {
 
     return ListView.separated(
       padding: const EdgeInsets.only(top: 8, bottom: 88),
-      itemCount: remoteKeys.length + stagedPublicKeyLines.length,
+      itemCount: remoteKeys.length + stagedKeys.length,
       separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) {
         if (index < remoteKeys.length) {
           final entry = remoteKeys[index];
           return _RemoteKeyItem(
-            title: entry.comment ?? _shortKey(entry.line),
-            subtitle: entry.line,
+            title: entry.comment ?? entry.algorithmLabel,
+            algorithmLabel: entry.algorithmLabel,
+            fingerprint: entry.fingerprint,
             markedForDeletion: entry.markedForDeletion,
             isPendingAddition: false,
-            onToggleDeletion: () => onToggleDeletion(entry.line),
+            onToggleDeletion: () => onToggleDeletion(entry.id),
           );
         }
 
-        final stagedLine = stagedPublicKeyLines[index - remoteKeys.length];
+        final staged = stagedKeys[index - remoteKeys.length];
         return _RemoteKeyItem(
-          title: _shortKey(stagedLine),
-          subtitle: stagedLine,
+          title: staged.comment ?? staged.algorithmLabel,
+          algorithmLabel: staged.algorithmLabel,
+          fingerprint: staged.fingerprint,
           markedForDeletion: false,
           isPendingAddition: true,
           onToggleDeletion: null,
@@ -54,26 +57,20 @@ class RemoteKeysSection extends StatelessWidget {
       },
     );
   }
-
-  static String _shortKey(String line) {
-    final parts = line.split(RegExp(r'\s+'));
-    if (parts.length >= 2) {
-      return parts.length > 2 ? parts.sublist(2).join(' ') : parts.first;
-    }
-    return line;
-  }
 }
 
 class _RemoteKeyItem extends StatelessWidget {
   final String title;
-  final String subtitle;
+  final String algorithmLabel;
+  final String fingerprint;
   final bool markedForDeletion;
   final bool isPendingAddition;
   final Function()? onToggleDeletion;
 
   const _RemoteKeyItem({
     required this.title,
-    required this.subtitle,
+    required this.algorithmLabel,
+    required this.fingerprint,
     required this.markedForDeletion,
     required this.isPendingAddition,
     required this.onToggleDeletion,
@@ -82,6 +79,8 @@ class _RemoteKeyItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final strikeThrough = markedForDeletion ? TextDecoration.lineThrough : null;
+    final color = markedForDeletion ? colorScheme.error : null;
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
@@ -95,20 +94,32 @@ class _RemoteKeyItem extends StatelessWidget {
       ),
       title: Text(
         title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          decoration: markedForDeletion ? TextDecoration.lineThrough : null,
-          color: markedForDeletion ? colorScheme.error : null,
+          decoration: strikeThrough,
+          color: color,
           fontWeight: FontWeight.w600,
         ),
       ),
-      subtitle: Text(
-        subtitle,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          decoration: markedForDeletion ? TextDecoration.lineThrough : null,
-          color: markedForDeletion ? colorScheme.error : null,
-        ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            algorithmLabel,
+            style: TextStyle(decoration: strikeThrough, color: color),
+          ),
+          Text(
+            fingerprint,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontFamily: 'monospace',
+              decoration: strikeThrough,
+              color: color ?? colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
       trailing: isPendingAddition
           ? const Chip(label: Text('Pending'))

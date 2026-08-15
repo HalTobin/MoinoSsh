@@ -23,7 +23,47 @@ class SshServiceImpl implements SshService {
         return _instance!;
     }
 
-    String? _password = null;
+    String? _password;
+
+    /// Which connection the cached password was accepted for. A password is only
+    /// ever reused on the exact profile that accepted it, so switching servers
+    /// can never send it somewhere else.
+    String? _passwordProfileKey;
+
+    String? get _currentProfileKey {
+        final profile = _sshClientService.getProfile();
+        if (profile == null) {
+            return null;
+        }
+        return '${profile.user}@${profile.url}:${profile.port}';
+    }
+
+    String? get _cachedPassword {
+        final profileKey = _currentProfileKey;
+        if (_password == null) {
+            return null;
+        }
+        if (profileKey == null || profileKey != _passwordProfileKey) {
+            clearCachedCredentials();
+            return null;
+        }
+        return _password;
+    }
+
+    void _cachePassword(String password) {
+        final profileKey = _currentProfileKey;
+        if (profileKey == null) {
+            return;
+        }
+        _password = password;
+        _passwordProfileKey = profileKey;
+    }
+
+    @override
+    void clearCachedCredentials() {
+        _password = null;
+        _passwordProfileKey = null;
+    }
 
     @override
     Future<ResponseResult<bool>> systemCtlCommand({
@@ -63,7 +103,8 @@ class SshServiceImpl implements SshService {
                             return ResponseFailed(error: "Password request callback not defined");
                         }
 
-                        if (_password == null) {
+                        final cached = _cachedPassword;
+                        if (cached == null) {
                             final passwordRequestResponse = await _sshClientService.onPasswordRequest!();
                             if (passwordRequestResponse == null) {
                                 return ResponseFailed(error: "Password is null");
@@ -71,7 +112,7 @@ class SshServiceImpl implements SshService {
                             return await _runSudoCommand(passwordRequestResponse.password, fullCommand, passwordRequestResponse.remember);
                         }
                         else {
-                            return await _runSudoCommand(_password!, fullCommand, true);
+                            return await _runSudoCommand(cached, fullCommand, true);
                         }
                     } catch (error) {
                         return ResponseFailed(error: error.toString());
@@ -102,7 +143,7 @@ class SshServiceImpl implements SshService {
             utf8.encode('$cleanPassword\n'),
         );
         if (result is ResponseSucceed && remember) {
-            _password = cleanPassword;
+            _cachePassword(cleanPassword);
         }
         return result;
     }
@@ -149,8 +190,9 @@ class SshServiceImpl implements SshService {
     }
 
     Future<ResponseResult<_SudoAuth>> _resolveSudoAuth() async {
-        if (_password != null) {
-            return ResponseSucceed(_SudoAuth(password: _password, remember: true));
+        final cached = _cachedPassword;
+        if (cached != null) {
+            return ResponseSucceed(_SudoAuth(password: cached, remember: true));
         }
 
         final passwordless = await _runCommandWithStdin('sudo -n true', const []);
@@ -180,17 +222,78 @@ class SshServiceImpl implements SshService {
         return "'${value.replaceAll("'", r"'\''")}'";
     }
 
+    /// Moves the staged file into place as root.
+    ///
+    /// An existing file keeps the owner, group and mode it already had: those are
+    /// the administrator's choice, and a root owned `authorized_keys` is a
+    /// deliberate hardening step that must survive an edit. Only a file this
+    /// created gets `0600` and the login user as owner.
     String _privilegedInstallCommand({
         required String directory,
-        required String tempPath,
+        required String stagingPath,
         required String filePath,
         required String? owner,
     }) {
+        const script = r'''
+set -e
+directory=$1
+staging=$2
+target=$3
+owner=$4
+if [ ! -d "$directory" ]; then
+    mkdir -p "$directory"
+    chmod 700 "$directory"
+    [ -z "$owner" ] || chown "$owner" "$directory"
+fi
+if [ -e "$target" ]; then
+    mode=$(stat -c %a "$target" 2>/dev/null || stat -f %Lp "$target")
+    ownership=$(stat -c %U:%G "$target" 2>/dev/null || stat -f %Su:%Sg "$target")
+    mv "$staging" "$target"
+    chmod "$mode" "$target"
+    chown "$ownership" "$target"
+else
+    mv "$staging" "$target"
+    chmod 600 "$target"
+    [ -z "$owner" ] || chown "$owner" "$target"
+fi
+''';
+
         final ownerArg = (owner == null || owner.isEmpty)
             ? "''"
             : _quoteShellArg(owner);
-        return 'sh -c \'mkdir -p "\$1" && mv "\$2" "\$3" && chmod 700 "\$1" && chmod 600 "\$3" && { [ -z "\$4" ] || chown "\$4" "\$1" "\$3"; }\' '
-            'sh ${_quoteShellArg(directory)} ${_quoteShellArg(tempPath)} ${_quoteShellArg(filePath)} $ownerArg';
+        return 'sh -c ${_quoteShellArg(script)} sh '
+            '${_quoteShellArg(directory)} ${_quoteShellArg(stagingPath)} '
+            '${_quoteShellArg(filePath)} $ownerArg';
+    }
+
+    /// Creates an empty file for staging, letting `mktemp` pick the name so it
+    /// cannot be guessed or pre-created as a symlink by another local user.
+    /// Preferred location is the target directory, where the final move is a
+    /// rename on the same filesystem rather than a copy.
+    Future<ResponseResult<String>> _createStagingFile(String directory) async {
+        final template = _quoteShellArg(
+            p.posix.join(directory, '.moino-staging-XXXXXX'),
+        );
+        // The explicit template works the same on GNU and BSD mktemp, unlike -t.
+        final result = await executeCommand(
+            'umask 077; mktemp $template 2>/dev/null '
+            r'|| mktemp "${TMPDIR:-/tmp}/moino-staging-XXXXXX"',
+        );
+
+        switch (result) {
+            case ResponseFailed(error: final error):
+                return ResponseFailed(error: 'Could not create a staging file: $error');
+            case ResponseSucceed(data: final path):
+                final stagingPath = path.trim();
+                if (stagingPath.isEmpty ||
+                    !p.posix.isAbsolute(stagingPath) ||
+                    stagingPath.contains(RegExp(r'\s'))) {
+                    return ResponseFailed(
+                        error: 'Could not create a staging file on the remote',
+                    );
+                }
+                return ResponseSucceed(stagingPath);
+        }
     }
 
     @override
@@ -200,25 +303,35 @@ class SshServiceImpl implements SshService {
     }) async {
         final directory = p.posix.dirname(filePath);
         final owner = _sshClientService.getProfile()?.user;
-        final tempPath = '/tmp/moino-ak-${DateTime.now().microsecondsSinceEpoch}';
         final contentBytes = utf8.encode(content);
+
+        final stagingResult = await _createStagingFile(directory);
+        final String stagingPath;
+        switch (stagingResult) {
+            case ResponseFailed(error: final error):
+                return ResponseFailed(error: error);
+            case ResponseSucceed(data: final path):
+                stagingPath = path;
+        }
+
         final installCommand = _privilegedInstallCommand(
             directory: directory,
-            tempPath: tempPath,
+            stagingPath: stagingPath,
             filePath: filePath,
             owner: owner,
         );
 
         try {
             if (kDebugMode) {
-                print('Staging ${contentBytes.length} bytes at $tempPath');
+                print('Staging ${contentBytes.length} bytes at $stagingPath');
             }
 
             final staged = await _runCommandWithStdin(
-                'umask 077; cat > ${_quoteShellArg(tempPath)}',
+                'cat > ${_quoteShellArg(stagingPath)}',
                 contentBytes,
             );
             if (staged is ResponseFailed) {
+                await _runCommandWithStdin('rm -f ${_quoteShellArg(stagingPath)}', const []);
                 return staged;
             }
 
@@ -241,11 +354,11 @@ class SshServiceImpl implements SshService {
             }
 
             if (installed is ResponseFailed) {
-                await _runCommandWithStdin('rm -f ${_quoteShellArg(tempPath)}', const []);
+                await _runCommandWithStdin('rm -f ${_quoteShellArg(stagingPath)}', const []);
             }
             return installed;
         } catch (error) {
-            await _runCommandWithStdin('rm -f ${_quoteShellArg(tempPath)}', const []);
+            await _runCommandWithStdin('rm -f ${_quoteShellArg(stagingPath)}', const []);
             return ResponseFailed(error: error.toString());
         }
     }
@@ -272,14 +385,14 @@ class SshServiceImpl implements SshService {
                 return ResponseFailed(error: 'session is null!');
             }
 
-            final output = <int>[];
-            await for (final data in session.stdout) {
-                output.addAll(data);
-            }
+            // Both streams have to be drained at the same time: waiting for one
+            // before reading the other stalls on commands with a lot of output.
+            final stdoutFuture = session.stdout.decodeUtf8(allowMalformed: true);
+            final stderrFuture = session.stderr.decodeUtf8(allowMalformed: true);
             await session.done;
 
-            final stdoutStr = String.fromCharCodes(output).trim();
-            final stderrStr = await session.stderr.decodeUtf8();
+            final stdoutStr = (await stdoutFuture).trim();
+            final stderrStr = await stderrFuture;
             final exitCode = session.exitCode;
 
             if (exitCode == 0) {

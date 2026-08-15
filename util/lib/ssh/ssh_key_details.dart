@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:dartssh2/dartssh2.dart';
 
+import 'public_key_line.dart';
+
 class SshKeyDetails {
     final String algorithm;
     final String algorithmLabel;
@@ -185,15 +187,11 @@ class LoadSshKeyDetails {
     }
 
     static String _readAlgorithm(Uint8List encodedHostKey) {
-        if (encodedHostKey.length < 4) {
+        final algorithm = SshPublicKeyLine.readBlobAlgorithm(encodedHostKey);
+        if (algorithm == null) {
             throw const SshKeyDetailsLoadException('Invalid public key blob');
         }
-        final length = ByteData.sublistView(encodedHostKey).getUint32(0);
-        final end = 4 + length;
-        if (length <= 0 || end > encodedHostKey.length) {
-            throw const SshKeyDetailsLoadException('Invalid public key blob');
-        }
-        return utf8.decode(encodedHostKey.sublist(4, end));
+        return algorithm;
     }
 
     static String algorithmLabel(String algorithm) {

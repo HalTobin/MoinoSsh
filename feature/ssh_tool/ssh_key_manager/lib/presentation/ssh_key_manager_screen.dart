@@ -1,3 +1,4 @@
+import 'package:feature_ssh_key_manager/presentation/component/confirm_apply_dialog.dart';
 import 'package:feature_ssh_key_manager/presentation/component/load_failure_view.dart';
 import 'package:feature_ssh_key_manager/presentation/component/paste_public_key_dialog.dart';
 import 'package:feature_ssh_key_manager/presentation/component/pending_changes_bar.dart';
@@ -28,23 +29,27 @@ class SshKeyManagerScreen extends StatelessWidget {
     final hasPendingRemoteChanges = state.hasPendingRemoteChanges;
 
     return Scaffold(
-      floatingActionButton: ExpandableFab(
-        heroTagPrefix: 'ssh_key_manager',
-        label: 'Add',
-        actions: const [
-          ExpandableFabAction(
-            id: 'from_my_keys',
-            label: 'From my keys',
-            icon: LucideIcons.folderKey,
-          ),
-          ExpandableFabAction(
-            id: 'manual',
-            label: 'Paste public key',
-            icon: LucideIcons.clipboardPaste,
-          ),
-        ],
-        onAction: (action) => _handleFabAction(context, action),
-      ),
+      // Nothing can be staged while a write is in flight or while there is no
+      // snapshot to apply against.
+      floatingActionButton: (state.applying || state.loadFailed)
+          ? null
+          : ExpandableFab(
+              heroTagPrefix: 'ssh_key_manager',
+              label: 'Add',
+              actions: const [
+                ExpandableFabAction(
+                  id: 'from_my_keys',
+                  label: 'From my keys',
+                  icon: LucideIcons.folderKey,
+                ),
+                ExpandableFabAction(
+                  id: 'manual',
+                  label: 'Paste public key',
+                  icon: LucideIcons.clipboardPaste,
+                ),
+              ],
+              onAction: (action) => _handleFabAction(context, action),
+            ),
       bottomNavigationBar: (!hasError && !hasPendingRemoteChanges)
           ? null
           : SafeArea(
@@ -62,7 +67,7 @@ class SshKeyManagerScreen extends StatelessWidget {
                       pendingChangeCount: state.pendingChangeCount,
                       applying: state.applying,
                       canApply: state.canApplyRemoteChanges,
-                      onApply: () => onEvent(ApplyRemoteChanges()),
+                      onApply: () => _confirmApply(context),
                       onDiscard: () => onEvent(DiscardRemoteChanges()),
                     ),
                 ],
@@ -78,12 +83,30 @@ class SshKeyManagerScreen extends StatelessWidget {
                     error: state.error,
                     onRetry: () => onEvent(ReloadRemoteKeys()),
                   )
-                : RemoteKeysSection(
-                    remoteKeys: state.remoteKeys,
-                    stagedPublicKeyLines: state.stagedPublicKeyLines,
-                    onToggleDeletion: (line) => onEvent(
-                      ToggleRemoteKeyDeletion(line: line),
-                    ),
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (state.authorizedKeysPath != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            state.authorizedKeysPath!,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontFamily: 'monospace',
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      Expanded(
+                        child: RemoteKeysSection(
+                          remoteKeys: state.remoteKeys,
+                          stagedKeys: state.stagedKeys,
+                          onToggleDeletion: (id) => onEvent(
+                            ToggleRemoteKeyDeletion(id: id),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
           ),
           if (showRemoteLoadingOverlay)
@@ -121,6 +144,25 @@ class SshKeyManagerScreen extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+
+  void _confirmApply(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return ConfirmApplyDialog(
+          additions: state.stagedKeys,
+          removals: state.keysMarkedForDeletion,
+          wouldRemoveEveryKey: state.wouldRemoveEveryKey,
+          authorizedKeysPath: state.authorizedKeysPath ?? '',
+          onDismiss: () => Navigator.of(dialogContext).pop(),
+          onConfirm: () {
+            Navigator.of(dialogContext).pop();
+            onEvent(ApplyRemoteChanges());
+          },
+        );
+      },
     );
   }
 

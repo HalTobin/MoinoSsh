@@ -19,4 +19,8 @@ abstract interface class SshService {
         required String content,
     });
 
+    /// Forgets any sudo password held for the current session. Call this when
+    /// disconnecting so it cannot be reused on another server.
+    void clearCachedCredentials();
+
 }
