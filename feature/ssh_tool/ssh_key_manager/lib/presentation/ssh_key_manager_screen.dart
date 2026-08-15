@@ -1,3 +1,4 @@
+import 'package:feature_ssh_key_manager/presentation/component/load_failure_view.dart';
 import 'package:feature_ssh_key_manager/presentation/component/paste_public_key_dialog.dart';
 import 'package:feature_ssh_key_manager/presentation/component/pending_changes_bar.dart';
 import 'package:feature_ssh_key_manager/presentation/component/remote_keys_section.dart';
@@ -60,6 +61,7 @@ class SshKeyManagerScreen extends StatelessWidget {
                     PendingChangesBar(
                       pendingChangeCount: state.pendingChangeCount,
                       applying: state.applying,
+                      canApply: state.canApplyRemoteChanges,
                       onApply: () => onEvent(ApplyRemoteChanges()),
                       onDiscard: () => onEvent(DiscardRemoteChanges()),
                     ),
@@ -71,13 +73,18 @@ class SshKeyManagerScreen extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: RemoteKeysSection(
-              remoteKeys: state.remoteKeys,
-              stagedPublicKeyLines: state.stagedPublicKeyLines,
-              onToggleDeletion: (line) => onEvent(
-                ToggleRemoteKeyDeletion(line: line),
-              ),
-            ),
+            child: state.loadFailed
+                ? LoadFailureView(
+                    error: state.error,
+                    onRetry: () => onEvent(ReloadRemoteKeys()),
+                  )
+                : RemoteKeysSection(
+                    remoteKeys: state.remoteKeys,
+                    stagedPublicKeyLines: state.stagedPublicKeyLines,
+                    onToggleDeletion: (line) => onEvent(
+                      ToggleRemoteKeyDeletion(line: line),
+                    ),
+                  ),
           ),
           if (showRemoteLoadingOverlay)
             Positioned.fill(

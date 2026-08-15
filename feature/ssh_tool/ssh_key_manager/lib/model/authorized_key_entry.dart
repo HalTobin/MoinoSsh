@@ -24,8 +24,13 @@ class RemoteAuthorizedKeysSnapshot {
     final String authorizedKeysPath;
     final List<AuthorizedKeyEntry> entries;
 
+    /// False only when the remote confirmed the file is absent. An unreadable
+    /// file never produces a snapshot, so empty [entries] always means empty.
+    final bool fileExists;
+
     const RemoteAuthorizedKeysSnapshot({
         required this.authorizedKeysPath,
         required this.entries,
+        required this.fileExists,
     });
 }

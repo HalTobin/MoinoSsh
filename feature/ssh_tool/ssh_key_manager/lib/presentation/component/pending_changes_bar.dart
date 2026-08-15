@@ -5,6 +5,7 @@ import 'package:ui/component/app_button.dart';
 class PendingChangesBar extends StatelessWidget {
   final int pendingChangeCount;
   final bool applying;
+  final bool canApply;
   final Function() onApply;
   final Function() onDiscard;
 
@@ -14,6 +15,7 @@ class PendingChangesBar extends StatelessWidget {
     super.key,
     required this.pendingChangeCount,
     required this.applying,
+    required this.canApply,
     required this.onApply,
     required this.onDiscard,
   });
@@ -67,7 +69,7 @@ class PendingChangesBar extends StatelessWidget {
                       onClick: onApply,
                       icon: LucideIcons.check,
                       text: applying ? 'Applying...' : 'Apply',
-                      enabled: !applying,
+                      enabled: canApply && !applying,
                       stretch: true,
                     ),
                   ),

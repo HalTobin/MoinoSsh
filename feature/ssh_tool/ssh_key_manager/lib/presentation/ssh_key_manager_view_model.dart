@@ -39,22 +39,38 @@ class SshKeyManagerViewModel extends ChangeNotifier {
     }
 
     Future<void> _loadRemoteKeys() async {
+        if (_state.remoteLoading) {
+            return;
+        }
+
         _state = _state.copyWith(remoteLoading: true, error: '');
         notifyListeners();
 
-        final result = await _useCases.getRemoteAuthorizedKeysUseCase.execute();
-        switch (result) {
-            case ResponseSucceed():
-                _state = _state.copyWith(
-                    remoteLoading: false,
-                    authorizedKeysPath: result.data.authorizedKeysPath,
-                    remoteKeys: result.data.entries,
-                );
-            case ResponseFailed():
-                _state = _state.copyWith(
-                    remoteLoading: false,
-                    error: result.error,
-                );
+        try {
+            final result = await _useCases.getRemoteAuthorizedKeysUseCase.execute();
+            switch (result) {
+                case ResponseSucceed():
+                    _state = _state.copyWith(
+                        remoteLoading: false,
+                        authorizedKeysPath: result.data.authorizedKeysPath,
+                        remoteKeys: result.data.entries,
+                        snapshotLoaded: true,
+                    );
+                case ResponseFailed():
+                    _state = _state.copyWith(
+                        remoteLoading: false,
+                        error: result.error,
+                        remoteKeys: const [],
+                        snapshotLoaded: false,
+                    );
+            }
+        } catch (error) {
+            _state = _state.copyWith(
+                remoteLoading: false,
+                error: 'Could not load remote keys: $error',
+                remoteKeys: const [],
+                snapshotLoaded: false,
+            );
         }
         notifyListeners();
     }
@@ -97,8 +113,10 @@ class SshKeyManagerViewModel extends ChangeNotifier {
         }
 
         final path = _state.authorizedKeysPath;
-        if (path == null) {
-            _state = _state.copyWith(error: 'Remote authorized_keys path is unavailable');
+        if (!_state.canApplyRemoteChanges || path == null) {
+            _state = _state.copyWith(
+                error: 'Reload the remote keys before applying changes',
+            );
             notifyListeners();
             return;
         }
@@ -106,11 +124,21 @@ class SshKeyManagerViewModel extends ChangeNotifier {
         _state = _state.copyWith(applying: true, error: '');
         notifyListeners();
 
-        final result = await _useCases.applyRemoteAuthorizedKeysUseCase.execute(
-            authorizedKeysPath: path,
-            currentEntries: _state.remoteKeys,
-            stagedPublicKeyLines: _state.stagedPublicKeyLines,
-        );
+        final ResponseResult<bool> result;
+        try {
+            result = await _useCases.applyRemoteAuthorizedKeysUseCase.execute(
+                authorizedKeysPath: path,
+                currentEntries: _state.remoteKeys,
+                stagedPublicKeyLines: _state.stagedPublicKeyLines,
+            );
+        } catch (error) {
+            _state = _state.copyWith(
+                applying: false,
+                error: 'Could not update remote authorized_keys: $error',
+            );
+            notifyListeners();
+            return;
+        }
 
         switch (result) {
             case ResponseFailed(:final error):

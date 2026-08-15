@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:data/service/ssh_client_service_impl.dart';
 import 'package:domain/model/image_file.dart';
+import 'package:domain/model/response_result.dart';
 import 'package:domain/model/sftp/download_item.dart';
 import 'package:domain/model/sftp/remote_file_item.dart';
 import 'package:domain/model/text_file.dart';
@@ -25,20 +26,45 @@ class SftpServiceImpl implements SftpService {
     }
 
     SftpClient? _sftpClient;
+    SSHClient? _sftpClientOwner;
+    Future<SftpClient?>? _pendingSftpClient;
 
     Future<SftpClient?> getSftpClient() async {
-        if (_sftpClient != null) {
-            return _sftpClient;
-        }
         final sshClient = _sshClientService.getClient();
-        if (sshClient != null) {
-            _sftpClient = await sshClient.sftp();
-            return _sftpClient;
-        }
-        else {
-            if (kDebugMode) print("[$tag] Cannot get SFTP client: SSHClient is null");
+        if (sshClient == null || sshClient.isClosed) {
+            if (kDebugMode) print("[$tag] Cannot get SFTP client: SSHClient is unavailable");
+            _discardCachedClient();
             return null;
         }
+
+        // A cached SFTP session belongs to the SSH connection that opened it.
+        // Reusing it after a reconnect yields a dead session whose failures look
+        // like missing files to callers.
+        if (_sftpClient != null && identical(_sftpClientOwner, sshClient)) {
+            return _sftpClient;
+        }
+        _discardCachedClient();
+
+        return _pendingSftpClient ??= _openSftpClient(sshClient);
+    }
+
+    Future<SftpClient?> _openSftpClient(SSHClient sshClient) async {
+        try {
+            final client = await sshClient.sftp();
+            _sftpClient = client;
+            _sftpClientOwner = sshClient;
+            return client;
+        } catch (e) {
+            if (kDebugMode) print("[$tag] Could not open SFTP session: $e");
+            return null;
+        } finally {
+            _pendingSftpClient = null;
+        }
+    }
+
+    void _discardCachedClient() {
+        _sftpClient = null;
+        _sftpClientOwner = null;
     }
 
     final Map<int, StreamSubscription<dynamic>> _activeSubscriptions = {};
@@ -156,7 +182,7 @@ class SftpServiceImpl implements SftpService {
     @override
     Future<void> closeSession() async {
         _sftpClient?.close();
-        _sftpClient = null;
+        _discardCachedClient();
     }
 
     @override
@@ -468,6 +494,44 @@ class SftpServiceImpl implements SftpService {
     }
 
     @override
+    Future<ResponseResult<TextFile?>> readTextFileIfExists(String filePath) async {
+        final sftp = await getSftpClient();
+        if (sftp == null) {
+            return ResponseFailed(error: 'Not connected to the remote server');
+        }
+
+        SftpFile? file;
+        try {
+            final attrs = await sftp.stat(filePath);
+            file = await sftp.open(filePath);
+
+            final List<int> bytes = [];
+            await for (final chunk in file.read()) {
+                bytes.addAll(chunk);
+            }
+
+            return ResponseSucceed(
+                TextFile(
+                    name: p.posix.basename(filePath),
+                    isEditable: attrs.mode?.userWrite ?? false,
+                    content: utf8.decode(bytes),
+                ),
+            );
+        } on SftpStatusError catch (e) {
+            if (e.code == SftpStatusCode.noSuchFile) {
+                return ResponseSucceed(null);
+            }
+            if (kDebugMode) print("[$tag] Could not read $filePath: $e");
+            return ResponseFailed(error: 'Could not read $filePath: ${e.message}');
+        } catch (e) {
+            if (kDebugMode) print("[$tag] Could not read $filePath: $e");
+            return ResponseFailed(error: 'Could not read $filePath: $e');
+        } finally {
+            await file?.close();
+        }
+    }
+
+    @override
     Future<ImageFile?> readFileAsBytes(String filePath) async {
         final sftp = await getSftpClient();
 
@@ -534,6 +598,157 @@ class SftpServiceImpl implements SftpService {
             return false;
         }
     }
+
+    @override
+    Future<ResponseResult<bool>> writeStringFileAtomically(
+        String filePath,
+        String content,
+    ) async {
+        final sftp = await getSftpClient();
+        if (sftp == null) {
+            return ResponseFailed(error: 'Not connected to the remote server');
+        }
+
+        final bytes = Uint8List.fromList(utf8.encode(content));
+        final directory = p.posix.dirname(filePath);
+        final fileName = p.posix.basename(filePath);
+        final marker = DateTime.now().microsecondsSinceEpoch;
+        final stagingPath = p.posix.join(directory, '.$fileName.moino-$marker.new');
+        final backupPath = p.posix.join(directory, '.$fileName.moino-$marker.old');
+
+        try {
+            final currentAttrs = await _statOrNull(sftp, filePath);
+            final mode = currentAttrs?.mode;
+
+            await _stageContent(
+                sftp,
+                stagingPath: stagingPath,
+                bytes: bytes,
+                mode: mode != null ? _permissionsOf(mode) : _ownerOnlyFileMode,
+            );
+
+            final stagedSize = (await sftp.stat(stagingPath)).size;
+            if (stagedSize != null && stagedSize != bytes.length) {
+                await _removeOrIgnore(sftp, stagingPath);
+                return ResponseFailed(
+                    error: 'Upload was incomplete: $stagedSize of ${bytes.length} bytes written',
+                );
+            }
+
+            return await _swapIntoPlace(
+                sftp,
+                stagingPath: stagingPath,
+                filePath: filePath,
+                backupPath: backupPath,
+                replacesExistingFile: currentAttrs != null,
+            );
+        } catch (e) {
+            if (kDebugMode) print("[$tag] Atomic write of $filePath failed: $e");
+            await _removeOrIgnore(sftp, stagingPath);
+            return ResponseFailed(error: 'Could not write $filePath: $e');
+        }
+    }
+
+    Future<void> _stageContent(
+        SftpClient sftp, {
+        required String stagingPath,
+        required Uint8List bytes,
+        required SftpFileMode mode,
+    }) async {
+        final staged = await sftp.open(
+            stagingPath,
+            mode: SftpFileOpenMode.create |
+                SftpFileOpenMode.exclusive |
+                SftpFileOpenMode.write,
+        );
+        try {
+            await staged.writeBytes(bytes);
+        } finally {
+            await staged.close();
+        }
+        // The staged file replaces the target by name, so it has to carry the
+        // target's permissions instead of whatever the remote umask produced.
+        await sftp.setStat(stagingPath, SftpFileAttrs(mode: mode));
+    }
+
+    Future<ResponseResult<bool>> _swapIntoPlace(
+        SftpClient sftp, {
+        required String stagingPath,
+        required String filePath,
+        required String backupPath,
+        required bool replacesExistingFile,
+    }) async {
+        var hasBackup = false;
+        if (replacesExistingFile) {
+            await sftp.rename(filePath, backupPath);
+            hasBackup = true;
+        }
+
+        try {
+            await sftp.rename(stagingPath, filePath);
+        } catch (e) {
+            if (hasBackup) {
+                await _renameOrIgnore(sftp, backupPath, filePath);
+            }
+            await _removeOrIgnore(sftp, stagingPath);
+            if (kDebugMode) print("[$tag] Could not move $stagingPath to $filePath: $e");
+            return ResponseFailed(error: 'Could not replace $filePath: $e');
+        }
+
+        if (hasBackup) {
+            await _removeOrIgnore(sftp, backupPath);
+        }
+        return ResponseSucceed(true);
+    }
+
+    Future<SftpFileAttrs?> _statOrNull(SftpClient sftp, String path) async {
+        try {
+            return await sftp.stat(path);
+        } on SftpStatusError catch (e) {
+            if (e.code == SftpStatusCode.noSuchFile) {
+                return null;
+            }
+            rethrow;
+        }
+    }
+
+    Future<void> _removeOrIgnore(SftpClient sftp, String path) async {
+        try {
+            await sftp.remove(path);
+        } catch (e) {
+            if (kDebugMode) print("[$tag] Could not remove $path: $e");
+        }
+    }
+
+    Future<void> _renameOrIgnore(
+        SftpClient sftp,
+        String sourcePath,
+        String destPath,
+    ) async {
+        try {
+            await sftp.rename(sourcePath, destPath);
+        } catch (e) {
+            if (kDebugMode) print("[$tag] Could not restore $destPath from $sourcePath: $e");
+        }
+    }
+
+    static SftpFileMode _permissionsOf(SftpFileMode mode) {
+        return SftpFileMode.value(mode.value & _permissionMask);
+    }
+
+    static const int _permissionMask = 0xFFF;
+
+    static final SftpFileMode _ownerOnlyFileMode = SftpFileMode(
+        userRead: true,
+        userWrite: true,
+        userExecute: false,
+        groupRead: false,
+        groupWrite: false,
+        groupExecute: false,
+        otherRead: false,
+        otherWrite: false,
+        otherExecute: false,
+    );
 
     static const String tag = "SftpServiceImpl";
 

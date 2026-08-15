@@ -1,4 +1,5 @@
 import 'package:domain/model/image_file.dart';
+import 'package:domain/model/response_result.dart';
 import 'package:domain/model/sftp/remote_file_item.dart';
 import 'package:domain/model/text_file.dart';
 
@@ -31,8 +32,24 @@ abstract interface class SftpService {
 
     Future<TextFile?> readFileAsString(String filePath);
 
+    /// Reads [filePath] as text, telling apart "the file is not there" from
+    /// "the file could not be read".
+    ///
+    /// [ResponseSucceed] with a null payload means the remote confirmed the file
+    /// does not exist. Any other problem (no session, denied, unreadable bytes)
+    /// is a [ResponseFailed] so callers never mistake a failure for empty content.
+    Future<ResponseResult<TextFile?>> readTextFileIfExists(String filePath);
+
     Future<ImageFile?> readFileAsBytes(String filePath);
 
     Future<bool> writeStringFile(String filePath, String content);
+
+    /// Replaces [filePath] with [content] without ever exposing a partially
+    /// written file: the content is staged next to the target, verified, then
+    /// swapped in. The previous file is kept until the swap succeeds.
+    Future<ResponseResult<bool>> writeStringFileAtomically(
+        String filePath,
+        String content,
+    );
 
 }

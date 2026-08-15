@@ -10,6 +10,11 @@ class SshKeyManagerState {
     final List<AuthorizedKeyEntry> remoteKeys;
     final List<String> stagedPublicKeyLines;
 
+    /// True while [remoteKeys] reflects a file that was actually read from the
+    /// remote. Writing the file back is only safe in that case, otherwise an
+    /// unreadable file would be replaced by whatever the screen happens to show.
+    final bool snapshotLoaded;
+
     const SshKeyManagerState({
         this.remoteLoading = false,
         this.applying = false,
@@ -17,7 +22,13 @@ class SshKeyManagerState {
         this.authorizedKeysPath,
         this.remoteKeys = const [],
         this.stagedPublicKeyLines = const [],
+        this.snapshotLoaded = false,
     });
+
+    bool get canApplyRemoteChanges =>
+        snapshotLoaded && authorizedKeysPath != null && !applying && !remoteLoading;
+
+    bool get loadFailed => !snapshotLoaded && !remoteLoading;
 
     bool get hasPendingRemoteChanges =>
         remoteKeys.any((entry) => entry.markedForDeletion) ||
@@ -34,6 +45,7 @@ class SshKeyManagerState {
         Defaulted<String?>? authorizedKeysPath = const Omit(),
         Defaulted<List<AuthorizedKeyEntry>>? remoteKeys = const Omit(),
         Defaulted<List<String>>? stagedPublicKeyLines = const Omit(),
+        Defaulted<bool>? snapshotLoaded = const Omit(),
     }) {
         return SshKeyManagerState(
             remoteLoading: remoteLoading is Omit ? this.remoteLoading : remoteLoading as bool,
@@ -42,6 +54,7 @@ class SshKeyManagerState {
             authorizedKeysPath: authorizedKeysPath is Omit ? this.authorizedKeysPath : authorizedKeysPath as String?,
             remoteKeys: remoteKeys is Omit ? this.remoteKeys : remoteKeys as List<AuthorizedKeyEntry>,
             stagedPublicKeyLines: stagedPublicKeyLines is Omit ? this.stagedPublicKeyLines : stagedPublicKeyLines as List<String>,
+            snapshotLoaded: snapshotLoaded is Omit ? this.snapshotLoaded : snapshotLoaded as bool,
         );
     }
 }
