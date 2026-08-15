@@ -20,7 +20,11 @@ class FolderWarning extends StatelessWidget {
         spacing: 12,
         children: [
           Icon(icon, color: color, size: 64),
-          Text(text, style: TextStyle(color: color, fontSize: 16))
+          Text(
+            text,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: color, fontSize: 16)
+          )
         ],
       ),
     );
