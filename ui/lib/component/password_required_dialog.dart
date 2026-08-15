@@ -49,12 +49,6 @@ class _PasswordRequiredDialogState extends State<PasswordRequiredDialog> {
           decoration: InputDecoration(
             labelText: 'Password',
             border: const OutlineInputBorder(),
-            prefixIcon: (widget.onBiometricsRequest != null)
-              ? IconButton(
-                onPressed: widget.onBiometricsRequest,
-                icon: const Icon(LucideIcons.fingerprintPattern)
-              )
-              : null,
             suffixIcon: IconButton(
               onPressed: () => setState(() {
                 obscurePassword = !obscurePassword;
@@ -67,6 +61,18 @@ class _PasswordRequiredDialogState extends State<PasswordRequiredDialog> {
             )
           ),
         ),
+        if (widget.onBiometricsRequest != null)
+          TextButton.icon(
+            onPressed: widget.onBiometricsRequest,
+            icon: const Icon(LucideIcons.fingerprintPattern),
+            label: const Text("Unlock with biometrics"),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
         widget.biometricsAvailable
           ? CheckboxListTile(
             title: const Text('Enable biometrics'),

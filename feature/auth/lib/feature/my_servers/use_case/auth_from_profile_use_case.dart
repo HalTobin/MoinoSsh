@@ -51,17 +51,19 @@ class AuthFromProfileUseCase {
                         final isBiometricsAvailable = await _biometricsService.isBiometricsSupported();
                         if (isBiometricsAvailable) {
                             final secretSshPassword = await _biometricsService.encryptPassword(method.password);
-                            final updatedProfile = EditServerProfile(
-                                id: profile.id,
-                                name: profile.name,
-                                url: profile.url,
-                                port: profile.port,
-                                user: profile.user,
-                                keyPath: profile.keyPath,
-                                securedSshKeyPassword: secretSshPassword,
-                                securedSessionPassword: profile.securedSessionPassword
-                            );
-                            await _serverProfileRepository.updateProfile(updatedProfile);
+                            if (secretSshPassword != null) {
+                                final updatedProfile = EditServerProfile(
+                                    id: profile.id,
+                                    name: profile.name,
+                                    url: profile.url,
+                                    port: profile.port,
+                                    user: profile.user,
+                                    keyPath: profile.keyPath,
+                                    securedSshKeyPassword: secretSshPassword,
+                                    securedSessionPassword: profile.securedSessionPassword
+                                );
+                                await _serverProfileRepository.updateProfile(updatedProfile);
+                            }
                         }
                     }
                     return authResult;
@@ -70,6 +72,9 @@ class AuthFromProfileUseCase {
                     final cryptedPassword = profile.securedSshKeyPassword;
                     if (cryptedPassword != null) {
                         final password = await _biometricsService.decryptPassword(cryptedPassword);
+                        if (password == null) {
+                            return ConnectionFailed(error: "Biometric authentication cancelled");
+                        }
                         return _sshClientService.connect(
                             user: profile.user,
                             serverUrl: profile.url,

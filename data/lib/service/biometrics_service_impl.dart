@@ -27,7 +27,7 @@ class BiometricsServiceImpl implements BiometricsService {
         return response == CanAuthenticateResponse.success;
     }
 
-    Uint8List _generateSecureRandom(int length) {
+    static Uint8List _generateSecureRandom(int length) {
         final random = Random.secure();
         return Uint8List.fromList(List.generate(length, (_) => random.nextInt(256)));
     }
@@ -69,23 +69,25 @@ class BiometricsServiceImpl implements BiometricsService {
         final masterKeyBase64 = await _getOrCreateMasterKey('Authenticate to enable Secure SSH');
         if (masterKeyBase64 == null) return null;
 
-        return await Isolate.run(() {
-            try {
-                final key = base64.decode(masterKeyBase64);
-                final iv = _generateSecureRandom(16);
+        return await Isolate.run(() => _encryptSync(password, masterKeyBase64));
+    }
 
-                final cipher = GCMBlockCipher(AESEngine())
-                    ..init(true, AEADParameters(KeyParameter(key), 128, iv, Uint8List(0)));
+    static String? _encryptSync(String password, String masterKeyBase64) {
+        try {
+            final key = base64.decode(masterKeyBase64);
+            final iv = _generateSecureRandom(16);
 
-                final input = utf8.encode(password);
-                final output = cipher.process(Uint8List.fromList(input));
+            final cipher = GCMBlockCipher(AESEngine())
+                ..init(true, AEADParameters(KeyParameter(key), 128, iv, Uint8List(0)));
 
-                return '${base64.encode(iv)}:${base64.encode(output)}';
-            } catch (e) {
-                if (kDebugMode) print("[BiometricsServiceImpl] Encryption failed: $e");
-                return null;
-            }
-        });
+            final input = utf8.encode(password);
+            final output = cipher.process(Uint8List.fromList(input));
+
+            return '${base64.encode(iv)}:${base64.encode(output)}';
+        } catch (e) {
+            if (kDebugMode) print("[BiometricsServiceImpl] Encryption failed: $e");
+            return null;
+        }
     }
 
     @override
@@ -95,26 +97,28 @@ class BiometricsServiceImpl implements BiometricsService {
         final masterKeyBase64 = await _getOrCreateMasterKey('Unlock your SSH Session');
         if (masterKeyBase64 == null) return null;
 
-        return await Isolate.run(() {
-            try {
-                final parts = ciphertext.split(':');
-                if (parts.length != 2) throw Exception('Invalid ciphertext format');
+        return await Isolate.run(() => _decryptSync(ciphertext, masterKeyBase64));
+    }
 
-                final iv = base64.decode(parts[0]);
-                final encryptedData = base64.decode(parts[1]);
-                final key = base64.decode(masterKeyBase64);
+    static String? _decryptSync(String ciphertext, String masterKeyBase64) {
+        try {
+            final parts = ciphertext.split(':');
+            if (parts.length != 2) throw Exception('Invalid ciphertext format');
 
-                final cipher = GCMBlockCipher(AESEngine())
-                    ..init(false, AEADParameters(KeyParameter(key), 128, iv, Uint8List(0)));
+            final iv = base64.decode(parts[0]);
+            final encryptedData = base64.decode(parts[1]);
+            final key = base64.decode(masterKeyBase64);
 
-                final output = cipher.process(Uint8List.fromList(encryptedData));
+            final cipher = GCMBlockCipher(AESEngine())
+                ..init(false, AEADParameters(KeyParameter(key), 128, iv, Uint8List(0)));
 
-                return utf8.decode(output);
-            } catch (e) {
-                if (kDebugMode) print("[BiometricsServiceImpl] Decryption failed: $e");
-                return null;
-            }
-        });
+            final output = cipher.process(Uint8List.fromList(encryptedData));
+
+            return utf8.decode(output);
+        } catch (e) {
+            if (kDebugMode) print("[BiometricsServiceImpl] Decryption failed: $e");
+            return null;
+        }
     }
 
     @override
