@@ -111,13 +111,15 @@ class SshKeyManagerScreen extends StatelessWidget {
                     error: state.error,
                     onRetry: () => onEvent(ReloadRemoteKeys()),
                   )
-                : RemoteKeysSection(
-                    remoteKeys: state.remoteKeys,
-                    stagedKeys: state.stagedKeys,
-                    onToggleDeletion: (id) => onEvent(
-                      ToggleRemoteKeyDeletion(id: id),
+                : state.remoteLoading
+                    ? SizedBox.expand()
+                    : RemoteKeysSection(
+                      remoteKeys: state.remoteKeys,
+                      stagedKeys: state.stagedKeys,
+                      onToggleDeletion: (id) => onEvent(
+                        ToggleRemoteKeyDeletion(id: id),
+                      ),
                     ),
-                  ),
           ),
           if (showRemoteLoadingOverlay)
             Positioned.fill(
