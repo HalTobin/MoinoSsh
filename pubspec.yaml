@@ -34,15 +34,14 @@ dependencies:
     sdk: flutter
 
   shared_preferences: ^2.5.4
-  encrypt: ^5.0.3
-  pointycastle: ^3.9.1
+  pointycastle: ^4.0.0
   lucide_icons_flutter: ^3.1.5
   provider: ^6.1.5
   path_provider: ^2.1.5
   dynamic_color: ^1.8.1
   file_picker: ^11.0.2
   super_drag_and_drop: ^0.9.1
-  dartssh2: ^2.14.0
+  dartssh2: ^2.22.5
   drift: ^2.32.1
   drift_flutter: ^0.3.0
   biometric_storage: ^5.0.1

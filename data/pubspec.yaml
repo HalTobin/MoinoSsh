@@ -9,7 +9,6 @@ dependencies:
     sdk: flutter
 
   shared_preferences:
-  encrypt:
   pointycastle:
   path_provider:
   dartssh2:
@@ -26,6 +25,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints:
+  mocktail: ^1.0.4
 
   drift_dev:
   build_runner:

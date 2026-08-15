@@ -1,32 +1,42 @@
+import 'dart:convert';
 import 'dart:isolate';
+import 'dart:math';
 
 import 'package:domain/repository/server_profile_repository.dart';
 import 'package:domain/service/biometrics_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:biometric_storage/biometric_storage.dart';
-import 'package:encrypt/encrypt.dart' as enc;
+import 'package:pointycastle/export.dart';
 
 class BiometricsServiceImpl implements BiometricsService {
     final ServerProfileRepository _serverProfileRepository;
+    final BiometricStorage _biometricStorage;
 
     // The constant name for our master vault
     static const String _masterKeyVaultId = 'ssh_app_master_encryption_key';
 
     BiometricsServiceImpl({
         required ServerProfileRepository serverProfileRepository,
-    }) : _serverProfileRepository = serverProfileRepository;
+        BiometricStorage? biometricStorage,
+    }) : _serverProfileRepository = serverProfileRepository,
+         _biometricStorage = biometricStorage ?? BiometricStorage();
 
     @override
     Future<bool> isBiometricsSupported() async {
-        final response = await BiometricStorage().canAuthenticate();
+        final response = await _biometricStorage.canAuthenticate();
         return response == CanAuthenticateResponse.success;
+    }
+
+    Uint8List _generateSecureRandom(int length) {
+        final random = Random.secure();
+        return Uint8List.fromList(List.generate(length, (_) => random.nextInt(256)));
     }
 
     /// Retrieves the Master Key from hardware. If it doesn't exist, generates
     /// a secure 256-bit key and saves it behind biometrics.
     Future<String?> _getOrCreateMasterKey(String promptMessage) async {
         try {
-            final vault = await BiometricStorage().getStorage(
+            final vault = await _biometricStorage.getStorage(
                 _masterKeyVaultId,
                 options: StorageFileInitOptions(authenticationRequired: true),
                 promptInfo: PromptInfo(
@@ -40,8 +50,8 @@ class BiometricsServiceImpl implements BiometricsService {
             // If no key exists, we generate a cryptographically secure 256-bit (32 byte) key
             if (masterKeyBase64 == null || masterKeyBase64.isEmpty) {
                 if (kDebugMode) print("[BiometricsServiceImpl] Generating new Master Key...");
-                final newKey = enc.Key.fromSecureRandom(32);
-                masterKeyBase64 = newKey.base64;
+                final newKey = _generateSecureRandom(32);
+                masterKeyBase64 = base64.encode(newKey);
                 await vault.write(masterKeyBase64);
             }
 
@@ -61,13 +71,16 @@ class BiometricsServiceImpl implements BiometricsService {
 
         return await Isolate.run(() {
             try {
-                final key = enc.Key.fromBase64(masterKeyBase64);
-                final iv = enc.IV.fromSecureRandom(16);
+                final key = base64.decode(masterKeyBase64);
+                final iv = _generateSecureRandom(16);
 
-                final encrypter = enc.Encrypter(enc.AES(key, mode: enc.AESMode.gcm));
-                final encrypted = encrypter.encrypt(password, iv: iv);
+                final cipher = GCMBlockCipher(AESEngine())
+                    ..init(true, AEADParameters(KeyParameter(key), 128, iv, Uint8List(0)));
 
-                return '${iv.base64}:${encrypted.base64}';
+                final input = utf8.encode(password);
+                final output = cipher.process(Uint8List.fromList(input));
+
+                return '${base64.encode(iv)}:${base64.encode(output)}';
             } catch (e) {
                 if (kDebugMode) print("[BiometricsServiceImpl] Encryption failed: $e");
                 return null;
@@ -87,13 +100,16 @@ class BiometricsServiceImpl implements BiometricsService {
                 final parts = ciphertext.split(':');
                 if (parts.length != 2) throw Exception('Invalid ciphertext format');
 
-                final iv = enc.IV.fromBase64(parts[0]);
-                final encryptedText = enc.Encrypted.fromBase64(parts[1]);
-                final key = enc.Key.fromBase64(masterKeyBase64);
+                final iv = base64.decode(parts[0]);
+                final encryptedData = base64.decode(parts[1]);
+                final key = base64.decode(masterKeyBase64);
 
-                final encrypter = enc.Encrypter(enc.AES(key, mode: enc.AESMode.gcm));
+                final cipher = GCMBlockCipher(AESEngine())
+                    ..init(false, AEADParameters(KeyParameter(key), 128, iv, Uint8List(0)));
 
-                return encrypter.decrypt(encryptedText, iv: iv);
+                final output = cipher.process(Uint8List.fromList(encryptedData));
+
+                return utf8.decode(output);
             } catch (e) {
                 if (kDebugMode) print("[BiometricsServiceImpl] Decryption failed: $e");
                 return null;
@@ -107,7 +123,7 @@ class BiometricsServiceImpl implements BiometricsService {
 
         try {
             // 1. Delete the Master Key vault. This instantly renders all database ciphertexts useless.
-            final vault = await BiometricStorage().getStorage(_masterKeyVaultId);
+            final vault = await _biometricStorage.getStorage(_masterKeyVaultId);
             await vault.delete();
         } catch (e) {
             if (kDebugMode) print('Failed to delete Master Key: $e');
