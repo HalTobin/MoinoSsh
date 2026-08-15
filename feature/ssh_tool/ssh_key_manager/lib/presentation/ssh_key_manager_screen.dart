@@ -41,16 +41,17 @@ class SshKeyManagerScreen extends StatelessWidget {
           icon: const Icon(LucideIcons.arrowLeft),
         ),
         title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(title),
             if (state.authorizedKeysPath != null)
               Text(
                 state.authorizedKeysPath!,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontFamily: 'monospace',
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  fontFamily: 'monospace',
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
           ],
         ),
