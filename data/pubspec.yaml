@@ -15,7 +15,6 @@ dependencies:
   drift:
   drift_flutter:
   flutter_secure_storage:
-  local_auth:
   collection:
   path:
 

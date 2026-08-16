@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
@@ -6,40 +7,42 @@ import 'package:domain/repository/server_profile_repository.dart';
 import 'package:domain/service/biometrics_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:pointycastle/export.dart';
 
 class BiometricsServiceImpl implements BiometricsService {
     final ServerProfileRepository _serverProfileRepository;
     final FlutterSecureStorage _secureStorage;
-    final LocalAuthentication _localAuth;
 
     // The constant name for our master vault
     static const String _masterKeyVaultId = 'ssh_app_master_encryption_key';
-    
-    final _androidOptions = const AndroidOptions.biometric(enforceBiometrics: true, biometricType: AndroidBiometricType.strongBiometricOnly);
-    final _iosOptions = const IOSOptions(accessibility: KeychainAccessibility.first_unlock, useSecureEnclave: true, accessControlFlags: [AccessControlFlag.userPresence]);
-    final _macOsOptions = const MacOsOptions(accessibility: KeychainAccessibility.first_unlock, usesDataProtectionKeychain: true, useSecureEnclave: true, accessControlFlags: [AccessControlFlag.userPresence]);
+
+    static const _androidOptions = AndroidOptions.biometric(
+        enforceBiometrics: true,
+        biometricType: AndroidBiometricType.strongBiometricOnly
+    );
+    static const _iosOptions = IOSOptions(
+        accessibility: KeychainAccessibility.first_unlock,
+        useSecureEnclave: true,
+        accessControlFlags: [AccessControlFlag.userPresence]
+    );
+    static const _macOsOptions = MacOsOptions(
+        accessibility: KeychainAccessibility.first_unlock,
+        usesDataProtectionKeychain: true,
+        useSecureEnclave: true,
+        accessControlFlags: [AccessControlFlag.userPresence]
+    );
 
     BiometricsServiceImpl({
-      required ServerProfileRepository serverProfileRepository,
-      FlutterSecureStorage? secureStorage,
-      LocalAuthentication? localAuth,
+        required ServerProfileRepository serverProfileRepository,
+        FlutterSecureStorage? secureStorage,
     })  : _serverProfileRepository = serverProfileRepository,
-          _secureStorage = secureStorage ?? const FlutterSecureStorage(),
-          _localAuth = localAuth ?? LocalAuthentication();
+          _secureStorage = secureStorage ?? const FlutterSecureStorage();
 
     @override
     Future<bool> isBiometricsSupported() async {
-        try {
-            _secureStorage.read(key: key)
-            final canAuthenticateWithBiometrics = await _localAuth.canCheckBiometrics;
-            final canAuthenticate = canAuthenticateWithBiometrics || await _localAuth.isDeviceSupported();
-            return canAuthenticate;
-        } catch (e) {
-            if (kDebugMode) print('[BiometricsServiceImpl] Error checking biometrics support: $e');
-            return false;
-        }
+        if (kIsWeb) return false;
+        // Basic platform support check since we want to avoid local_auth
+        return Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
     }
 
     static Uint8List _generateSecureRandom(int length) {
@@ -51,40 +54,30 @@ class BiometricsServiceImpl implements BiometricsService {
     /// a secure 256-bit key and saves it behind biometrics.
     Future<String?> _getOrCreateMasterKey(String promptMessage) async {
         try {
-            // 1. Authenticate the user first
-            final authenticated = await _localAuth.authenticate(
-                localizedReason: promptMessage,
-                options: const AuthenticationOptions(
-                    stickyAuth: true,
-                    biometricOnly: true,
-                ),
-            );
-
-            if (!authenticated) return null;
-
-            // 2. Access Secure Storage
+            // Access Secure Storage - this will trigger the OS biometric prompt
+            // because of the options set (enforceBiometrics, userPresence)
             String? masterKeyBase64 = await _secureStorage.read(
-                key: _masterKeyVaultId,
-                aOptions: _androidOptions,
-                iOptions: _iosOptions,
-                mOptions: _macOsOptions
+              key: _masterKeyVaultId,
+              aOptions: _androidOptions,
+              iOptions: _iosOptions,
+              mOptions: _macOsOptions,
             );
 
             // If no key exists, we generate a cryptographically secure 256-bit (32 byte) key
             if (masterKeyBase64 == null || masterKeyBase64.isEmpty) {
-                if (kDebugMode) print("[BiometricsServiceImpl] Generating new Master Key...");
-                final newKey = _generateSecureRandom(32);
-                masterKeyBase64 = base64.encode(newKey);
-                await _secureStorage.write(
-                    key: _masterKeyVaultId,
-                    value: masterKeyBase64,
-                    aOptions: _androidOptions,
-                    iOptions: _iosOptions,
-                    mOptions: _macOsOptions
-                );
+              if (kDebugMode) print("[BiometricsServiceImpl] Generating new Master Key...");
+              final newKey = _generateSecureRandom(32);
+              masterKeyBase64 = base64.encode(newKey);
+              await _secureStorage.write(
+                key: _masterKeyVaultId,
+                value: masterKeyBase64,
+                aOptions: _androidOptions,
+                iOptions: _iosOptions,
+                mOptions: _macOsOptions,
+              );
             }
 
-          return masterKeyBase64;
+            return masterKeyBase64;
         } catch (e) {
             if (kDebugMode) print('[BiometricsServiceImpl] Master Key error: $e');
             return null;
@@ -160,7 +153,7 @@ class BiometricsServiceImpl implements BiometricsService {
             if (kDebugMode) print('Failed to delete Master Key: $e');
         }
 
-        // 2. Clear the database entries
-        await _serverProfileRepository.deletePasswords();
+          // 2. Clear the database entries
+          await _serverProfileRepository.deletePasswords();
     }
 }
