@@ -27,7 +27,7 @@ class DomainProvider extends StatelessWidget {
         Provider(create: (context) => (SshConnectUseCase(sshClientService: context.read()))),
         Provider(create: (context) => (CloseSftpUseCase(sftpService: context.read()))),
         Provider(create: (_) => (CheckWrongFieldsUseCase())),
-        Provider<CheckBiometricsAvailabilityUseCase>(create: (context) => (CheckBiometricsAvailabilityUseCaseImpl())),
+        Provider<CheckBiometricsAvailabilityUseCase>(create: (context) => (CheckBiometricsAvailabilityUseCaseImpl(biometricsService: context.read()))),
         Provider(
           create: (context) => (
             GetCurrentServerProfileUseCase(

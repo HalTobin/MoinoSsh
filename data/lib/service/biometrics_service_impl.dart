@@ -5,26 +5,41 @@ import 'dart:math';
 import 'package:domain/repository/server_profile_repository.dart';
 import 'package:domain/service/biometrics_service.dart';
 import 'package:flutter/foundation.dart';
-import 'package:biometric_storage/biometric_storage.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:pointycastle/export.dart';
 
 class BiometricsServiceImpl implements BiometricsService {
     final ServerProfileRepository _serverProfileRepository;
-    final BiometricStorage _biometricStorage;
+    final FlutterSecureStorage _secureStorage;
+    final LocalAuthentication _localAuth;
 
     // The constant name for our master vault
     static const String _masterKeyVaultId = 'ssh_app_master_encryption_key';
+    
+    final _androidOptions = const AndroidOptions.biometric(enforceBiometrics: true, biometricType: AndroidBiometricType.strongBiometricOnly);
+    final _iosOptions = const IOSOptions(accessibility: KeychainAccessibility.first_unlock, useSecureEnclave: true, accessControlFlags: [AccessControlFlag.userPresence]);
+    final _macOsOptions = const MacOsOptions(accessibility: KeychainAccessibility.first_unlock, usesDataProtectionKeychain: true, useSecureEnclave: true, accessControlFlags: [AccessControlFlag.userPresence]);
 
     BiometricsServiceImpl({
-        required ServerProfileRepository serverProfileRepository,
-        BiometricStorage? biometricStorage,
-    }) : _serverProfileRepository = serverProfileRepository,
-         _biometricStorage = biometricStorage ?? BiometricStorage();
+      required ServerProfileRepository serverProfileRepository,
+      FlutterSecureStorage? secureStorage,
+      LocalAuthentication? localAuth,
+    })  : _serverProfileRepository = serverProfileRepository,
+          _secureStorage = secureStorage ?? const FlutterSecureStorage(),
+          _localAuth = localAuth ?? LocalAuthentication();
 
     @override
     Future<bool> isBiometricsSupported() async {
-        final response = await _biometricStorage.canAuthenticate();
-        return response == CanAuthenticateResponse.success;
+        try {
+            _secureStorage.read(key: key)
+            final canAuthenticateWithBiometrics = await _localAuth.canCheckBiometrics;
+            final canAuthenticate = canAuthenticateWithBiometrics || await _localAuth.isDeviceSupported();
+            return canAuthenticate;
+        } catch (e) {
+            if (kDebugMode) print('[BiometricsServiceImpl] Error checking biometrics support: $e');
+            return false;
+        }
     }
 
     static Uint8List _generateSecureRandom(int length) {
@@ -36,26 +51,40 @@ class BiometricsServiceImpl implements BiometricsService {
     /// a secure 256-bit key and saves it behind biometrics.
     Future<String?> _getOrCreateMasterKey(String promptMessage) async {
         try {
-            final vault = await _biometricStorage.getStorage(
-                _masterKeyVaultId,
-                options: StorageFileInitOptions(authenticationRequired: true),
-                promptInfo: PromptInfo(
-                    iosPromptInfo: IosPromptInfo(accessTitle: promptMessage, saveTitle: promptMessage),
-                    androidPromptInfo: AndroidPromptInfo(title: promptMessage),
+            // 1. Authenticate the user first
+            final authenticated = await _localAuth.authenticate(
+                localizedReason: promptMessage,
+                options: const AuthenticationOptions(
+                    stickyAuth: true,
+                    biometricOnly: true,
                 ),
             );
 
-            String? masterKeyBase64 = await vault.read();
+            if (!authenticated) return null;
+
+            // 2. Access Secure Storage
+            String? masterKeyBase64 = await _secureStorage.read(
+                key: _masterKeyVaultId,
+                aOptions: _androidOptions,
+                iOptions: _iosOptions,
+                mOptions: _macOsOptions
+            );
 
             // If no key exists, we generate a cryptographically secure 256-bit (32 byte) key
             if (masterKeyBase64 == null || masterKeyBase64.isEmpty) {
                 if (kDebugMode) print("[BiometricsServiceImpl] Generating new Master Key...");
                 final newKey = _generateSecureRandom(32);
                 masterKeyBase64 = base64.encode(newKey);
-                await vault.write(masterKeyBase64);
+                await _secureStorage.write(
+                    key: _masterKeyVaultId,
+                    value: masterKeyBase64,
+                    aOptions: _androidOptions,
+                    iOptions: _iosOptions,
+                    mOptions: _macOsOptions
+                );
             }
 
-            return masterKeyBase64;
+          return masterKeyBase64;
         } catch (e) {
             if (kDebugMode) print('[BiometricsServiceImpl] Master Key error: $e');
             return null;
@@ -78,7 +107,7 @@ class BiometricsServiceImpl implements BiometricsService {
             final iv = _generateSecureRandom(16);
 
             final cipher = GCMBlockCipher(AESEngine())
-                ..init(true, AEADParameters(KeyParameter(key), 128, iv, Uint8List(0)));
+              ..init(true, AEADParameters(KeyParameter(key), 128, iv, Uint8List(0)));
 
             final input = utf8.encode(password);
             final output = cipher.process(Uint8List.fromList(input));
@@ -110,7 +139,7 @@ class BiometricsServiceImpl implements BiometricsService {
             final key = base64.decode(masterKeyBase64);
 
             final cipher = GCMBlockCipher(AESEngine())
-                ..init(false, AEADParameters(KeyParameter(key), 128, iv, Uint8List(0)));
+              ..init(false, AEADParameters(KeyParameter(key), 128, iv, Uint8List(0)));
 
             final output = cipher.process(Uint8List.fromList(encryptedData));
 
@@ -126,9 +155,7 @@ class BiometricsServiceImpl implements BiometricsService {
         if (kDebugMode) print("[BiometricsServiceImpl] Wiping Master Key and Database...");
 
         try {
-            // 1. Delete the Master Key vault. This instantly renders all database ciphertexts useless.
-            final vault = await _biometricStorage.getStorage(_masterKeyVaultId);
-            await vault.delete();
+            await _secureStorage.delete(key: _masterKeyVaultId);
         } catch (e) {
             if (kDebugMode) print('Failed to delete Master Key: $e');
         }
@@ -136,5 +163,4 @@ class BiometricsServiceImpl implements BiometricsService {
         // 2. Clear the database entries
         await _serverProfileRepository.deletePasswords();
     }
-
 }

@@ -1,6 +1,4 @@
 PODS:
-  - biometric_storage (0.0.1):
-    - FlutterMacOS
   - FlutterMacOS (1.0.0)
   - irondash_engine_context (0.0.1):
     - FlutterMacOS
@@ -8,14 +6,11 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
-  - biometric_storage (from `Flutter/ephemeral/.symlinks/plugins/biometric_storage/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - irondash_engine_context (from `Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos`)
   - super_native_extensions (from `Flutter/ephemeral/.symlinks/plugins/super_native_extensions/macos`)
 
 EXTERNAL SOURCES:
-  biometric_storage:
-    :path: Flutter/ephemeral/.symlinks/plugins/biometric_storage/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
   irondash_engine_context:
@@ -24,7 +19,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/super_native_extensions/macos
 
 SPEC CHECKSUMS:
-  biometric_storage: 43caa6e7ef00e8e19c074216e7e1786dacda9e76
   FlutterMacOS: c232990155153907050900a2e175c7773903ba4e
   irondash_engine_context: da62996ee25616d2f01bbeb85dc115d813359478
   super_native_extensions: 85efee3a7495b46b04befcfc86ed12069264ebf3
